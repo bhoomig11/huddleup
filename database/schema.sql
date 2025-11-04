@@ -1,9 +1,9 @@
-create database huddleup;
-use huddleup;
+CREATE DATABASE huddleup;
+USE huddleup;
 
 
-create table turf (
-    turf_id int primary key,
-    turf_name varchar(64),
-    turfdescription varchar(1064)
+CREATE TABLE turf (
+    turf_id INT PRIMARY KEY,
+    turf_name VARCHAR(64),
+    turfdescription VARCHAR(1064)
 );
