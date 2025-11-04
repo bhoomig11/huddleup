@@ -1,0 +1,46 @@
+name: "Lint and format project files"
+on:
+    pull_request:
+        branches: ["main"]
+    push:
+        branches: ["main"]
+
+jobs:
+    sqlfluff:
+        name: "Lint and format SQL files"
+        runs-on: ubuntu-latest
+        permissions:
+            contents: write
+
+        steps:
+            - name: "Check out git repository"
+              uses: actions/checkout@v5.0.0
+            
+            - name: "Setup Python"
+              uses: actions/setup-python@v6.0.0
+              with:
+                python-version: "3.12"
+                cache: "pip"
+
+            - name: "Install sqlfluff"
+              run: pip install sqlfluff==3.5.0
+            
+            - name: "Fix issues in SQL files"
+              run: sqlfluff fix --config .sqlfluff database/
+
+            - name: Check for changes
+              id: git-check
+              run: |
+                git config --global user.name "github-actions[bot]"
+                git config --global user.email "github-actions[bot]@users.noreply.github.com"
+                git add .
+                if ! git diff --cached --quiet; then echo "HAS_STAGED_CHANGES=true" >> "$GITHUB_OUTPUT"; fi
+
+            - name: Commit changes
+              if: steps.git-check.outputs.HAS_STAGED_CHANGES == 'true'
+              run: |
+                git commit -m "chore: auto-format SQL"
+                git push
+
+            - name: "Check for outstanding issues in SQL files"
+              run: sqlfluff lint --config .sqlfluff database/
