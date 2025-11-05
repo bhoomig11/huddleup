@@ -1,0 +1,12 @@
+name: huddleup
+
+services:
+  db:
+    image: mysql:8.0
+    container_name: huddleup-db
+    restart: unless-stopped
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./database/schema.sql:/docker-entrypoint-initdb.d/schema.sql
+      - ./database/seed.sql:/docker-entrypoint-initdb.d/seed.sql

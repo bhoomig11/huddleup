@@ -1,0 +1,4 @@
+services:
+  db:
+    env_file:
+      - ./database/.env
