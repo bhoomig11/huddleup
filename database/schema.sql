@@ -219,18 +219,18 @@ CREATE TABLE review (
 );
 
 /* user receives announcement */
-CREATE TABLE receive_announcement (
+CREATE TABLE announcement_read_receipt (
     announcement_id INT,
     username VARCHAR(64),
     sent_at DATETIME NOT NULL,
     read_at DATETIME,
-    CONSTRAINT pk_receive_announcement PRIMARY KEY (announcement_id, username),
-    CONSTRAINT fk_rec_anc_user
+    CONSTRAINT pk_anc_read_receipt PRIMARY KEY (announcement_id, username),
+    CONSTRAINT fk_anc_read_receipt_user
     FOREIGN KEY (username)
     REFERENCES app_user (username)
     ON UPDATE CASCADE
     ON DELETE CASCADE,
-    CONSTRAINT fk_rec_anc_announcement
+    CONSTRAINT fk_anc_read_receipt_announcement
     FOREIGN KEY (announcement_id)
     REFERENCES announcement (announcement_id)
     ON UPDATE CASCADE
