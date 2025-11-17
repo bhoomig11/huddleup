@@ -7,35 +7,40 @@ CREATE TABLE sport_type (
 );
 
 CREATE TABLE turf (
-    turf_id INT PRIMARY KEY,
-    turf_name VARCHAR(64) UNIQUE NOT NULL,
+    turf_id INT PRIMARY KEY AUTO_INCREMENT,
+    turf_name VARCHAR(64) NOT NULL,
     turf_description VARCHAR(255),
     floor_material VARCHAR(64),
     floor_width DECIMAL(6, 2),
     floor_length DECIMAL(6, 2),
-    hourly_rate INT NOT NULL,
-    opens_at TIME NOT NULL,
-    closes_at TIME NOT NULL,
-    addr_street_no INT,
-    addr_street_name VARCHAR(64),
-    addr_town VARCHAR(64),
-    addr_state VARCHAR(64),
-    addr_zip_code VARCHAR(64),
+    hourly_rate DECIMAL(10, 2) NOT NULL,
+    opens_at_utc TIME NOT NULL,
+    closes_at_utc TIME NOT NULL,
+    manager_id INT,
+    addr_street_1 VARCHAR(64),
+    addr_street_2 VARCHAR(64),
+    addr_state CHAR(2),
+    addr_zip_code CHAR(5),
     sport_name VARCHAR(64) NOT NULL,
-    CONSTRAINT defines
+    CONSTRAINT fk_turf_sport_type
     FOREIGN KEY (sport_name)
     REFERENCES sport_type (sport_name)
+    ON UPDATE CASCADE
+    ON DELETE RESTRICT,
+    CONSTRAINT fk_turf_employee
+    FOREIGN KEY (turf)
+    REFERENCES employee (employee_id)
     ON UPDATE CASCADE
     ON DELETE SET NULL
 );
 
-CREATE TABLE user (
+CREATE TABLE app_user (
     username VARCHAR(64) PRIMARY KEY,
     first_name VARCHAR(64) NOT NULL,
     last_name VARCHAR(64),
     email VARCHAR(64) UNIQUE NOT NULL,
-    addr_street_no INT,
-    addr_street_name VARCHAR(64),
+    addr_street_1 VARCHAR(64),
+    addr_street_2 VARCHAR(64),
     addr_town VARCHAR(64),
     addr_state VARCHAR(64),
     addr_zip_code VARCHAR(64),
@@ -44,13 +49,13 @@ CREATE TABLE user (
 );
 
 CREATE TABLE announcements (
-    id INT PRIMARY KEY,
+    id INT PRIMARY KEY AUTO_INCREMENT,
     announcement_message VARCHAR(255) NOT NULL
 );
 
 CREATE TABLE turf_feature (
-    feat_name VARCHAR(64) PRIMARY KEY NOT NULL,
-    feat_description VARCHAR(255) NOT NULL
+    feat_name VARCHAR(64) PRIMARY KEY,
+    feat_description VARCHAR(255),
 );
 
 CREATE TABLE turf_image (
@@ -58,165 +63,165 @@ CREATE TABLE turf_image (
     image_index INT NOT NULL,
     image_url VARCHAR(255) NOT NULL,
     turf_id INT NOT NULL,
-    CONSTRAINT displays
+    CONSTRAINT fk_turf_image_turf
     FOREIGN KEY (turf_id)
     REFERENCES turf (turf_id)
     ON UPDATE CASCADE
-    ON DELETE SET NULL
+    ON DELETE CASCADE
 );
 
 CREATE TABLE card_detail (
-    card_number INT NOT NULL,
+    card_id INT PRIMARY KEY AUTO AUTO_INCREMENT,
+    card_number VARCHAR(19) NOT NULL,
     name_on_card VARCHAR(64) NOT NULL,
-    expiry_month INT NOT NULL,
-    expiry_year INT NOT NULL,
-    security_code INT NOT NULL,
-    addr_street_no INT,
-    addr_street_name VARCHAR(64),
+    expiry_month VARCHAR(5) NOT NULL,
+    expiry_year VARCHAR(5) NOT NULL,
+    security_code CHAR(4) NOT NULL,
+    addr_street_1 VARCHAR(64),
+    addr_street_2 VARCHAR(64),
     addr_town VARCHAR(64),
     addr_state VARCHAR(64),
     addr_zip_code VARCHAR(64),
     username VARCHAR(64) NOT NULL,
-    PRIMARY KEY (card_number, expiry_month, expiry_year),
-    CONSTRAINT uses
+    CONSTRAINT fk_card_detail_user
     FOREIGN KEY (username)
     REFERENCES user (username)
     ON UPDATE CASCADE
-    ON DELETE SET NULL
+    ON DELETE CASCADE
 );
 
 CREATE TABLE booking (
-    booking_id INT PRIMARY KEY,
-    start_time TIME NOT NULL,
-    duration TIME NOT NULL,
-    amount INT NOT NULL,
+    booking_id INT PRIMARY KEY AUTO_INCREMENT,
+    start_time_utc TIME NOT NULL,
+    duration_mins INT NOT NULL,
+    amount DECIMAL(19,2) NOT NULL,
     complaint_subject VARCHAR(64),
     complaint_description VARCHAR(255),
-    complaint_filed_at DATETIME,
-    complaint_resolved_at DATETIME,
+    complaint_filed_at_utc DATETIME,
+    complaint_resolved_at_utc DATETIME,
     turf_id INT NOT NULL,
-    card_number INT UNIQUE,
-    expiry_month INT NOT NULL,
-    expiry_year INT NOT NULL,
-    coupon_code INT,
-    coupon_start_date DATE,
-    CONSTRAINT reserves
+    card_id INT NOT NULL,
+    coupon_id INT,
+    CONSTRAINT fk_booking_turf
     FOREIGN KEY (turf_id)
     REFERENCES turf (turf_id)
     ON UPDATE CASCADE
-    ON DELETE SET NULL,
-    CONSTRAINT confirms
-    FOREIGN KEY (card_number, expiry_month, expiry_year)
-    REFERENCES card_detail (card_number, expiry_month, expiry_year)
+    ON DELETE RESTRICT,
+    CONSTRAINT fk_booking_card_detail
+    FOREIGN KEY (card_id)
+    REFERENCES card_detail (card_id)
     ON UPDATE CASCADE
     ON DELETE SET NULL,
-    CONSTRAINT applies_to
-    FOREIGN KEY (coupon_code, coupon_start_date)
-    REFERENCES coupon (coupon_code, coupon_start_date)
+    CONSTRAINT fk_booking_coupon
+    FOREIGN KEY (coupon_id)
+    REFERENCES coupon (coupon_id)
     ON UPDATE CASCADE
     ON DELETE SET NULL
 );
 
 CREATE TABLE coupon (
+    coupon_id INT PRIMARY KEY AUTO_INCREMENT,
     coupon_code VARCHAR(20) NOT NULL,
-    coupon_description VARCHAR(255) NOT NULL,
+    coupon_description VARCHAR(255),
     discount_percent INT NOT NULL,
     coupon_start_date DATE NOT NULL,
     end_date DATE NOT NULL,
-    min_booking_amt INT NOT NULL,
-    PRIMARY KEY (coupon_code, coupon_start_date)
+    min_booking_amt DECIMAL(19,2)
 );
 
 CREATE TABLE employee (
-    employee_id INT PRIMARY KEY,
+    employee_id INT PRIMARY KEY AUTO_INCREMENT,
     first_name VARCHAR(64) NOT NULL,
     last_name VARCHAR(64),
     email VARCHAR(64) UNIQUE NOT NULL,
-    ssn INT UNIQUE NOT NULL,
+    ssn CHAR(9) UNIQUE NOT NULL,
     img_url VARCHAR(255),
     birth_date DATE,
-    addr_street_no INT,
-    addr_street_name VARCHAR(64),
+    addr_street_1 VARCHAR(64),
+    addr_street_2 VARCHAR(64),
     addr_town VARCHAR(64),
     addr_state VARCHAR(64),
     addr_zip_code VARCHAR(64),
     password_hash VARCHAR(60) NOT NULL,
     title VARCHAR(64) NOT NULL,
-    emp_level ENUM('staff', 'manager', 'regional_manager', 'executive'),
-    hourly_wage INT NOT NULL,
+    hourly_wage DECIMAL(7, 2) NOT NULL,
     joining_date DATE NOT NULL,
-    turf_assigned INT NOT NULL,
-    reg_manager_id INT,
-    CONSTRAINT assigned_to
-    FOREIGN KEY (turf_assigned)
-    REFERENCES turf (turf_id)
-    ON UPDATE CASCADE
-    ON DELETE SET NULL,
-    CONSTRAINT reports_to
-    FOREIGN KEY (reg_manager_id)
+    reports_to INT,
+    CONSTRAINT fk_staff_manager
+    FOREIGN KEY (reports_to)
     REFERENCES employee (employee_id)
-    ON UPDATE CASCADE
-    ON DELETE CASCADE
-);
-
-CREATE TABLE timesheet_entry (
-    entry_id INT PRIMARY KEY,
-    entry_date DATE NOT NULL,
-    start_time TIME NOT NULL,
-    end_time TIME NOT NULL,
-    task_description VARCHAR(255) NOT NULL,
-    employee_id INT,
-    payslip_id INT NOT NULL,
-    CONSTRAINT logs
-    FOREIGN KEY (employee_id)
-    REFERENCES employee (employee_id)
-    ON UPDATE CASCADE
-    ON DELETE CASCADE,
-    CONSTRAINT creates
-    FOREIGN KEY (payslip_id)
-    REFERENCES payslip (payslip_id)
-    ON UPDATE CASCADE
-    ON DELETE CASCADE
-);
-
-CREATE TABLE payslip (
-    payslip_id INT PRIMARY KEY,
-    amount_paid DECIMAL(19, 2) NOT NULL,
-    date_of_payment DATE NOT NULL
-);
-
-/* TurfFeature features a Turf*/
-CREATE TABLE features (
-    turf_id INT NOT NULL,
-    feature_name VARCHAR(64) NOT NULL,
-    CONSTRAINT turf_fk
-    FOREIGN KEY (turf_id)
-    REFERENCES turf (turf_id)
-    ON UPDATE CASCADE
-    ON DELETE SET NULL,
-    CONSTRAINT feature_fk
-    FOREIGN KEY (feature_name)
-    REFERENCES turf_feature (feat_name)
     ON UPDATE CASCADE
     ON DELETE SET NULL
 );
 
+CREATE TABLE timesheet_entry (
+    entry_id INT PRIMARY KEY,
+    work_date DATE NOT NULL,
+    start_time TIME NOT NULL,
+    end_time TIME NOT NULL,
+    task_description VARCHAR(255) NOT NULL,
+    employee_id INT NOT NULL,
+    payslip_id INT,
+    CONSTRAINT logs
+    FOREIGN KEY (employee_id)
+    REFERENCES employee (employee_id)
+    ON UPDATE CASCADE
+    ON DELETE NO ACTION,
+    CONSTRAINT creates
+    FOREIGN KEY (payslip_id)
+    REFERENCES payslip (payslip_id)
+    ON UPDATE CASCADE
+    ON DELETE NO ACTION
+);
+
+CREATE TABLE payslip (
+    employee_id INT NOT NULL,
+    amount_paid DECIMAL(19, 2) NOT NULL,
+    date_of_payment DATE NOT NULL,
+    PRIMARY KEY(employee_id, date_of_payment)
+    CONSTRAINT fk_payslip_employee
+    FOREIGN KEY (employee_id)
+    REFERENCES employee (employee_id)
+    ON UPDATE CASCADE
+    ON DELETE CASCADE
+);
+
+/* TurfFeature features a Turf*/
+CREATE TABLE turf_to_feature (
+    features_id INT PRIMARY KEY AUTO_INCREMENT,
+    turf_id INT NOT NULL,
+    feature_name VARCHAR(64) NOT NULL,
+    CONSTRAINT fk_ttf_turf
+    FOREIGN KEY (turf_id)
+    REFERENCES turf (turf_id)
+    ON UPDATE CASCADE
+    ON DELETE SET NULL,
+    CONSTRAINT fk_ttf_feature
+    FOREIGN KEY (feature_name)
+    REFERENCES turf_feature (feat_name)
+    ON UPDATE CASCADE
+    ON DELETE CASCADE
+);
+
 /* users reviews turfs */
 CREATE TABLE reviews (
-    rating INT CHECK (rating >= 1 AND rating <= 5) NOT NULL,
+    review_id INT PRIMARY KEY AUTO_INCREMENT,
+    rating INT NOT NULL,
     review VARCHAR(255),
     username VARCHAR(64) NOT NULL,
     turf_id INT NOT NULL,
-    CONSTRAINT user_fk
+    CONSTRAINT fk_reviews_user
     FOREIGN KEY (username)
     REFERENCES user (username)
     ON UPDATE CASCADE
     ON DELETE SET NULL,
-    CONSTRAINT turf_fk
+    CONSTRAINT fk_reviews_turf
     FOREIGN KEY (turf_id)
     REFERENCES turf (turf_id)
     ON UPDATE CASCADE
-    ON DELETE CASCADE
+    ON DELETE CASCADE,
+    CONSTRAINT rating_range_check
+    CHECK (rating >= 1 AND rating <= 5)
 );
 
 /* users receives announcements */
@@ -225,12 +230,13 @@ CREATE TABLE receive_announcement (
     sent_at DATETIME NOT NULL,
     announcement_id INT NOT NULL,
     username VARCHAR(64) NOT NULL,
-    CONSTRAINT user_fk
+    PRIMARY KEY (announcement_id, username),
+    CONSTRAINT fk_rec_anc_user
     FOREIGN KEY (username)
     REFERENCES user (username)
     ON UPDATE CASCADE
-    ON DELETE SET NULL,
-    CONSTRAINT announcement_fk
+    ON DELETE CASCADE,
+    CONSTRAINT fk_rec_anc_announcement
     FOREIGN KEY (announcement_id)
     REFERENCES announcements (id)
     ON UPDATE CASCADE
