@@ -177,7 +177,7 @@ CREATE TABLE booking (
     FOREIGN KEY (card_id)
     REFERENCES card_detail (card_id)
     ON UPDATE CASCADE
-    ON DELETE SET NULL,
+    ON DELETE RESTRICT,
     CONSTRAINT fk_booking_coupon
     FOREIGN KEY (coupon_id)
     REFERENCES coupon (coupon_id)
