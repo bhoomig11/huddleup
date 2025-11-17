@@ -174,10 +174,10 @@ CREATE TABLE timesheet_entry (
 );
 
 CREATE TABLE payslip (
-    employee_id INT NOT NULL,
+    employee_id INT,
+    date_of_payment DATE,
     amount_paid DECIMAL(19, 2) NOT NULL,
-    date_of_payment DATE NOT NULL,
-    PRIMARY KEY(employee_id, date_of_payment)
+    CONSTRAINT pk_payslip PRIMARY KEY(employee_id, date_of_payment),
     CONSTRAINT fk_payslip_employee
     FOREIGN KEY (employee_id)
     REFERENCES employee (employee_id)
@@ -225,11 +225,11 @@ CREATE TABLE review (
 
 /* users receives announcements */
 CREATE TABLE receive_announcement (
-    read_at DATETIME,
+    announcement_id INT,
+    username VARCHAR(64),
     sent_at DATETIME NOT NULL,
-    announcement_id INT NOT NULL,
-    username VARCHAR(64) NOT NULL,
-    PRIMARY KEY (announcement_id, username),
+    read_at DATETIME,
+    CONSTRAINT pk_receive_announcement PRIMARY KEY (announcement_id, username),
     CONSTRAINT fk_rec_anc_user
     FOREIGN KEY (username)
     REFERENCES app_user (username)
