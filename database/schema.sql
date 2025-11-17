@@ -27,8 +27,8 @@ CREATE TABLE turf (
     REFERENCES sport_type (sport_name)
     ON UPDATE CASCADE
     ON DELETE RESTRICT,
-    CONSTRAINT fk_turf_employee
-    FOREIGN KEY (turf)
+    CONSTRAINT fk_turf_manager_id
+    FOREIGN KEY (manager_id)
     REFERENCES employee (employee_id)
     ON UPDATE CASCADE
     ON DELETE SET NULL
