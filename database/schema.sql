@@ -154,13 +154,13 @@ CREATE TABLE employee (
 );
 
 CREATE TABLE timesheet_entry (
-    entry_id INT PRIMARY KEY,
-    work_date DATE NOT NULL,
-    start_time TIME NOT NULL,
+    employee_id INT,
+    work_date DATE,
+    start_time TIME,
     end_time TIME NOT NULL,
     task_description VARCHAR(255) NOT NULL,
-    employee_id INT NOT NULL,
     payslip_id INT,
+    CONSTRAINT pk_timesheet_entry PRIMARY KEY (employee_id, work_date, start_time),
     CONSTRAINT fk_timesheet_entry_employee
     FOREIGN KEY (employee_id)
     REFERENCES employee (employee_id)
