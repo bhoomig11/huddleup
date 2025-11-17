@@ -45,7 +45,7 @@ CREATE TABLE timesheet_entry (
     start_time TIME,
     end_time TIME NOT NULL,
     task_description VARCHAR(255) NOT NULL,
-    payslip_id INT,
+    date_of_payment DATE,
     CONSTRAINT pk_timesheet_entry PRIMARY KEY (employee_id, work_date, start_time),
     CONSTRAINT fk_timesheet_entry_employee
     FOREIGN KEY (employee_id)
@@ -53,8 +53,8 @@ CREATE TABLE timesheet_entry (
     ON UPDATE CASCADE
     ON DELETE NO ACTION,
     CONSTRAINT fk_timesheet_entry_payslip
-    FOREIGN KEY (payslip_id)
-    REFERENCES payslip (payslip_id)
+    FOREIGN KEY (employee_id, date_of_payment)
+    REFERENCES payslip (employee_id, date_of_payment)
     ON UPDATE CASCADE
     ON DELETE NO ACTION
 );
