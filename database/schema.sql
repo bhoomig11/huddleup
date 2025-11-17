@@ -51,7 +51,7 @@ CREATE TABLE timesheet_entry (
     FOREIGN KEY (employee_id)
     REFERENCES employee (employee_id)
     ON UPDATE CASCADE
-    ON DELETE NO ACTION,
+    ON DELETE CASCADE,
     CONSTRAINT fk_timesheet_entry_payslip
     FOREIGN KEY (employee_id, date_of_payment)
     REFERENCES payslip (employee_id, date_of_payment)
