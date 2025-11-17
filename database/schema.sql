@@ -208,7 +208,7 @@ CREATE TABLE review (
     review_id INT PRIMARY KEY AUTO_INCREMENT,
     rating INT NOT NULL,
     review VARCHAR(255),
-    username VARCHAR(64) NOT NULL,
+    username VARCHAR(64),
     turf_id INT NOT NULL,
     CONSTRAINT fk_review_user
     FOREIGN KEY (username)
