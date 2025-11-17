@@ -186,9 +186,9 @@ CREATE TABLE booking (
 
 /* turf includes feature */
 CREATE TABLE turf_to_feature (
-    features_id INT PRIMARY KEY AUTO_INCREMENT,
-    turf_id INT NOT NULL,
-    feature_name VARCHAR(64) NOT NULL,
+    turf_id INT,
+    feature_name VARCHAR(64),
+    CONSTRAINT pk_ttf PRIMARY KEY (turf_id, feature_name),
     CONSTRAINT fk_ttf_turf
     FOREIGN KEY (turf_id)
     REFERENCES turf (turf_id)
