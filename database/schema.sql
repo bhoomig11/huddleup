@@ -45,18 +45,12 @@ CREATE TABLE timesheet_entry (
     start_time TIME,
     end_time TIME NOT NULL,
     task_description VARCHAR(255) NOT NULL,
-    date_of_payment DATE,
     CONSTRAINT pk_timesheet_entry PRIMARY KEY (employee_id, work_date, start_time),
     CONSTRAINT fk_timesheet_entry_employee
     FOREIGN KEY (employee_id)
     REFERENCES employee (employee_id)
     ON UPDATE CASCADE
-    ON DELETE CASCADE,
-    CONSTRAINT fk_timesheet_entry_payslip
-    FOREIGN KEY (employee_id, date_of_payment)
-    REFERENCES payslip (employee_id, date_of_payment)
-    ON UPDATE CASCADE
-    ON DELETE NO ACTION
+    ON DELETE CASCADE
 );
 
 CREATE TABLE sport_type (
