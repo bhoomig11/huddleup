@@ -31,7 +31,7 @@ CREATE TABLE payslip (
     employee_id INT,
     date_of_payment DATE,
     amount_paid DECIMAL(19, 2) NOT NULL,
-    CONSTRAINT pk_payslip PRIMARY KEY(employee_id, date_of_payment),
+    CONSTRAINT pk_payslip PRIMARY KEY (employee_id, date_of_payment),
     CONSTRAINT fk_payslip_employee
     FOREIGN KEY (employee_id)
     REFERENCES employee (employee_id)
@@ -153,14 +153,14 @@ CREATE TABLE coupon (
     discount_percent INT NOT NULL,
     coupon_start_date DATE NOT NULL,
     coupon_end_date DATE NOT NULL,
-    min_booking_amt DECIMAL(19,2)
+    min_booking_amt DECIMAL(19, 2)
 );
 
 CREATE TABLE booking (
     booking_id INT PRIMARY KEY AUTO_INCREMENT,
     start_time_utc TIME NOT NULL,
     duration_mins INT NOT NULL,
-    amount DECIMAL(19,2) NOT NULL,
+    amount DECIMAL(19, 2) NOT NULL,
     complaint_subject VARCHAR(64),
     complaint_description VARCHAR(255),
     complaint_filed_at_utc DATETIME,
