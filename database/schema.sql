@@ -71,7 +71,7 @@ CREATE TABLE turf_image (
 );
 
 CREATE TABLE card_detail (
-    card_id INT PRIMARY KEY AUTO AUTO_INCREMENT,
+    card_id INT PRIMARY KEY AUTO_INCREMENT,
     card_number VARCHAR(19) NOT NULL,
     name_on_card VARCHAR(64) NOT NULL,
     expiry_month VARCHAR(5) NOT NULL,
