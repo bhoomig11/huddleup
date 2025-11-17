@@ -1,7 +1,64 @@
 CREATE DATABASE IF NOT EXISTS huddleup;
 USE huddleup;
 
-/* entities*/
+/* Entities */
+CREATE TABLE employee (
+    employee_id INT PRIMARY KEY AUTO_INCREMENT,
+    first_name VARCHAR(64) NOT NULL,
+    last_name VARCHAR(64),
+    email VARCHAR(64) UNIQUE NOT NULL,
+    ssn CHAR(9) UNIQUE NOT NULL,
+    img_url VARCHAR(255),
+    birth_date DATE,
+    addr_street_1 VARCHAR(64),
+    addr_street_2 VARCHAR(64),
+    addr_town VARCHAR(64),
+    addr_state VARCHAR(64),
+    addr_zip_code VARCHAR(64),
+    password_hash VARCHAR(60) NOT NULL,
+    title VARCHAR(64) NOT NULL,
+    hourly_wage DECIMAL(7, 2) NOT NULL,
+    joining_date DATE NOT NULL,
+    reports_to INT,
+    CONSTRAINT fk_employee_supervisor
+    FOREIGN KEY (reports_to)
+    REFERENCES employee (employee_id)
+    ON UPDATE CASCADE
+    ON DELETE RESTRICT
+);
+
+CREATE TABLE payslip (
+    employee_id INT,
+    date_of_payment DATE,
+    amount_paid DECIMAL(19, 2) NOT NULL,
+    CONSTRAINT pk_payslip PRIMARY KEY(employee_id, date_of_payment),
+    CONSTRAINT fk_payslip_employee
+    FOREIGN KEY (employee_id)
+    REFERENCES employee (employee_id)
+    ON UPDATE CASCADE
+    ON DELETE CASCADE
+);
+
+CREATE TABLE timesheet_entry (
+    employee_id INT,
+    work_date DATE,
+    start_time TIME,
+    end_time TIME NOT NULL,
+    task_description VARCHAR(255) NOT NULL,
+    payslip_id INT,
+    CONSTRAINT pk_timesheet_entry PRIMARY KEY (employee_id, work_date, start_time),
+    CONSTRAINT fk_timesheet_entry_employee
+    FOREIGN KEY (employee_id)
+    REFERENCES employee (employee_id)
+    ON UPDATE CASCADE
+    ON DELETE NO ACTION,
+    CONSTRAINT fk_timesheet_entry_payslip
+    FOREIGN KEY (payslip_id)
+    REFERENCES payslip (payslip_id)
+    ON UPDATE CASCADE
+    ON DELETE NO ACTION
+);
+
 CREATE TABLE sport_type (
     sport_name VARCHAR(64) PRIMARY KEY
 );
@@ -34,25 +91,6 @@ CREATE TABLE turf (
     ON DELETE RESTRICT
 );
 
-CREATE TABLE app_user (
-    username VARCHAR(64) PRIMARY KEY,
-    first_name VARCHAR(64) NOT NULL,
-    last_name VARCHAR(64),
-    email VARCHAR(64) UNIQUE NOT NULL,
-    addr_street_1 VARCHAR(64),
-    addr_street_2 VARCHAR(64),
-    addr_town VARCHAR(64),
-    addr_state VARCHAR(64),
-    addr_zip_code VARCHAR(64),
-    password_hash VARCHAR(60) NOT NULL,
-    birth_date DATE
-);
-
-CREATE TABLE announcement (
-    announcement_id INT PRIMARY KEY AUTO_INCREMENT,
-    announcement_message VARCHAR(255) NOT NULL
-);
-
 CREATE TABLE turf_feature (
     feat_name VARCHAR(64) PRIMARY KEY,
     feat_description VARCHAR(255),
@@ -68,6 +106,25 @@ CREATE TABLE turf_image (
     REFERENCES turf (turf_id)
     ON UPDATE CASCADE
     ON DELETE CASCADE
+);
+
+CREATE TABLE announcement (
+    announcement_id INT PRIMARY KEY AUTO_INCREMENT,
+    announcement_message VARCHAR(255) NOT NULL
+);
+
+CREATE TABLE app_user (
+    username VARCHAR(64) PRIMARY KEY,
+    first_name VARCHAR(64) NOT NULL,
+    last_name VARCHAR(64),
+    email VARCHAR(64) UNIQUE NOT NULL,
+    addr_street_1 VARCHAR(64),
+    addr_street_2 VARCHAR(64),
+    addr_town VARCHAR(64),
+    addr_state VARCHAR(64),
+    addr_zip_code VARCHAR(64),
+    password_hash VARCHAR(60) NOT NULL,
+    birth_date DATE
 );
 
 CREATE TABLE card_detail (
@@ -87,6 +144,16 @@ CREATE TABLE card_detail (
     REFERENCES app_user (username)
     ON UPDATE CASCADE
     ON DELETE CASCADE
+);
+
+CREATE TABLE coupon (
+    coupon_id INT PRIMARY KEY AUTO_INCREMENT,
+    coupon_code VARCHAR(20) NOT NULL,
+    coupon_description VARCHAR(255),
+    discount_percent INT NOT NULL,
+    coupon_start_date DATE NOT NULL,
+    coupon_end_date DATE NOT NULL,
+    min_booking_amt DECIMAL(19,2)
 );
 
 CREATE TABLE booking (
@@ -118,74 +185,7 @@ CREATE TABLE booking (
     ON DELETE SET NULL
 );
 
-CREATE TABLE coupon (
-    coupon_id INT PRIMARY KEY AUTO_INCREMENT,
-    coupon_code VARCHAR(20) NOT NULL,
-    coupon_description VARCHAR(255),
-    discount_percent INT NOT NULL,
-    coupon_start_date DATE NOT NULL,
-    coupon_end_date DATE NOT NULL,
-    min_booking_amt DECIMAL(19,2)
-);
-
-CREATE TABLE employee (
-    employee_id INT PRIMARY KEY AUTO_INCREMENT,
-    first_name VARCHAR(64) NOT NULL,
-    last_name VARCHAR(64),
-    email VARCHAR(64) UNIQUE NOT NULL,
-    ssn CHAR(9) UNIQUE NOT NULL,
-    img_url VARCHAR(255),
-    birth_date DATE,
-    addr_street_1 VARCHAR(64),
-    addr_street_2 VARCHAR(64),
-    addr_town VARCHAR(64),
-    addr_state VARCHAR(64),
-    addr_zip_code VARCHAR(64),
-    password_hash VARCHAR(60) NOT NULL,
-    title VARCHAR(64) NOT NULL,
-    hourly_wage DECIMAL(7, 2) NOT NULL,
-    joining_date DATE NOT NULL,
-    reports_to INT,
-    CONSTRAINT fk_employee_supervisor
-    FOREIGN KEY (reports_to)
-    REFERENCES employee (employee_id)
-    ON UPDATE CASCADE
-    ON DELETE RESTRICT
-);
-
-CREATE TABLE timesheet_entry (
-    employee_id INT,
-    work_date DATE,
-    start_time TIME,
-    end_time TIME NOT NULL,
-    task_description VARCHAR(255) NOT NULL,
-    payslip_id INT,
-    CONSTRAINT pk_timesheet_entry PRIMARY KEY (employee_id, work_date, start_time),
-    CONSTRAINT fk_timesheet_entry_employee
-    FOREIGN KEY (employee_id)
-    REFERENCES employee (employee_id)
-    ON UPDATE CASCADE
-    ON DELETE NO ACTION,
-    CONSTRAINT fk_timesheet_entry_payslip
-    FOREIGN KEY (payslip_id)
-    REFERENCES payslip (payslip_id)
-    ON UPDATE CASCADE
-    ON DELETE NO ACTION
-);
-
-CREATE TABLE payslip (
-    employee_id INT,
-    date_of_payment DATE,
-    amount_paid DECIMAL(19, 2) NOT NULL,
-    CONSTRAINT pk_payslip PRIMARY KEY(employee_id, date_of_payment),
-    CONSTRAINT fk_payslip_employee
-    FOREIGN KEY (employee_id)
-    REFERENCES employee (employee_id)
-    ON UPDATE CASCADE
-    ON DELETE CASCADE
-);
-
-/* TurfFeature features a Turf*/
+/* turf includes feature */
 CREATE TABLE turf_to_feature (
     features_id INT PRIMARY KEY AUTO_INCREMENT,
     turf_id INT NOT NULL,
@@ -202,7 +202,8 @@ CREATE TABLE turf_to_feature (
     ON DELETE CASCADE
 );
 
-/* users reviews turfs */
+
+/* user reviews turf */
 CREATE TABLE review (
     review_id INT PRIMARY KEY AUTO_INCREMENT,
     rating INT NOT NULL,
@@ -223,7 +224,7 @@ CREATE TABLE review (
     CHECK (rating >= 1 AND rating <= 5)
 );
 
-/* users receives announcements */
+/* user receives announcement */
 CREATE TABLE receive_announcement (
     announcement_id INT,
     username VARCHAR(64),
