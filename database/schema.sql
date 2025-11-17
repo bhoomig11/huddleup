@@ -165,18 +165,19 @@ CREATE TABLE booking (
     complaint_filed_at_utc DATETIME,
     complaint_resolved_at_utc DATETIME,
     turf_id INT NOT NULL,
-    card_id INT NOT NULL,
+    username VARCHAR(64) NOT NULL,
+    masked_card_number VARCHAR(19),
     coupon_id INT,
     CONSTRAINT fk_booking_turf
     FOREIGN KEY (turf_id)
     REFERENCES turf (turf_id)
     ON UPDATE CASCADE
     ON DELETE RESTRICT,
-    CONSTRAINT fk_booking_card_detail
-    FOREIGN KEY (card_id)
-    REFERENCES card_detail (card_id)
+    CONSTRAINT fk_booking_app_user
+    FOREIGN KEY (username)
+    REFERENCES app_user (username)
     ON UPDATE CASCADE
-    ON DELETE RESTRICT,
+    ON DELETE CASCADE,
     CONSTRAINT fk_booking_coupon
     FOREIGN KEY (coupon_id)
     REFERENCES coupon (coupon_id)
