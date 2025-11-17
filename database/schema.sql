@@ -16,7 +16,7 @@ CREATE TABLE turf (
     hourly_rate DECIMAL(10, 2) NOT NULL,
     opens_at_utc TIME NOT NULL,
     closes_at_utc TIME NOT NULL,
-    manager_id INT,
+    manager_id INT NOT NULL,
     addr_street_1 VARCHAR(64),
     addr_street_2 VARCHAR(64),
     addr_state CHAR(2),
@@ -31,7 +31,7 @@ CREATE TABLE turf (
     FOREIGN KEY (manager_id)
     REFERENCES employee (employee_id)
     ON UPDATE CASCADE
-    ON DELETE SET NULL
+    ON DELETE RESTRICT
 );
 
 CREATE TABLE app_user (
