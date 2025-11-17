@@ -146,11 +146,11 @@ CREATE TABLE employee (
     hourly_wage DECIMAL(7, 2) NOT NULL,
     joining_date DATE NOT NULL,
     reports_to INT,
-    CONSTRAINT fk_staff_manager
+    CONSTRAINT fk_employee_supervisor
     FOREIGN KEY (reports_to)
     REFERENCES employee (employee_id)
     ON UPDATE CASCADE
-    ON DELETE SET NULL
+    ON DELETE RESTRICT
 );
 
 CREATE TABLE timesheet_entry (
