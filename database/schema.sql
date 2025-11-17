@@ -93,7 +93,7 @@ CREATE TABLE turf (
 
 CREATE TABLE turf_feature (
     feat_name VARCHAR(64) PRIMARY KEY,
-    feat_description VARCHAR(255),
+    feat_description VARCHAR(255)
 );
 
 CREATE TABLE turf_image (
