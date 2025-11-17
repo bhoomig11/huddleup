@@ -85,7 +85,7 @@ CREATE TABLE card_detail (
     username VARCHAR(64) NOT NULL,
     CONSTRAINT fk_card_detail_user
     FOREIGN KEY (username)
-    REFERENCES user (username)
+    REFERENCES app_user (username)
     ON UPDATE CASCADE
     ON DELETE CASCADE
 );
@@ -212,7 +212,7 @@ CREATE TABLE review (
     turf_id INT NOT NULL,
     CONSTRAINT fk_review_user
     FOREIGN KEY (username)
-    REFERENCES user (username)
+    REFERENCES app_user (username)
     ON UPDATE CASCADE
     ON DELETE SET NULL,
     CONSTRAINT fk_review_turf
@@ -233,7 +233,7 @@ CREATE TABLE receive_announcement (
     PRIMARY KEY (announcement_id, username),
     CONSTRAINT fk_rec_anc_user
     FOREIGN KEY (username)
-    REFERENCES user (username)
+    REFERENCES app_user (username)
     ON UPDATE CASCADE
     ON DELETE CASCADE,
     CONSTRAINT fk_rec_anc_announcement
