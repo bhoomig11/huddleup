@@ -132,7 +132,6 @@ CREATE TABLE card_detail (
     card_number VARCHAR(19) NOT NULL,
     name_on_card VARCHAR(64) NOT NULL,
     expiry_date DATE NOT NULL,
-    security_code CHAR(4) NOT NULL,
     addr_street_1 VARCHAR(64),
     addr_street_2 VARCHAR(64),
     addr_town VARCHAR(64),
