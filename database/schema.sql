@@ -194,7 +194,7 @@ CREATE TABLE turf_to_feature (
     FOREIGN KEY (turf_id)
     REFERENCES turf (turf_id)
     ON UPDATE CASCADE
-    ON DELETE SET NULL,
+    ON DELETE CASCADE,
     CONSTRAINT fk_ttf_feature
     FOREIGN KEY (feature_name)
     REFERENCES turf_feature (feat_name)
