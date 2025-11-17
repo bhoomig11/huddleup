@@ -48,8 +48,8 @@ CREATE TABLE app_user (
     birth_date DATE
 );
 
-CREATE TABLE announcements (
-    id INT PRIMARY KEY AUTO_INCREMENT,
+CREATE TABLE announcement (
+    announcement_id INT PRIMARY KEY AUTO_INCREMENT,
     announcement_message VARCHAR(255) NOT NULL
 );
 
@@ -125,7 +125,7 @@ CREATE TABLE coupon (
     coupon_description VARCHAR(255),
     discount_percent INT NOT NULL,
     coupon_start_date DATE NOT NULL,
-    end_date DATE NOT NULL,
+    coupon_end_date DATE NOT NULL,
     min_booking_amt DECIMAL(19,2)
 );
 
@@ -162,12 +162,12 @@ CREATE TABLE timesheet_entry (
     task_description VARCHAR(255) NOT NULL,
     employee_id INT NOT NULL,
     payslip_id INT,
-    CONSTRAINT logs
+    CONSTRAINT fk_timesheet_entry_employee
     FOREIGN KEY (employee_id)
     REFERENCES employee (employee_id)
     ON UPDATE CASCADE
     ON DELETE NO ACTION,
-    CONSTRAINT creates
+    CONSTRAINT fk_timesheet_entry_payslip
     FOREIGN KEY (payslip_id)
     REFERENCES payslip (payslip_id)
     ON UPDATE CASCADE
@@ -204,18 +204,18 @@ CREATE TABLE turf_to_feature (
 );
 
 /* users reviews turfs */
-CREATE TABLE reviews (
+CREATE TABLE review (
     review_id INT PRIMARY KEY AUTO_INCREMENT,
     rating INT NOT NULL,
     review VARCHAR(255),
     username VARCHAR(64) NOT NULL,
     turf_id INT NOT NULL,
-    CONSTRAINT fk_reviews_user
+    CONSTRAINT fk_review_user
     FOREIGN KEY (username)
     REFERENCES user (username)
     ON UPDATE CASCADE
     ON DELETE SET NULL,
-    CONSTRAINT fk_reviews_turf
+    CONSTRAINT fk_review_turf
     FOREIGN KEY (turf_id)
     REFERENCES turf (turf_id)
     ON UPDATE CASCADE
@@ -238,7 +238,7 @@ CREATE TABLE receive_announcement (
     ON DELETE CASCADE,
     CONSTRAINT fk_rec_anc_announcement
     FOREIGN KEY (announcement_id)
-    REFERENCES announcements (id)
+    REFERENCES announcement (announcement_id)
     ON UPDATE CASCADE
     ON DELETE CASCADE
 );
