@@ -45,18 +45,12 @@ CREATE TABLE timesheet_entry (
     start_time TIME,
     end_time TIME NOT NULL,
     task_description VARCHAR(255) NOT NULL,
-    date_of_payment DATE,
     CONSTRAINT pk_timesheet_entry PRIMARY KEY (employee_id, work_date, start_time),
     CONSTRAINT fk_timesheet_entry_employee
     FOREIGN KEY (employee_id)
     REFERENCES employee (employee_id)
     ON UPDATE CASCADE
-    ON DELETE NO ACTION,
-    CONSTRAINT fk_timesheet_entry_payslip
-    FOREIGN KEY (employee_id, date_of_payment)
-    REFERENCES payslip (employee_id, date_of_payment)
-    ON UPDATE CASCADE
-    ON DELETE NO ACTION
+    ON DELETE CASCADE
 );
 
 CREATE TABLE sport_type (
@@ -132,7 +126,6 @@ CREATE TABLE card_detail (
     card_number VARCHAR(19) NOT NULL,
     name_on_card VARCHAR(64) NOT NULL,
     expiry_date DATE NOT NULL,
-    security_code CHAR(4) NOT NULL,
     addr_street_1 VARCHAR(64),
     addr_street_2 VARCHAR(64),
     addr_town VARCHAR(64),
@@ -166,18 +159,19 @@ CREATE TABLE booking (
     complaint_filed_at_utc DATETIME,
     complaint_resolved_at_utc DATETIME,
     turf_id INT NOT NULL,
-    card_id INT NOT NULL,
+    username VARCHAR(64) NOT NULL,
+    masked_card_number VARCHAR(19),
     coupon_id INT,
     CONSTRAINT fk_booking_turf
     FOREIGN KEY (turf_id)
     REFERENCES turf (turf_id)
     ON UPDATE CASCADE
     ON DELETE RESTRICT,
-    CONSTRAINT fk_booking_card_detail
-    FOREIGN KEY (card_id)
-    REFERENCES card_detail (card_id)
+    CONSTRAINT fk_booking_app_user
+    FOREIGN KEY (username)
+    REFERENCES app_user (username)
     ON UPDATE CASCADE
-    ON DELETE RESTRICT,
+    ON DELETE CASCADE,
     CONSTRAINT fk_booking_coupon
     FOREIGN KEY (coupon_id)
     REFERENCES coupon (coupon_id)
@@ -187,9 +181,9 @@ CREATE TABLE booking (
 
 /* turf includes feature */
 CREATE TABLE turf_to_feature (
-    features_id INT PRIMARY KEY AUTO_INCREMENT,
-    turf_id INT NOT NULL,
-    feature_name VARCHAR(64) NOT NULL,
+    turf_id INT,
+    feature_name VARCHAR(64),
+    CONSTRAINT pk_ttf PRIMARY KEY (turf_id, feature_name),
     CONSTRAINT fk_ttf_turf
     FOREIGN KEY (turf_id)
     REFERENCES turf (turf_id)
@@ -225,18 +219,18 @@ CREATE TABLE review (
 );
 
 /* user receives announcement */
-CREATE TABLE receive_announcement (
+CREATE TABLE announcement_read_receipt (
     announcement_id INT,
     username VARCHAR(64),
     sent_at DATETIME NOT NULL,
     read_at DATETIME,
-    CONSTRAINT pk_receive_announcement PRIMARY KEY (announcement_id, username),
-    CONSTRAINT fk_rec_anc_user
+    CONSTRAINT pk_anc_read_receipt PRIMARY KEY (announcement_id, username),
+    CONSTRAINT fk_anc_read_receipt_user
     FOREIGN KEY (username)
     REFERENCES app_user (username)
     ON UPDATE CASCADE
     ON DELETE CASCADE,
-    CONSTRAINT fk_rec_anc_announcement
+    CONSTRAINT fk_anc_read_receipt_announcement
     FOREIGN KEY (announcement_id)
     REFERENCES announcement (announcement_id)
     ON UPDATE CASCADE
