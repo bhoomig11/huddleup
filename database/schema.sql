@@ -59,10 +59,10 @@ CREATE TABLE turf_feature (
 );
 
 CREATE TABLE turf_image (
-    image_id INT PRIMARY KEY,
-    image_index INT NOT NULL,
+    image_index INT,
+    turf_id INT,
     image_url VARCHAR(255) NOT NULL,
-    turf_id INT NOT NULL,
+    CONSTRAINT pk_turf_image PRIMARY KEY (turf_id, image_index),
     CONSTRAINT fk_turf_image_turf
     FOREIGN KEY (turf_id)
     REFERENCES turf (turf_id)
