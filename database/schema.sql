@@ -199,11 +199,11 @@ CREATE TABLE turf_to_feature (
 
 /* user reviews turf */
 CREATE TABLE review (
-    review_id INT PRIMARY KEY AUTO_INCREMENT,
+    turf_id INT NOT NULL,
+    username VARCHAR(64),
     rating INT NOT NULL,
     review VARCHAR(255),
-    username VARCHAR(64),
-    turf_id INT NOT NULL,
+    CONSTRAINT pk_review PRIMARY KEY (turf_id, username),
     CONSTRAINT fk_review_user
     FOREIGN KEY (username)
     REFERENCES app_user (username)
