@@ -2,7 +2,7 @@ USE huddleup;
 
 /**
  * Procedure: create_new_user
- * ---------------------------------
+ * --------------------------
  * Create a new user for the application.
  *
  *
