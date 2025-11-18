@@ -274,3 +274,91 @@ BEGIN
     WHERE username = p_username AND read_at IS NULL;
 END $$
 DELIMITER ;
+
+/**
+ * Procedure: get_user_profile
+ * ---------------------------
+ * Get a user's profile details.
+ *
+ *
+ * Input Parameters
+ * ----------------
+ *   - p_username - the username of the user
+ *
+ *
+ * Output Columns
+ * --------------
+ *   - username - the username of the user
+ *   - first_name - the first name of the user
+ *   - last_name - the last name of the user
+ *   - email - the email address of the user
+ *   - birth_date - the birth date of the user
+ *   - addr_street_1 - the primary street address line of the user
+ *   - addr_street_2 - the secondary street address line of the user
+ *   - addr_town - the town or city of the user
+ *   - addr_state - the state code of the user
+ *   - addr_zip_code - the postal or ZIP code of the user
+ *
+ *
+ * Errors
+ * ------
+ *   - Signals SQLSTATE '45000' if no such user exists.
+ */
+DELIMITER $$
+CREATE PROCEDURE get_user_profile(IN p_username VARCHAR(64))
+BEGIN
+    DECLARE v_username VARCHAR(64);
+    DECLARE v_first_name VARCHAR(64);
+    DECLARE v_last_name VARCHAR(64);
+    DECLARE v_email VARCHAR(64);
+    DECLARE v_birth_date DATE;
+    DECLARE v_addr_street_1 VARCHAR(64);
+    DECLARE v_addr_street_2 VARCHAR(64);
+    DECLARE v_addr_town VARCHAR(64);
+    DECLARE v_addr_state CHAR(2);
+    DECLARE v_addr_zip_code CHAR(5);
+
+    SELECT
+        username,
+        first_name,
+        last_name,
+        email,
+        birth_date,
+        addr_street_1,
+        addr_street_2,
+        addr_town,
+        addr_state,
+        addr_zip_code
+    INTO
+        v_username,
+        v_first_name,
+        v_last_name,
+        v_email,
+        v_birth_date,
+        v_addr_street_1,
+        v_addr_street_2,
+        v_addr_town,
+        v_addr_state,
+        v_addr_zip_code
+    FROM
+        app_user
+    WHERE
+        username = p_username;
+
+    IF (v_username IS NULL) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'No such user exists';
+    END IF;
+
+    SELECT
+        v_username AS username,
+        v_first_name AS first_name,
+        v_last_name AS last_name,
+        v_email AS email,
+        v_birth_date AS birth_date,
+        v_addr_street_1 AS addr_street_1,
+        v_addr_street_2 AS addr_street_2,
+        v_addr_town AS addr_town,
+        v_addr_state AS addr_state,
+        v_addr_zip_code AS addr_zip_code;
+END $$
+DELIMITER ;
