@@ -128,3 +128,39 @@ BEGIN
     END IF;
 END $$
 DELIMITER ;
+
+/**
+ * Procedure: get_all_user_announcements
+ * -------------------------------------
+ * Retrieve all announcements for a user.
+ *
+ *
+ * Input Parameters
+ * ----------------
+ *   - p_username - the username of the user
+ *
+ *
+ * Output Columns
+ * --------------
+ *   - announcement_title - the title of the announcement
+ *   - sent_at - the datetime representing when the announcement was sent
+ *   - read_at - the datetime representing when the announcement was read
+ *
+ *
+ * Errors
+ * ------
+ *   - Signals SQLSTATE '45000' if the provided username is NULL.
+ */
+DELIMITER $$
+CREATE PROCEDURE get_all_user_announcements(IN p_username VARCHAR(64))
+BEGIN
+    IF (p_username IS NULL) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Username cannot be NULL';
+    END IF;
+
+    SELECT announcement_title, sent_at, read_at
+    FROM announcement_read_receipt
+    INNER JOIN announcement USING (announcement_id)
+    WHERE username = p_username;
+END $$
+DELIMITER ;
