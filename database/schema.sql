@@ -104,6 +104,7 @@ CREATE TABLE turf_image (
 
 CREATE TABLE announcement (
     announcement_id INT PRIMARY KEY AUTO_INCREMENT,
+    announcement_title VARCHAR(100) NOT NULL,
     announcement_message VARCHAR(255) NOT NULL
 );
 

@@ -2,7 +2,7 @@ USE huddleup;
 
 /**
  * Procedure: create_new_user
- * ---------------------------------
+ * --------------------------
  * Create a new user for the application.
  *
  *
@@ -126,5 +126,151 @@ BEGIN
     ELSE
         SELECT p_username AS username, v_password_hash AS password_hash;
     END IF;
+END $$
+DELIMITER ;
+
+/**
+ * Procedure: get_all_user_announcements
+ * -------------------------------------
+ * Retrieve all announcements for a user.
+ *
+ *
+ * Input Parameters
+ * ----------------
+ *   - p_username - the username of the user
+ *
+ *
+ * Output Columns
+ * --------------
+ *   - announcement_title - the title of the announcement
+ *   - sent_at - the datetime representing when the announcement was sent
+ *   - read_at - the datetime representing when the announcement was read
+ *
+ *
+ * Errors
+ * ------
+ *   - Signals SQLSTATE '45000' if the provided username is NULL.
+ */
+DELIMITER $$
+CREATE PROCEDURE get_all_user_announcements(IN p_username VARCHAR(64))
+BEGIN
+    IF (p_username IS NULL) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Username cannot be NULL';
+    END IF;
+
+    SELECT announcement_title, sent_at, read_at
+    FROM announcement_read_receipt
+    INNER JOIN announcement USING (announcement_id)
+    WHERE username = p_username;
+END $$
+DELIMITER ;
+
+/**
+ * Procedure: get_user_announcement
+ * --------------------------------
+ * Retrieve a particular announcement for a user.
+ *
+ *
+ * Input Parameters
+ * ----------------
+ *   - p_username - the username of the user
+ *   - p_announcement_id - the desired announcement's ID
+ *
+ *
+ * Output Columns
+ * --------------
+ *   - announcement_title - the title of the announcement
+ *   - announcement_message - the message content of the announcement
+ *   - sent_at - the datetime representing when the announcement was sent
+ *   - read_at - the datetime representing when the announcement was read
+ *
+ *
+ * Errors
+ * ------
+ *   - Signals SQLSTATE '45000' if no such announcement exists for the user.
+ */
+DELIMITER $$
+CREATE PROCEDURE get_user_announcement(IN p_username VARCHAR(64), IN p_announcement_id INT)
+BEGIN
+    DECLARE v_announcement_title VARCHAR(100);
+    DECLARE v_announcement_message VARCHAR(255);
+    DECLARE v_sent_at DATETIME;
+    DECLARE v_read_at DATETIME;
+
+    DECLARE no_data_found CONDITION FOR SQLSTATE '02000';
+
+    DECLARE CONTINUE HANDLER FOR no_data_found
+    BEGIN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'No such announcement found';
+    END;
+
+    SELECT anc.announcement_title, anc.announcement_message, arr.sent_at, arr.read_at
+    INTO v_announcement_title, v_announcement_message, v_sent_at, v_read_at
+    FROM announcement AS anc
+    INNER JOIN announcement_read_receipt AS arr ON anc.announcement_id = arr.announcement_id
+    WHERE arr.username = p_username AND anc.announcement_id = p_announcement_id;
+
+    SELECT
+        v_announcement_title AS announcement_title,
+        v_announcement_message AS announcement_message,
+        v_sent_at AS sent_at,
+        v_read_at AS read_at;
+END $$
+DELIMITER ;
+
+/**
+ * Procedure: mark_announcement_as_read
+ * ------------------------------------
+ * Mark an announcement as read at the current UTC timestamp.
+ *
+ *
+ * Input Parameters
+ * ----------------
+ *   - p_username - the username of the user
+ *   - p_announcement_id - the desired announcement's ID
+ *
+ *
+ * Errors
+ * ------
+ *   - Signals SQLSTATE '45000' if no such announcement exists for the user.
+ */
+DELIMITER $$
+CREATE PROCEDURE mark_announcement_as_read(IN p_username VARCHAR(64), IN p_announcement_id INT)
+BEGIN
+    UPDATE announcement_read_receipt
+    SET read_at = UTC_TIMESTAMP()
+    WHERE username = p_username AND announcement_id = p_announcement_id;
+
+    IF (ROW_COUNT() = 0) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'No such announcement found';
+    END IF;
+END $$
+DELIMITER ;
+
+/**
+ * Procedure: mark_all_announcements_as_read
+ * -----------------------------------------
+ * Mark all announcements for a user as read at the current UTC timestamp.
+ *
+ *
+ * Input Parameters
+ * ----------------
+ *   - p_username - the username of the user
+ *
+ *
+ * Errors
+ * ------
+ *   - Signals SQLSTATE '45000' if no such user exists.
+ */
+DELIMITER $$
+CREATE PROCEDURE mark_all_announcements_as_read(IN p_username VARCHAR(64))
+BEGIN
+    IF NOT EXISTS (SELECT username FROM app_user WHERE username = p_username) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'No such user exists';
+    END IF;
+
+    UPDATE announcement_read_receipt
+    SET read_at = UTC_TIMESTAMP()
+    WHERE username = p_username AND read_at IS NULL;
 END $$
 DELIMITER ;
