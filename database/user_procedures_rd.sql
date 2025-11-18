@@ -217,3 +217,60 @@ BEGIN
         v_read_at AS read_at;
 END $$
 DELIMITER ;
+
+/**
+ * Procedure: mark_announcement_as_read
+ * ------------------------------------
+ * Mark an announcement as read at the current UTC timestamp.
+ *
+ *
+ * Input Parameters
+ * ----------------
+ *   - p_username - the username of the user
+ *   - p_announcement_id - the desired announcement's ID
+ *
+ *
+ * Errors
+ * ------
+ *   - Signals SQLSTATE '45000' if no such announcement exists for the user.
+ */
+DELIMITER $$
+CREATE PROCEDURE mark_announcement_as_read(IN p_username VARCHAR(64), IN p_announcement_id INT)
+BEGIN
+    UPDATE announcement_read_receipt
+    SET read_at = UTC_TIMESTAMP()
+    WHERE username = p_username AND announcement_id = p_announcement_id;
+
+    IF (ROW_COUNT() = 0) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'No such announcement found';
+    END IF;
+END $$
+DELIMITER ;
+
+/**
+ * Procedure: mark_all_announcements_as_read
+ * -----------------------------------------
+ * Mark all announcements for a user as read at the current UTC timestamp.
+ *
+ *
+ * Input Parameters
+ * ----------------
+ *   - p_username - the username of the user
+ *
+ *
+ * Errors
+ * ------
+ *   - Signals SQLSTATE '45000' if no such user exists.
+ */
+DELIMITER $$
+CREATE PROCEDURE mark_all_announcements_as_read(IN p_username VARCHAR(64))
+BEGIN
+    IF NOT EXISTS (SELECT username FROM app_user WHERE username = p_username) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'No such user exists';
+    END IF;
+
+    UPDATE announcement_read_receipt
+    SET read_at = UTC_TIMESTAMP()
+    WHERE username = p_username AND read_at IS NULL;
+END $$
+DELIMITER ;
