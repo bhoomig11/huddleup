@@ -164,3 +164,56 @@ BEGIN
     WHERE username = p_username;
 END $$
 DELIMITER ;
+
+/**
+ * Procedure: get_user_announcement
+ * --------------------------------
+ * Retrieve a particular announcement for a user.
+ *
+ *
+ * Input Parameters
+ * ----------------
+ *   - p_username - the username of the user
+ *   - p_announcement_id - the desired announcement's ID
+ *
+ *
+ * Output Columns
+ * --------------
+ *   - announcement_title - the title of the announcement
+ *   - announcement_message - the message content of the announcement
+ *   - sent_at - the datetime representing when the announcement was sent
+ *   - read_at - the datetime representing when the announcement was read
+ *
+ *
+ * Errors
+ * ------
+ *   - Signals SQLSTATE '45000' if no such announcement exists for the user.
+ */
+DELIMITER $$
+CREATE PROCEDURE get_user_announcement(IN p_username VARCHAR(64), IN p_announcement_id INT)
+BEGIN
+    DECLARE v_announcement_title VARCHAR(100);
+    DECLARE v_announcement_message VARCHAR(255);
+    DECLARE v_sent_at DATETIME;
+    DECLARE v_read_at DATETIME;
+
+    DECLARE no_data_found CONDITION FOR SQLSTATE '02000';
+
+    DECLARE CONTINUE HANDLER FOR no_data_found
+    BEGIN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'No such announcement found';
+    END;
+
+    SELECT anc.announcement_title, anc.announcement_message, arr.sent_at, arr.read_at
+    INTO v_announcement_title, v_announcement_message, v_sent_at, v_read_at
+    FROM announcement AS anc
+    INNER JOIN announcement_read_receipt AS arr ON anc.announcement_id = arr.announcement_id
+    WHERE arr.username = p_username AND anc.announcement_id = p_announcement_id;
+
+    SELECT
+        v_announcement_title AS announcement_title,
+        v_announcement_message AS announcement_message,
+        v_sent_at AS sent_at,
+        v_read_at AS read_at;
+END $$
+DELIMITER ;
