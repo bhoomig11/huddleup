@@ -362,3 +362,166 @@ BEGIN
         v_addr_zip_code AS addr_zip_code;
 END $$
 DELIMITER ;
+
+/**
+ * Procedure: update_user_profile
+ * ------------------------------
+ * Update a user's profile information
+ *
+ *
+ * Input Parameters
+ * ----------------
+ *   - p_username - the username of the user
+ *   - p_first_name - the first name of the user
+ *   - p_last_name - the last name of the user
+ *   - p_birth_date - the birth date of the user
+ *   - p_addr_street_1 - the primary street address line of the user
+ *   - p_addr_street_2 - the secondary street address line of the user
+ *   - p_addr_town - the town or city of the user
+ *   - p_addr_state - the state code of the user
+ *   - p_addr_zip_code - the postal or ZIP code of the user
+ *
+ *
+ * Errors
+ * ------
+ *   - Signals SQLSTATE '45000' if no such user exists.
+ */
+DELIMITER $$
+CREATE PROCEDURE update_user_profile(
+    IN p_username VARCHAR(64),
+    IN p_first_name VARCHAR(64),
+    IN p_last_name VARCHAR(64),
+    IN p_birth_date DATE,
+    IN p_addr_street_1 VARCHAR(64),
+    IN p_addr_street_2 VARCHAR(64),
+    IN p_addr_town VARCHAR(64),
+    IN p_addr_state CHAR(2),
+    IN p_addr_zip_code CHAR(5)
+)
+BEGIN
+    IF NOT EXISTS (SELECT username FROM app_user WHERE username = p_username) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'No such user exists';
+    END IF;
+
+    UPDATE app_user
+    SET
+        first_name = p_first_name,
+        last_name = p_last_name,
+        birth_date = p_birth_date,
+        addr_street_1 = p_addr_street_1,
+        addr_street_2 = p_addr_street_2,
+        addr_town = p_addr_town,
+        addr_state = p_addr_state,
+        addr_zip_code = p_addr_zip_code
+    WHERE
+        username = p_username;
+END $$
+DELIMITER ;
+
+/**
+ * Procedure: update_username
+ * --------------------------
+ * Update a user's username.
+ *
+ *
+ * Input Parameters
+ * ----------------
+ *   - p_old_username - the user's previous username
+ *   - p_new_username - the user's updated username
+ *
+ *
+ * Errors
+ * ------
+ *   - Signals SQLSTATE '45000' if no user exists with the old username.
+ *   - Signals SQLSTATE '45000' if the new username is null or empty.
+ *   - Signals SQLSTATE '45000' if the new username is already taken.
+ */
+DELIMITER $$
+CREATE PROCEDURE update_username(IN p_old_username VARCHAR(64), IN p_new_username VARCHAR(64))
+BEGIN
+    IF NOT EXISTS (SELECT username FROM app_user WHERE username = p_old_username) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'No such user exists';
+    END IF;
+
+    IF (p_new_username IS NULL OR CHAR_LENGTH(p_new_username) = 0) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'New username cannot be empty';
+    ELSEIF EXISTS (SELECT username FROM app_user WHERE username = p_new_username) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Username is taken';
+    END IF;
+
+    UPDATE app_user
+    SET username = p_new_username
+    WHERE username = p_old_username;
+END $$
+DELIMITER ;
+
+/**
+ * Procedure: update_user_password
+ * -------------------------------
+ * Update a user's password hash.
+ *
+ *
+ * Input Parameters
+ * ----------------
+ *   - p_username - the username of the user
+ *   - p_password_hash - the updated password hash for the user
+ *
+ *
+ * Errors
+ * ------
+ *   - Signals SQLSTATE '45000' if no such user exists.
+ *   - Signals SQLSTATE '45000' if the password hash is null or empty.
+ */
+DELIMITER $$
+CREATE PROCEDURE update_user_password(IN p_username VARCHAR(64), IN p_password_hash VARCHAR(60))
+BEGIN
+    IF NOT EXISTS (SELECT username FROM app_user WHERE username = p_username) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'No such user exists';
+    END IF;
+
+    IF (p_password_hash IS NULL OR CHAR_LENGTH(p_password_hash) = 0) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Password hash cannot be empty';
+    END IF;
+
+    UPDATE app_user
+    SET password_hash = p_password_hash
+    WHERE username = p_username;
+END $$
+DELIMITER ;
+
+/**
+ * Procedure: update_user_email
+ * ----------------------------
+ * Update a user's email address.
+ *
+ *
+ * Input Parameters
+ * ----------------
+ *   - p_username - the username of the user
+ *   - p_email - the updated email address of the user
+ *
+ *
+ * Errors
+ * ------
+ *   - Signals SQLSTATE '45000' if no such user exists.
+ *   - Signals SQLSTATE '45000' if the email address is null or empty.
+ *   - Signals SQLSTATE '45000' if the email address is already in use.
+ */
+DELIMITER $$
+CREATE PROCEDURE update_user_email(IN p_username VARCHAR(64), IN p_email VARCHAR(64))
+BEGIN
+    IF NOT EXISTS (SELECT username FROM app_user WHERE username = p_username) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'No such user exists';
+    END IF;
+
+    IF (p_email IS NULL OR CHAR_LENGTH(p_email) = 0) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Email cannot be empty';
+    ELSEIF EXISTS (SELECT email FROM app_user WHERE email = p_email) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Email already in use';
+    END IF;
+
+    UPDATE app_user
+    SET email = p_email
+    WHERE username = p_username;
+END $$
+DELIMITER ;
