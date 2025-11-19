@@ -658,3 +658,35 @@ BEGIN
     );
 END $$
 DELIMITER ;
+
+/**
+ * Procedure: delete_user_card_detail
+ * ----------------------------------
+ * Delete details of an existing card for a user.
+ *
+ *
+ * Input Parameters
+ * ----------------
+ *   - p_username - the username of the user
+ *   - p_card_id - the ID of the card to be deleted
+ *
+ *
+ * Errors
+ * ------
+ *   - Signals SQLSTATE '45000' if no such card exists for the user.
+ */
+DELIMITER $$
+CREATE PROCEDURE delete_user_card_detail(
+    IN p_username VARCHAR(64),
+    IN p_card_id INT
+)
+BEGIN
+    IF NOT EXISTS (
+        SELECT card_id FROM card_detail WHERE username = p_username AND card_id = p_card_id
+    ) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'No such card found for this user';
+    END IF;
+
+    DELETE FROM card_detail WHERE card_id = p_card_id;
+END $$
+DELIMITER ;
