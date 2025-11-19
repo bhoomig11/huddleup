@@ -525,3 +525,29 @@ BEGIN
     WHERE username = p_username;
 END $$
 DELIMITER ;
+
+/**
+ * Procedure: delete_user
+ * ----------------------
+ * Delete a user from the database.
+ *
+ *
+ * Input Parameters
+ * ----------------
+ *   - p_username - the username of the user
+ *
+ *
+ * Errors
+ * ------
+ *   - Signals SQLSTATE '45000' if no such user exists.
+ */
+DELIMITER $$
+CREATE PROCEDURE delete_user(IN p_username VARCHAR(64))
+BEGIN
+    IF NOT EXISTS (SELECT username FROM app_user WHERE username = p_username) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'No such user exists';
+    END IF;
+
+    DELETE FROM app_user WHERE username = p_username;
+END $$
+DELIMITER ;
