@@ -551,3 +551,110 @@ BEGIN
     DELETE FROM app_user WHERE username = p_username;
 END $$
 DELIMITER ;
+
+/**
+ * Procedure: add_user_card_detail
+ * -------------------------------
+ * Add details of a new card for a user.
+ *
+ *
+ * Input Parameters
+ * ----------------
+ *   - p_username - the username of the user
+ *   - p_card_number - the card number of the new card (with no surrounding or interim whitespace)
+ *   - p_name_on_card - the registered name on the card
+ *   - p_expiry_month - the 2-digit numeric expiry month of the card (e.g. "09")
+ *   - p_expiry_year  - the full 4-digit expiry year of the card (e.g. "2027")
+ *   - p_addr_street_1 - primary street address line of the card's billing address
+ *   - p_addr_street_2 - secondary street address line (optional, e.g., apartment or suite number)
+ *   - p_addr_town - city/town of the billing address
+ *   - p_addr_state - 2-letter state code of the billing address (e.g., "CA", "NY")
+ *   - p_addr_zip_code - 5-digit ZIP code of the billing address
+ *
+ *
+ * Errors
+ * ------
+ *   - Signals SQLSTATE '45000' if no such user exists.
+ *   - Signals SQLSTATE '45000' if the card number is not provided.
+ *   - Signals SQLSTATE '45000' if the name on the card is not provided.
+ *   - Signals SQLSTATE '45000' if the card expiry date is invalid.
+ *   - Signals SQLSTATE '45000' if any of the billing address components are not provided.
+ */
+DELIMITER $$
+CREATE PROCEDURE add_user_card_detail(
+    IN p_username VARCHAR(64),
+    IN p_card_number VARCHAR(19),
+    IN p_name_on_card VARCHAR(64),
+    IN p_expiry_month CHAR(2),
+    IN p_expiry_year CHAR(4),
+    IN p_addr_street_1 VARCHAR(64),
+    IN p_addr_street_2 VARCHAR(64),
+    IN p_addr_town VARCHAR(64),
+    IN p_addr_state CHAR(2),
+    IN p_addr_zip_code CHAR(5)
+)
+BEGIN
+    DECLARE v_first_of_expiry_month DATE;
+    DECLARE v_expiry_date DATE;
+
+    IF NOT EXISTS (SELECT username FROM app_user WHERE username = p_username) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'No such user exists';
+    END IF;
+
+    IF (p_card_number IS NULL OR CHAR_LENGTH(p_card_number) = 0) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Card number cannot be empty';
+    END IF;
+
+    IF (p_name_on_card IS NULL OR CHAR_LENGTH(p_name_on_card) = 0) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Name on card cannot be empty';
+    END IF;
+
+    IF (p_expiry_month IS NOT NULL AND p_expiry_year IS NOT NULL) THEN
+        SET v_first_of_expiry_month = DATE(CONCAT_WS("-", p_expiry_year, p_expiry_month, "01"));
+        SET v_expiry_date = LAST_DAY(v_first_of_expiry_month);
+    END IF;
+
+    IF (v_expiry_date IS NULL) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Invalid card expiry date';
+    END IF;
+
+    IF (p_addr_street_1 IS NULL OR CHAR_LENGTH(p_addr_street_1) = 0) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Card billing address (line 1) cannot be empty';
+    END IF;
+
+    IF (p_addr_town IS NULL) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Card billing address town cannot be empty';
+    END IF;
+
+    IF (p_addr_state IS NULL) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Card billing address state cannot be empty';
+    END IF;
+
+    IF (p_addr_zip_code IS NULL) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Card billing address zip code cannot be empty';
+    END IF;
+
+    INSERT INTO card_detail (
+        username,
+        card_number,
+        name_on_card,
+        expiry_date,
+        addr_street_1,
+        addr_street_2,
+        addr_town,
+        addr_state,
+        addr_zip_code
+    )
+    VALUES (
+        p_username,
+        p_card_number,
+        p_name_on_card,
+        v_expiry_date,
+        p_addr_street_1,
+        p_addr_street_2,
+        p_addr_town,
+        p_addr_state,
+        p_addr_zip_code
+    );
+END $$
+DELIMITER ;
