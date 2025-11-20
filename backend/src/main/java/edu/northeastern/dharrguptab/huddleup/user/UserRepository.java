@@ -10,7 +10,9 @@ import java.time.LocalDate;
 import javax.sql.DataSource;
 
 import edu.northeastern.dharrguptab.huddleup.common.dto.Address;
+import edu.northeastern.dharrguptab.huddleup.common.exceptions.DatabaseAccessException;
 import edu.northeastern.dharrguptab.huddleup.user.dto.UserProfile;
+import edu.northeastern.dharrguptab.huddleup.user.exceptions.UserNotFoundException;
 
 import org.springframework.stereotype.Repository;
 
@@ -36,8 +38,9 @@ public class UserRepository {
    *
    * @param username the username of the user
    * @return the user's profile data
+   * @throws DatabaseAccessException if no such user is found
    */
-  public UserProfile getUserProfile(String username) {
+  public UserProfile getUserProfile(String username) throws DatabaseAccessException {
     try (
         Connection connection = dataSource.getConnection();
         CallableStatement cs = connection.prepareCall("{CALL get_user_profile(?)}")
@@ -67,7 +70,13 @@ public class UserRepository {
         }
       }
     } catch (SQLException e) {
-      System.err.println(e.getMessage());
+      if (e.getSQLState().equals("45000")) {
+        throw new UserNotFoundException(e);
+      } else {
+        throw new DatabaseAccessException(e);
+      }
+    } catch (Exception e) {
+      throw new RuntimeException(e);
     }
     return null;
   }
