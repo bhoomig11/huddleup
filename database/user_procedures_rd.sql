@@ -274,3 +274,419 @@ BEGIN
     WHERE username = p_username AND read_at IS NULL;
 END $$
 DELIMITER ;
+
+/**
+ * Procedure: get_user_profile
+ * ---------------------------
+ * Get a user's profile details.
+ *
+ *
+ * Input Parameters
+ * ----------------
+ *   - p_username - the username of the user
+ *
+ *
+ * Output Columns
+ * --------------
+ *   - username - the username of the user
+ *   - first_name - the first name of the user
+ *   - last_name - the last name of the user
+ *   - email - the email address of the user
+ *   - birth_date - the birth date of the user
+ *   - addr_street_1 - the primary street address line of the user
+ *   - addr_street_2 - the secondary street address line of the user
+ *   - addr_town - the town or city of the user
+ *   - addr_state - the state code of the user
+ *   - addr_zip_code - the postal or ZIP code of the user
+ *
+ *
+ * Errors
+ * ------
+ *   - Signals SQLSTATE '45000' if no such user exists.
+ */
+DELIMITER $$
+CREATE PROCEDURE get_user_profile(IN p_username VARCHAR(64))
+BEGIN
+    DECLARE v_username VARCHAR(64);
+    DECLARE v_first_name VARCHAR(64);
+    DECLARE v_last_name VARCHAR(64);
+    DECLARE v_email VARCHAR(64);
+    DECLARE v_birth_date DATE;
+    DECLARE v_addr_street_1 VARCHAR(64);
+    DECLARE v_addr_street_2 VARCHAR(64);
+    DECLARE v_addr_town VARCHAR(64);
+    DECLARE v_addr_state CHAR(2);
+    DECLARE v_addr_zip_code CHAR(5);
+
+    SELECT
+        username,
+        first_name,
+        last_name,
+        email,
+        birth_date,
+        addr_street_1,
+        addr_street_2,
+        addr_town,
+        addr_state,
+        addr_zip_code
+    INTO
+        v_username,
+        v_first_name,
+        v_last_name,
+        v_email,
+        v_birth_date,
+        v_addr_street_1,
+        v_addr_street_2,
+        v_addr_town,
+        v_addr_state,
+        v_addr_zip_code
+    FROM
+        app_user
+    WHERE
+        username = p_username;
+
+    IF (v_username IS NULL) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'No such user exists';
+    END IF;
+
+    SELECT
+        v_username AS username,
+        v_first_name AS first_name,
+        v_last_name AS last_name,
+        v_email AS email,
+        v_birth_date AS birth_date,
+        v_addr_street_1 AS addr_street_1,
+        v_addr_street_2 AS addr_street_2,
+        v_addr_town AS addr_town,
+        v_addr_state AS addr_state,
+        v_addr_zip_code AS addr_zip_code;
+END $$
+DELIMITER ;
+
+/**
+ * Procedure: update_user_profile
+ * ------------------------------
+ * Update a user's profile information
+ *
+ *
+ * Input Parameters
+ * ----------------
+ *   - p_username - the username of the user
+ *   - p_first_name - the first name of the user
+ *   - p_last_name - the last name of the user
+ *   - p_birth_date - the birth date of the user
+ *   - p_addr_street_1 - the primary street address line of the user
+ *   - p_addr_street_2 - the secondary street address line of the user
+ *   - p_addr_town - the town or city of the user
+ *   - p_addr_state - the state code of the user
+ *   - p_addr_zip_code - the postal or ZIP code of the user
+ *
+ *
+ * Errors
+ * ------
+ *   - Signals SQLSTATE '45000' if no such user exists.
+ */
+DELIMITER $$
+CREATE PROCEDURE update_user_profile(
+    IN p_username VARCHAR(64),
+    IN p_first_name VARCHAR(64),
+    IN p_last_name VARCHAR(64),
+    IN p_birth_date DATE,
+    IN p_addr_street_1 VARCHAR(64),
+    IN p_addr_street_2 VARCHAR(64),
+    IN p_addr_town VARCHAR(64),
+    IN p_addr_state CHAR(2),
+    IN p_addr_zip_code CHAR(5)
+)
+BEGIN
+    IF NOT EXISTS (SELECT username FROM app_user WHERE username = p_username) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'No such user exists';
+    END IF;
+
+    UPDATE app_user
+    SET
+        first_name = p_first_name,
+        last_name = p_last_name,
+        birth_date = p_birth_date,
+        addr_street_1 = p_addr_street_1,
+        addr_street_2 = p_addr_street_2,
+        addr_town = p_addr_town,
+        addr_state = p_addr_state,
+        addr_zip_code = p_addr_zip_code
+    WHERE
+        username = p_username;
+END $$
+DELIMITER ;
+
+/**
+ * Procedure: update_username
+ * --------------------------
+ * Update a user's username.
+ *
+ *
+ * Input Parameters
+ * ----------------
+ *   - p_old_username - the user's previous username
+ *   - p_new_username - the user's updated username
+ *
+ *
+ * Errors
+ * ------
+ *   - Signals SQLSTATE '45000' if no user exists with the old username.
+ *   - Signals SQLSTATE '45000' if the new username is null or empty.
+ *   - Signals SQLSTATE '45000' if the new username is already taken.
+ */
+DELIMITER $$
+CREATE PROCEDURE update_username(IN p_old_username VARCHAR(64), IN p_new_username VARCHAR(64))
+BEGIN
+    IF NOT EXISTS (SELECT username FROM app_user WHERE username = p_old_username) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'No such user exists';
+    END IF;
+
+    IF (p_new_username IS NULL OR CHAR_LENGTH(p_new_username) = 0) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'New username cannot be empty';
+    ELSEIF EXISTS (SELECT username FROM app_user WHERE username = p_new_username) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Username is taken';
+    END IF;
+
+    UPDATE app_user
+    SET username = p_new_username
+    WHERE username = p_old_username;
+END $$
+DELIMITER ;
+
+/**
+ * Procedure: update_user_password
+ * -------------------------------
+ * Update a user's password hash.
+ *
+ *
+ * Input Parameters
+ * ----------------
+ *   - p_username - the username of the user
+ *   - p_password_hash - the updated password hash for the user
+ *
+ *
+ * Errors
+ * ------
+ *   - Signals SQLSTATE '45000' if no such user exists.
+ *   - Signals SQLSTATE '45000' if the password hash is null or empty.
+ */
+DELIMITER $$
+CREATE PROCEDURE update_user_password(IN p_username VARCHAR(64), IN p_password_hash VARCHAR(60))
+BEGIN
+    IF NOT EXISTS (SELECT username FROM app_user WHERE username = p_username) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'No such user exists';
+    END IF;
+
+    IF (p_password_hash IS NULL OR CHAR_LENGTH(p_password_hash) = 0) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Password hash cannot be empty';
+    END IF;
+
+    UPDATE app_user
+    SET password_hash = p_password_hash
+    WHERE username = p_username;
+END $$
+DELIMITER ;
+
+/**
+ * Procedure: update_user_email
+ * ----------------------------
+ * Update a user's email address.
+ *
+ *
+ * Input Parameters
+ * ----------------
+ *   - p_username - the username of the user
+ *   - p_email - the updated email address of the user
+ *
+ *
+ * Errors
+ * ------
+ *   - Signals SQLSTATE '45000' if no such user exists.
+ *   - Signals SQLSTATE '45000' if the email address is null or empty.
+ *   - Signals SQLSTATE '45000' if the email address is already in use.
+ */
+DELIMITER $$
+CREATE PROCEDURE update_user_email(IN p_username VARCHAR(64), IN p_email VARCHAR(64))
+BEGIN
+    IF NOT EXISTS (SELECT username FROM app_user WHERE username = p_username) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'No such user exists';
+    END IF;
+
+    IF (p_email IS NULL OR CHAR_LENGTH(p_email) = 0) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Email cannot be empty';
+    ELSEIF EXISTS (SELECT email FROM app_user WHERE email = p_email) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Email already in use';
+    END IF;
+
+    UPDATE app_user
+    SET email = p_email
+    WHERE username = p_username;
+END $$
+DELIMITER ;
+
+/**
+ * Procedure: delete_user
+ * ----------------------
+ * Delete a user from the database.
+ *
+ *
+ * Input Parameters
+ * ----------------
+ *   - p_username - the username of the user
+ *
+ *
+ * Errors
+ * ------
+ *   - Signals SQLSTATE '45000' if no such user exists.
+ */
+DELIMITER $$
+CREATE PROCEDURE delete_user(IN p_username VARCHAR(64))
+BEGIN
+    IF NOT EXISTS (SELECT username FROM app_user WHERE username = p_username) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'No such user exists';
+    END IF;
+
+    DELETE FROM app_user WHERE username = p_username;
+END $$
+DELIMITER ;
+
+/**
+ * Procedure: add_user_card_detail
+ * -------------------------------
+ * Add details of a new card for a user.
+ *
+ *
+ * Input Parameters
+ * ----------------
+ *   - p_username - the username of the user
+ *   - p_card_number - the card number of the new card (with no surrounding or interim whitespace)
+ *   - p_name_on_card - the registered name on the card
+ *   - p_expiry_month - the 2-digit numeric expiry month of the card (e.g. "09")
+ *   - p_expiry_year  - the full 4-digit expiry year of the card (e.g. "2027")
+ *   - p_addr_street_1 - primary street address line of the card's billing address
+ *   - p_addr_street_2 - secondary street address line (optional, e.g., apartment or suite number)
+ *   - p_addr_town - city/town of the billing address
+ *   - p_addr_state - 2-letter state code of the billing address (e.g., "CA", "NY")
+ *   - p_addr_zip_code - 5-digit ZIP code of the billing address
+ *
+ *
+ * Errors
+ * ------
+ *   - Signals SQLSTATE '45000' if no such user exists.
+ *   - Signals SQLSTATE '45000' if the card number is not provided.
+ *   - Signals SQLSTATE '45000' if the name on the card is not provided.
+ *   - Signals SQLSTATE '45000' if the card expiry date is invalid.
+ *   - Signals SQLSTATE '45000' if any of the billing address components are not provided.
+ */
+DELIMITER $$
+CREATE PROCEDURE add_user_card_detail(
+    IN p_username VARCHAR(64),
+    IN p_card_number VARCHAR(19),
+    IN p_name_on_card VARCHAR(64),
+    IN p_expiry_month CHAR(2),
+    IN p_expiry_year CHAR(4),
+    IN p_addr_street_1 VARCHAR(64),
+    IN p_addr_street_2 VARCHAR(64),
+    IN p_addr_town VARCHAR(64),
+    IN p_addr_state CHAR(2),
+    IN p_addr_zip_code CHAR(5)
+)
+BEGIN
+    DECLARE v_first_of_expiry_month DATE;
+    DECLARE v_expiry_date DATE;
+
+    IF NOT EXISTS (SELECT username FROM app_user WHERE username = p_username) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'No such user exists';
+    END IF;
+
+    IF (p_card_number IS NULL OR CHAR_LENGTH(p_card_number) = 0) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Card number cannot be empty';
+    END IF;
+
+    IF (p_name_on_card IS NULL OR CHAR_LENGTH(p_name_on_card) = 0) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Name on card cannot be empty';
+    END IF;
+
+    IF (p_expiry_month IS NOT NULL AND p_expiry_year IS NOT NULL) THEN
+        SET v_first_of_expiry_month = DATE(CONCAT_WS("-", p_expiry_year, p_expiry_month, "01"));
+        SET v_expiry_date = LAST_DAY(v_first_of_expiry_month);
+    END IF;
+
+    IF (v_expiry_date IS NULL) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Invalid card expiry date';
+    END IF;
+
+    IF (p_addr_street_1 IS NULL OR CHAR_LENGTH(p_addr_street_1) = 0) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Card billing address (line 1) cannot be empty';
+    END IF;
+
+    IF (p_addr_town IS NULL) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Card billing address town cannot be empty';
+    END IF;
+
+    IF (p_addr_state IS NULL) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Card billing address state cannot be empty';
+    END IF;
+
+    IF (p_addr_zip_code IS NULL) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Card billing address zip code cannot be empty';
+    END IF;
+
+    INSERT INTO card_detail (
+        username,
+        card_number,
+        name_on_card,
+        expiry_date,
+        addr_street_1,
+        addr_street_2,
+        addr_town,
+        addr_state,
+        addr_zip_code
+    )
+    VALUES (
+        p_username,
+        p_card_number,
+        p_name_on_card,
+        v_expiry_date,
+        p_addr_street_1,
+        p_addr_street_2,
+        p_addr_town,
+        p_addr_state,
+        p_addr_zip_code
+    );
+END $$
+DELIMITER ;
+
+/**
+ * Procedure: delete_user_card_detail
+ * ----------------------------------
+ * Delete details of an existing card for a user.
+ *
+ *
+ * Input Parameters
+ * ----------------
+ *   - p_username - the username of the user
+ *   - p_card_id - the ID of the card to be deleted
+ *
+ *
+ * Errors
+ * ------
+ *   - Signals SQLSTATE '45000' if no such card exists for the user.
+ */
+DELIMITER $$
+CREATE PROCEDURE delete_user_card_detail(
+    IN p_username VARCHAR(64),
+    IN p_card_id INT
+)
+BEGIN
+    IF NOT EXISTS (
+        SELECT card_id FROM card_detail WHERE username = p_username AND card_id = p_card_id
+    ) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'No such card found for this user';
+    END IF;
+
+    DELETE FROM card_detail WHERE card_id = p_card_id;
+END $$
+DELIMITER ;

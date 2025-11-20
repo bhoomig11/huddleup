@@ -14,7 +14,7 @@ CREATE TABLE employee (
     addr_street_2 VARCHAR(64),
     addr_town VARCHAR(64),
     addr_state CHAR(2),
-    addr_zip_code VARCHAR(64),
+    addr_zip_code CHAR(5),
     password_hash VARCHAR(60) NOT NULL,
     title VARCHAR(64) NOT NULL,
     hourly_wage DECIMAL(7, 2) NOT NULL,
@@ -117,7 +117,7 @@ CREATE TABLE app_user (
     addr_street_2 VARCHAR(64),
     addr_town VARCHAR(64),
     addr_state CHAR(2),
-    addr_zip_code VARCHAR(64),
+    addr_zip_code CHAR(5),
     password_hash VARCHAR(60) NOT NULL,
     birth_date DATE
 );
@@ -127,11 +127,11 @@ CREATE TABLE card_detail (
     card_number VARCHAR(19) NOT NULL,
     name_on_card VARCHAR(64) NOT NULL,
     expiry_date DATE NOT NULL,
-    addr_street_1 VARCHAR(64),
+    addr_street_1 VARCHAR(64) NOT NULL,
     addr_street_2 VARCHAR(64),
-    addr_town VARCHAR(64),
-    addr_state CHAR(2),
-    addr_zip_code VARCHAR(64),
+    addr_town VARCHAR(64) NOT NULL,
+    addr_state CHAR(2) NOT NULL,
+    addr_zip_code CHAR(5) NOT NULL,
     username VARCHAR(64) NOT NULL,
     CONSTRAINT fk_card_detail_user
     FOREIGN KEY (username)
