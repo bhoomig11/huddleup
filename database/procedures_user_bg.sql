@@ -17,6 +17,16 @@ DROP PROCEDURE IF EXISTS get_all_user_booking;
 DELIMITER $$
 CREATE PROCEDURE get_all_user_booking(IN p_username VARCHAR(64)) 
 BEGIN
+    IF (p_username IS NULL) THEN 
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Username cannot be NULL';
+    END IF;
+
+    IF NOT EXISTS (SELECT username FROM app_user WHERE username = p_username) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Invalid username';
+    END IF;
+
     SELECT *
     FROM booking AS b
     WHERE b.username = p_username;
@@ -127,7 +137,8 @@ BEGIN
     IF NOT EXISTS (SELECT booking_id FROM booking
                     WHERE username = p_username
                     AND turf_id = p_turf_id) THEN
-         SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'User must have booked this turf before leaving a review';
+        SIGNAL SQLSTATE '45000' 
+        SET MESSAGE_TEXT = 'User must have booked this turf before leaving a review';
     END IF;
 
     -- insert a tuple in the review table
@@ -170,8 +181,8 @@ DELIMITER $$
 CREATE PROCEDURE file_complaint(IN p_username VARCHAR(64),
                                 IN p_booking_id INT,
                                 IN p_c_subject VARCHAR(64),
-                                IN p_c_description VARCHAR(255),
-                                IN p_filed_date DATETIME)
+                                IN p_c_description VARCHAR(255)
+                                ) 
 BEGIN
     -- check for username
     IF (p_username IS NULL OR CHAR_LENGTH(p_username) = 0) THEN
@@ -201,7 +212,7 @@ BEGIN
     UPDATE booking
     SET complaint_subject = p_c_subject,
         complaint_description = p_c_description,
-        complaint_filed_date = p_filed_date
+        complaint_filed_date = UTC_TIMESTAMP()
     WHERE booking_id = p_booking_id;
 END $$
 DELIMITER ;
