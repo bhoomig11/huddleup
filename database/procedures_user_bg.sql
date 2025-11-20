@@ -12,6 +12,9 @@ USE huddleup;
  * Output Columns
  * --------------
  * all the columns in booking for a given user
+ * Errors
+ * ------
+ *   - Signals SQLSTATE '45000' for any invalid input parameter
  */
 DROP PROCEDURE IF EXISTS get_all_user_booking;
 DELIMITER $$
