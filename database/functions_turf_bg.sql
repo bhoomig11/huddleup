@@ -21,7 +21,7 @@ CREATE FUNCTION get_avg_turf_rating(p_turf_id INT)
     RETURNS INT DETERMINISTIC
     READS SQL DATA
     BEGIN
-        DECLARE avg_rating INT;
+        DECLARE avg_rating DECIMAL(1,1);
         
         IF NOT EXISTS (SELECT turf_id FROM turf WHERE turf_id = p_turf_id) THEN 
             SIGNAL SQLSTATE '45000'
@@ -76,8 +76,8 @@ CREATE FUNCTION get_masked_card_number(p_card_id INT)
         WHERE card_id = p_card_id;
         
         SET v_len_card_num = CHAR_LENGTH(org_card_number);
-        SET v_masked_card_num = SUBSTRING(V_org_card_number, v_len_card_num - 4);
-        SET v_masked_card_num = LPAD(v_masked_card_num, 16, 'X');
+        SET v_masked_card_num = SUBSTRING(v_org_card_number, v_len_card_num - 4);
+        SET v_masked_card_num = LPAD(v_masked_card_num, v_len_card_num, 'X');
         
         RETURN v_masked_card_num;
     END$$

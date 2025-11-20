@@ -80,10 +80,7 @@ BEGIN
             t.addr_state,
             t.addr_zip_code
     FROM turf AS t
-    LEFT JOIN turf_image AS img 
-    ON t.turf_id = img.turf_id
-    WHERE t.turf_id = p_turf_id
-    GROUP BY t.turf_id;
+    WHERE t.turf_id = p_turf_id;
 END $$
 DELIMITER ;
 
@@ -176,7 +173,7 @@ CREATE PROCEDURE get_a_coupon(IN p_coupon_id INT)
 BEGIN
     IF NOT EXISTS (SELECT coupon_id FROM turf WHERE coupon_id = p_coupon_id) THEN 
         SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = 'Invalid turf ID';
+        SET MESSAGE_TEXT = 'Invalid coupon ID';
     END IF;
 
     SELECT *
@@ -211,12 +208,6 @@ BEGIN
     IF (p_username IS NULL) THEN 
         SIGNAL SQLSTATE "45000" 
         SET MESSAGE_TEXT = "Username cannot be empty";
-    END IF;
-    IF NOT EXISTS (SELECT username 
-                   FROM card_detail 
-                   WHERE username = p_username) THEN
-        SIGNAL SQLSTATE "45000" 
-        SET MESSAGE_TEXT = "No card found for this username";
     END IF;
 
     SELECT * 
@@ -301,6 +292,11 @@ BEGIN
         SET MESSAGE_TEXT = 'Time slot is already booked.';
     END IF;
 
+    -- get the hourly rate
+    SELECT t.hourly_rate INTO v_hourly_rate
+    FROM turf AS t
+    WHERE turf_id = p_turf_id;
+
     SET v_amount = (p_duration_mins / 60) * v_hourly_rate;
 
     -- apply coupon if not null
@@ -319,13 +315,6 @@ BEGIN
     ELSE
         SET v_amount = v_amount - (v_amount * (v_discount / 100));
     END IF;
-    
-    -- get the hourly rate
-    SELECT t.hourly_rate INTO v_hourly_rate
-    FROM turf AS t 
-    WHERE turf_id = p_turf_id;
-    
-    SET v_amount = (p_duration_mins / 60.0) * v_hourly_rate;
     
     -- get the masked card number for the card id
     SET v_masked_card_num = get_masked_card_number(p_card_id);
