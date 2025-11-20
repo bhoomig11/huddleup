@@ -1,7 +1,7 @@
 USE huddleup;
 
 /**
- * Procedure: browse_turfs
+ * Procedure: get_all_turfs
  * ---------------------------------
  * Retrieve all the turfs in the database
  *
@@ -347,5 +347,44 @@ BEGIN
         v_masked_card_num,
         p_coupon_id
     );
+END $$
+DELIMITER ;
+
+/**
+ * Procedure: get_turf_reviews
+ * ---------------------------------
+ * Get all the reviews for a given turf
+ *
+ *
+ * Input Parameters
+ * ----------------
+ *   - p_turf_id - The id (PK) for which the reviews are fetched
+ *
+ *
+ * Output Columns
+ * --------------
+ *   - review - textual review left by a user
+ *   - rating - a rating between 1 to 5 given by a user
+ *   - username - username of the user that left the review
+ *
+ *
+ * Errors
+ * ------
+ *   - Signals SQLSTATE '45000' for any invalid input parameter
+ */
+DELIMITER $$
+CREATE PROCEDURE get_turf_reviews(IN p_turf_id INT)
+BEGIN
+    IF NOT EXISTS (SELECT turf_id FROM turf WHERE turf_id = p_turf_id) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Invalid turf ID';
+    END IF;
+
+    SELECT  review, 
+            rating, 
+            username
+    FROM review AS r
+    WHERE r.turf_id = p_turf_id;
+
 END $$
 DELIMITER ;
