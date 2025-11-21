@@ -30,17 +30,17 @@ jobs:
               run: sqlfluff fix --config .sqlfluff database/
 
             - name: Check for changes
-              id: git-check
+              id: git-check-db
               run: |
                 git config --global user.name "github-actions[bot]"
                 git config --global user.email "github-actions[bot]@users.noreply.github.com"
-                git add .
-                if ! git diff --cached --quiet; then echo "HAS_STAGED_CHANGES=true" >> "$GITHUB_OUTPUT"; fi
+                git add database
+                if ! git diff --cached --quiet; then echo "HAS_STAGED_CHANGES_DB=true" >> "$GITHUB_OUTPUT"; fi
 
             - name: Commit changes
-              if: steps.git-check.outputs.HAS_STAGED_CHANGES == 'true'
+              if: steps.git-check-db.outputs.HAS_STAGED_CHANGES_DB == 'true'
               run: |
-                git commit -m "chore: auto-format SQL"
+                git commit -m "chore(db): auto-format SQL"
                 git push
 
             - name: "Check for outstanding issues in SQL files"
