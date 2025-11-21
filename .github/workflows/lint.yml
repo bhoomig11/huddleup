@@ -45,3 +45,54 @@ jobs:
 
             - name: "Check for outstanding issues in SQL files"
               run: sqlfluff lint --config .sqlfluff database/
+
+    frontend:
+        name: "Lint and format frontend"
+        runs-on: ubuntu-latest
+        permissions:
+            contents: write
+
+        steps:
+            - name: "Check out git repository"
+              uses: actions/checkout@v5.0.0
+              with:
+                ref: ${{ github.head_ref }}
+
+            - name: "Setup Node.js"
+              uses: actions/setup-node@v4
+              with:
+                node-version: '20'
+
+            - name: "Install frontend dependencies"
+              run: npm ci
+              working-directory: frontend
+
+            - name: "Run Prettier (auto-fix)"
+              run: npm run format
+              working-directory: frontend
+
+            - name: "Run ESLint (auto-fix)"
+              run: npm run lint:fix
+              working-directory: frontend
+
+            - name: "Check Prettier formatting"
+              run: npm run format:check
+              working-directory: frontend
+
+            - name: "Run ESLint check"
+              run: npm run lint
+              working-directory: frontend
+
+            - name: Check for changes
+              id: git-check-ui
+              run: |
+                git config --global user.name "github-actions[bot]"
+                git config --global user.email "github-actions[bot]@users.noreply.github.com"
+                git add frontend
+                if ! git diff --cached --quiet; then echo "HAS_STAGED_CHANGES_UI=true" >> "$GITHUB_OUTPUT"; fi
+
+            - name: Commit changes
+              if: steps.git-check-ui.outputs.HAS_STAGED_CHANGES_UI == 'true'
+              run: |
+                git commit -m "chore(ui): auto-format and lint fixes"
+                git push
