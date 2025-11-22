@@ -4,6 +4,7 @@ import edu.northeastern.dharrguptab.huddleup.common.dto.Address;
 import edu.northeastern.dharrguptab.huddleup.common.exceptions.AppErrorCode;
 import edu.northeastern.dharrguptab.huddleup.common.exceptions.DatabaseExceptionCategory;
 import edu.northeastern.dharrguptab.huddleup.user.dto.UserProfile;
+import edu.northeastern.dharrguptab.huddleup.user.dto.UserProfileUpdate;
 import edu.northeastern.dharrguptab.huddleup.user.exceptions.UserErrorCode;
 import edu.northeastern.dharrguptab.huddleup.user.exceptions.UserException;
 import java.sql.CallableStatement;
@@ -76,5 +77,38 @@ public class UserRepository {
       throw new RuntimeException(e);
     }
     return null;
+  }
+
+  /**
+   * Update a user's profile details stored in the database.
+   *
+   * @param username the username of the user
+   * @param userProfileUpdate the fields to be updated
+   * @throws UserException if no such user is found
+   */
+  public void updateUserProfile(String username, UserProfileUpdate userProfileUpdate)
+      throws UserException {
+    String updateUserProfileQuery = "{CALL update_user_profile(?, ?, ?, ?, ?, ?, ?, ?, ?)}";
+    try (Connection connection = dataSource.getConnection();
+        CallableStatement cs = connection.prepareCall(updateUserProfileQuery); ) {
+      cs.setString("p_username", username);
+      cs.setString("p_first_name", userProfileUpdate.firstName());
+      cs.setString("p_last_name", userProfileUpdate.lastName());
+      cs.setDate("p_birth_date", Date.valueOf(userProfileUpdate.birthDate()));
+      cs.setString("p_addr_street_1", userProfileUpdate.address().streetLine1());
+      cs.setString("p_addr_street_2", userProfileUpdate.address().streetLine2());
+      cs.setString("p_addr_town", userProfileUpdate.address().town());
+      cs.setString("p_addr_state", userProfileUpdate.address().state());
+      cs.setString("p_addr_zip_code", userProfileUpdate.address().zipcode());
+      cs.executeUpdate();
+    } catch (SQLException e) {
+      if (DatabaseExceptionCategory.RESOURCE_NOT_FOUND.matchesSQLState(e.getSQLState())) {
+        throw new UserException(e, UserErrorCode.USER_NOT_FOUND);
+      } else {
+        throw new UserException(e, AppErrorCode.UNKNOWN);
+      }
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
   }
 }
