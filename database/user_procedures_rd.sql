@@ -434,7 +434,7 @@ DELIMITER ;
  *
  * Input Parameters
  * ----------------
- *   - p_old_username - the user's previous username
+ *   - p_current_username - the user's current username
  *   - p_new_username - the user's updated username
  *
  *
@@ -446,9 +446,9 @@ DELIMITER ;
  */
 DROP PROCEDURE IF EXISTS update_username;
 DELIMITER $$
-CREATE PROCEDURE update_username(IN p_old_username VARCHAR(64), IN p_new_username VARCHAR(64))
+CREATE PROCEDURE update_username(IN p_current_username VARCHAR(64), IN p_new_username VARCHAR(64))
 BEGIN
-    IF NOT EXISTS (SELECT username FROM app_user WHERE username = p_old_username) THEN
+    IF NOT EXISTS (SELECT username FROM app_user WHERE username = p_current_username) THEN
         SIGNAL SQLSTATE '45002' SET MESSAGE_TEXT = 'No such user exists';
     END IF;
 
@@ -460,7 +460,7 @@ BEGIN
 
     UPDATE app_user
     SET username = p_new_username
-    WHERE username = p_old_username;
+    WHERE username = p_current_username;
 END $$
 DELIMITER ;
 
