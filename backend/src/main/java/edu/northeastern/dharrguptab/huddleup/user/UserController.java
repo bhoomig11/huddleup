@@ -1,5 +1,6 @@
 package edu.northeastern.dharrguptab.huddleup.user;
 
+import edu.northeastern.dharrguptab.huddleup.user.dto.EmailUpdate;
 import edu.northeastern.dharrguptab.huddleup.user.dto.PasswordUpdate;
 import edu.northeastern.dharrguptab.huddleup.user.dto.UserProfile;
 import edu.northeastern.dharrguptab.huddleup.user.dto.UserProfileUpdate;
@@ -42,5 +43,11 @@ public class UserController {
   public void updatePassword(
       @PathVariable String username, @RequestBody PasswordUpdate passwordUpdate) {
     userService.updatePassword(username, passwordUpdate.password());
+  }
+
+  @PutMapping("/{username}/email")
+  public void updateEmail(
+      @PathVariable String username, @RequestBody EmailUpdate emailUpdate) {
+    userService.updateEmail(username, emailUpdate.newEmail());
   }
 }

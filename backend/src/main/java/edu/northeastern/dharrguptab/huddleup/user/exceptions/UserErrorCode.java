@@ -6,8 +6,10 @@ import edu.northeastern.dharrguptab.huddleup.common.exceptions.IAppErrorCode;
 public enum UserErrorCode implements IAppErrorCode {
   INVALID_USERNAME,
   INVALID_PASSWORD,
+  INVALID_EMAIL,
   USER_NOT_FOUND,
-  USERNAME_TAKEN;
+  USERNAME_TAKEN,
+  EMAIL_TAKEN;
 
   @Override
   public String toCodeString() {

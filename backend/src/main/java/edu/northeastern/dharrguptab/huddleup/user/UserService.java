@@ -60,4 +60,14 @@ public class UserService {
     String passwordHash = password;
     userRepository.updatePassword(username, passwordHash);
   }
+
+  /**
+   * Update the email address for a user.
+   *
+   * @param username the username of the user
+   * @param newEmail the new email address of the user
+   */
+  public void updateEmail(String username, String newEmail) {
+    userRepository.updateEmail(username, newEmail);
+  }
 }

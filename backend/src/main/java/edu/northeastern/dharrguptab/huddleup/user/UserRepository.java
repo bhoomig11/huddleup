@@ -175,4 +175,37 @@ public class UserRepository {
       throw new RuntimeException(e);
     }
   }
+
+  /**
+   * Update the email address for a user.
+   *
+   * @param username the username of the user
+   * @param email the new email address of the user
+   * @throws UserException if no such user is found, if the email is invalid, or if the email is already in use
+   */
+  public void updateEmail(String username, String email) throws UserException {
+    String updateEmailQuery = "{CALL update_user_email(?, ?)}";
+    try (Connection connection = dataSource.getConnection();
+        CallableStatement cs = connection.prepareCall(updateEmailQuery)) {
+      cs.setString("p_username", username);
+      cs.setString("p_email", email);
+      cs.executeUpdate();
+    } catch (SQLException e) {
+      DatabaseExceptionCategory databaseExceptionCategory =
+          DatabaseExceptionCategory.fromSQLState(e.getSQLState());
+
+      switch (databaseExceptionCategory) {
+        case VALIDATION_ERROR:
+          throw new UserException(e, UserErrorCode.INVALID_EMAIL);
+        case RESOURCE_NOT_FOUND:
+          throw new UserException(e, UserErrorCode.USER_NOT_FOUND);
+        case RESOURCE_CONFLICT:
+          throw new UserException(e, UserErrorCode.EMAIL_TAKEN);
+        default:
+          throw new UserException(e, AppErrorCode.UNKNOWN);
+      }
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+  }
 }
