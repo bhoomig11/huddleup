@@ -70,4 +70,13 @@ public class UserService {
   public void updateEmail(String username, String newEmail) {
     userRepository.updateEmail(username, newEmail);
   }
+
+  /**
+   * Delete a user from the database.
+   *
+   * @param username the username of the user to delete
+   */
+  public void deleteUser(String username) {
+    userRepository.deleteUser(username);
+  }
 }

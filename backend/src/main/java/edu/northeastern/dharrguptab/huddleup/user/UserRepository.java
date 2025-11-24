@@ -208,4 +208,31 @@ public class UserRepository {
       throw new RuntimeException(e);
     }
   }
+
+  /**
+   * Delete a user from the database.
+   *
+   * @param username the username of the user to delete
+   * @throws UserException if no such user exists
+   */
+  public void deleteUser(String username) throws UserException {
+    String deleteUserQuery = "{CALL delete_user(?)}";
+    try (Connection connection = dataSource.getConnection();
+        CallableStatement cs = connection.prepareCall(deleteUserQuery)) {
+      cs.setString("p_username", username);
+      cs.executeUpdate();
+    } catch (SQLException e) {
+      DatabaseExceptionCategory databaseExceptionCategory =
+          DatabaseExceptionCategory.fromSQLState(e.getSQLState());
+
+      switch (databaseExceptionCategory) {
+        case RESOURCE_NOT_FOUND:
+          throw new UserException(e, UserErrorCode.USER_NOT_FOUND);
+        default:
+          throw new UserException(e, AppErrorCode.UNKNOWN);
+      }
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+  }
 }

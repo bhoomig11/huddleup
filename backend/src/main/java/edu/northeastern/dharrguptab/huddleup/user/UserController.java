@@ -5,6 +5,7 @@ import edu.northeastern.dharrguptab.huddleup.user.dto.PasswordUpdate;
 import edu.northeastern.dharrguptab.huddleup.user.dto.UserProfile;
 import edu.northeastern.dharrguptab.huddleup.user.dto.UserProfileUpdate;
 import edu.northeastern.dharrguptab.huddleup.user.dto.UsernameUpdate;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -49,5 +50,10 @@ public class UserController {
   public void updateEmail(
       @PathVariable String username, @RequestBody EmailUpdate emailUpdate) {
     userService.updateEmail(username, emailUpdate.newEmail());
+  }
+
+  @DeleteMapping("/{username}")
+  public void deleteUser(@PathVariable String username) {
+    userService.deleteUser(username);
   }
 }
