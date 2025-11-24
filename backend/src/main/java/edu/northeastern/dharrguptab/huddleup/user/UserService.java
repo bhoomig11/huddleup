@@ -2,6 +2,7 @@ package edu.northeastern.dharrguptab.huddleup.user;
 
 import org.springframework.stereotype.Service;
 
+import edu.northeastern.dharrguptab.huddleup.user.dto.CardDetail;
 import edu.northeastern.dharrguptab.huddleup.user.dto.UserProfile;
 import edu.northeastern.dharrguptab.huddleup.user.dto.UserProfileUpdate;
 
@@ -78,5 +79,15 @@ public class UserService {
    */
   public void deleteUser(String username) {
     userRepository.deleteUser(username);
+  }
+
+  /**
+   * Add a new card detail for a user.
+   *
+   * @param username the username of the user
+   * @param cardDetail the card detail information to add
+   */
+  public void addCardDetail(String username, CardDetail cardDetail) {
+    userRepository.addCardDetail(username, cardDetail);
   }
 }

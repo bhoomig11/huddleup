@@ -3,6 +3,7 @@ package edu.northeastern.dharrguptab.huddleup.user;
 import edu.northeastern.dharrguptab.huddleup.common.dto.Address;
 import edu.northeastern.dharrguptab.huddleup.common.exceptions.AppErrorCode;
 import edu.northeastern.dharrguptab.huddleup.common.exceptions.DatabaseExceptionCategory;
+import edu.northeastern.dharrguptab.huddleup.user.dto.CardDetail;
 import edu.northeastern.dharrguptab.huddleup.user.dto.UserProfile;
 import edu.northeastern.dharrguptab.huddleup.user.dto.UserProfileUpdate;
 import edu.northeastern.dharrguptab.huddleup.user.exceptions.UserErrorCode;
@@ -226,6 +227,47 @@ public class UserRepository {
           DatabaseExceptionCategory.fromSQLState(e.getSQLState());
 
       switch (databaseExceptionCategory) {
+        case RESOURCE_NOT_FOUND:
+          throw new UserException(e, UserErrorCode.USER_NOT_FOUND);
+        default:
+          throw new UserException(e, AppErrorCode.UNKNOWN);
+      }
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  /**
+   * Add a new card detail for a user.
+   *
+   * @param username the username of the user
+   * @param cardDetail the card detail information to add
+   * @throws UserException if no such user exists or if the card details are invalid
+   */
+  public void addCardDetail(String username, CardDetail cardDetail) throws UserException {
+    String addCardDetailQuery = "{CALL add_user_card_detail(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}";
+    try (Connection connection = dataSource.getConnection();
+        CallableStatement cs = connection.prepareCall(addCardDetailQuery)) {
+      Address billingAddress = cardDetail.billingAddress();
+      
+      cs.setString("p_username", username);
+      cs.setString("p_card_number", cardDetail.cardNumber());
+      cs.setString("p_name_on_card", cardDetail.nameOnCard());
+      cs.setString("p_expiry_month", cardDetail.expiryMonth());
+      cs.setString("p_expiry_year", cardDetail.expiryYear());
+      cs.setString("p_addr_street_1", billingAddress.streetLine1());
+      cs.setString("p_addr_street_2", billingAddress.streetLine2());
+      cs.setString("p_addr_town", billingAddress.town());
+      cs.setString("p_addr_state", billingAddress.state());
+      cs.setString("p_addr_zip_code", billingAddress.zipcode());
+      cs.executeUpdate();
+    } catch (SQLException e) {
+      DatabaseExceptionCategory databaseExceptionCategory =
+          DatabaseExceptionCategory.fromSQLState(e.getSQLState());
+
+      switch (databaseExceptionCategory) {
+        case VALIDATION_ERROR:
+          throw new UserException(e, UserErrorCode.INVALID_CARD_DETAIL);
         case RESOURCE_NOT_FOUND:
           throw new UserException(e, UserErrorCode.USER_NOT_FOUND);
         default:
