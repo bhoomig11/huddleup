@@ -5,9 +5,7 @@ import org.springframework.stereotype.Service;
 import edu.northeastern.dharrguptab.huddleup.user.dto.UserProfile;
 import edu.northeastern.dharrguptab.huddleup.user.dto.UserProfileUpdate;
 
-/**
- * Defines business logic pertaining to HuddleUp application users.
- */
+/** Defines business logic pertaining to HuddleUp application users. */
 @Service
 public class UserService {
   private final UserRepository userRepository;
@@ -39,5 +37,15 @@ public class UserService {
    */
   public void updateProfile(String username, UserProfileUpdate userProfileUpdate) {
     userRepository.updateUserProfile(username, userProfileUpdate);
+  }
+
+  /**
+   * Update the username for a user.
+   *
+   * @param currentUsername the current username of the user
+   * @param newUsername the new username of the user
+   */
+  public void updateUsername(String currentUsername, String newUsername) {
+    userRepository.updateUsername(currentUsername, newUsername);
   }
 }

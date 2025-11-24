@@ -111,4 +111,37 @@ public class UserRepository {
       throw new RuntimeException(e);
     }
   }
+
+  /**
+   * Update the username for a user.
+   *
+   * @param currentUsername the current username of the user
+   * @param newUsername the new username of the user
+   * @throws UserException if no such user with the current username is found
+   */
+  public void updateUsername(String currentUsername, String newUsername) throws UserException {
+    String updateUsernameQuery = "{CALL update_username(?, ?)}";
+    try (Connection connection = dataSource.getConnection();
+        CallableStatement cs = connection.prepareCall(updateUsernameQuery)) {
+      cs.setString("p_current_username", currentUsername);
+      cs.setString("p_new_username", newUsername);
+      cs.executeUpdate();
+    } catch (SQLException e) {
+      DatabaseExceptionCategory databaseExceptionCategory =
+          DatabaseExceptionCategory.fromSQLState(e.getSQLState());
+
+      switch (databaseExceptionCategory) {
+        case VALIDATION_ERROR:
+          throw new UserException(e, UserErrorCode.INVALID_USERNAME);
+        case RESOURCE_NOT_FOUND:
+          throw new UserException(e, UserErrorCode.USER_NOT_FOUND);
+        case RESOURCE_CONFLICT:
+          throw new UserException(e, UserErrorCode.USERNAME_TAKEN);
+        default:
+          throw new UserException(e, AppErrorCode.UNKNOWN);
+      }
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+  }
 }
