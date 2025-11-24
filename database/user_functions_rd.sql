@@ -15,6 +15,7 @@ USE huddleup;
  * -------
  * TRUE if the username is already in use, FALSE otherwise.
  */
+DROP FUNCTION IF EXISTS is_username_taken;
 DELIMITER $$
 CREATE FUNCTION is_username_taken(p_username VARCHAR(64))
 RETURNS BOOLEAN
