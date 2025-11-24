@@ -48,4 +48,16 @@ public class UserService {
   public void updateUsername(String currentUsername, String newUsername) {
     userRepository.updateUsername(currentUsername, newUsername);
   }
+
+  /**
+   * Update the password for a user.
+   *
+   * @param username the username of the user
+   * @param password the new password for the user
+   */
+  public void updatePassword(String username, String password) {
+    // TODO: Hash the password before storing it in the database
+    String passwordHash = password;
+    userRepository.updatePassword(username, passwordHash);
+  }
 }

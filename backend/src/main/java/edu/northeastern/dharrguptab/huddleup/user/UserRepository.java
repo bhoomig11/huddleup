@@ -144,4 +144,35 @@ public class UserRepository {
       throw new RuntimeException(e);
     }
   }
+
+  /**
+   * Update the password hash for a user.
+   *
+   * @param username the username of the user
+   * @param passwordHash the new password hash for the user
+   * @throws UserException if no such user is found or if the password hash is invalid
+   */
+  public void updatePassword(String username, String passwordHash) throws UserException {
+    String updatePasswordQuery = "{CALL update_user_password(?, ?)}";
+    try (Connection connection = dataSource.getConnection();
+        CallableStatement cs = connection.prepareCall(updatePasswordQuery)) {
+      cs.setString("p_username", username);
+      cs.setString("p_password_hash", passwordHash);
+      cs.executeUpdate();
+    } catch (SQLException e) {
+      DatabaseExceptionCategory databaseExceptionCategory =
+          DatabaseExceptionCategory.fromSQLState(e.getSQLState());
+
+      switch (databaseExceptionCategory) {
+        case VALIDATION_ERROR:
+          throw new UserException(e, UserErrorCode.INVALID_PASSWORD);
+        case RESOURCE_NOT_FOUND:
+          throw new UserException(e, UserErrorCode.USER_NOT_FOUND);
+        default:
+          throw new UserException(e, AppErrorCode.UNKNOWN);
+      }
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+  }
 }
