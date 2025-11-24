@@ -252,7 +252,7 @@ BEGIN
 
     -- check for valid booking
     IF NOT EXISTS (
-        SELECT booking_id FROM boooking WHERE booking_id = p_booking_id
+        SELECT booking_id FROM booking WHERE booking_id = p_booking_id
     ) THEN
         SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'No such booking found for this user';
     END IF;
