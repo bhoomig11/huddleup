@@ -1,19 +1,18 @@
 package edu.northeastern.dharrguptab.huddleup.user;
 
+import edu.northeastern.dharrguptab.huddleup.common.dto.Address;
+import edu.northeastern.dharrguptab.huddleup.common.exceptions.AppErrorCode;
+import edu.northeastern.dharrguptab.huddleup.common.exceptions.DatabaseExceptionCategory;
+import edu.northeastern.dharrguptab.huddleup.user.dto.UserProfile;
+import edu.northeastern.dharrguptab.huddleup.user.exceptions.UserErrorCode;
+import edu.northeastern.dharrguptab.huddleup.user.exceptions.UserException;
 import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.Date;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
-
 import javax.sql.DataSource;
-
-import edu.northeastern.dharrguptab.huddleup.common.dto.Address;
-import edu.northeastern.dharrguptab.huddleup.common.exceptions.DatabaseAccessException;
-import edu.northeastern.dharrguptab.huddleup.user.dto.UserProfile;
-import edu.northeastern.dharrguptab.huddleup.user.exceptions.UserNotFoundException;
-
 import org.springframework.stereotype.Repository;
 
 /**
@@ -38,13 +37,11 @@ public class UserRepository {
    *
    * @param username the username of the user
    * @return the user's profile data
-   * @throws DatabaseAccessException if no such user is found
+   * @throws UserException if no such user is found
    */
-  public UserProfile getUserProfile(String username) throws DatabaseAccessException {
-    try (
-        Connection connection = dataSource.getConnection();
-        CallableStatement cs = connection.prepareCall("{CALL get_user_profile(?)}")
-    ) {
+  public UserProfile getUserProfile(String username) throws UserException {
+    try (Connection connection = dataSource.getConnection();
+        CallableStatement cs = connection.prepareCall("{CALL get_user_profile(?)}")) {
       cs.setString("p_username", username);
       try (ResultSet rs = cs.executeQuery()) {
         if (rs.next()) {
@@ -70,10 +67,10 @@ public class UserRepository {
         }
       }
     } catch (SQLException e) {
-      if (e.getSQLState().equals("45000")) {
-        throw new UserNotFoundException(e);
+      if (DatabaseExceptionCategory.RESOURCE_NOT_FOUND.matchesSQLState(e.getSQLState())) {
+        throw new UserException(e, UserErrorCode.USER_NOT_FOUND);
       } else {
-        throw new DatabaseAccessException(e);
+        throw new UserException(e, AppErrorCode.UNKNOWN);
       }
     } catch (Exception e) {
       throw new RuntimeException(e);
