@@ -90,7 +90,7 @@ public class UserRepository {
       throws UserException {
     String updateUserProfileQuery = "{CALL update_user_profile(?, ?, ?, ?, ?, ?, ?, ?, ?)}";
     try (Connection connection = dataSource.getConnection();
-        CallableStatement cs = connection.prepareCall(updateUserProfileQuery); ) {
+        CallableStatement cs = connection.prepareCall(updateUserProfileQuery)) {
       cs.setString("p_username", username);
       cs.setString("p_first_name", userProfileUpdate.firstName());
       cs.setString("p_last_name", userProfileUpdate.lastName());
