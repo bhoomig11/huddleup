@@ -277,4 +277,33 @@ public class UserRepository {
       throw new RuntimeException(e);
     }
   }
+
+  /**
+   * Delete a card detail for a user.
+   *
+   * @param username the username of the user
+   * @param cardId the ID of the card to delete
+   * @throws UserException if no such card exists for the user
+   */
+  public void deleteCardDetail(String username, int cardId) throws UserException {
+    String deleteCardDetailQuery = "{CALL delete_user_card_detail(?, ?)}";
+    try (Connection connection = dataSource.getConnection();
+        CallableStatement cs = connection.prepareCall(deleteCardDetailQuery)) {
+      cs.setString("p_username", username);
+      cs.setInt("p_card_id", cardId);
+      cs.executeUpdate();
+    } catch (SQLException e) {
+      DatabaseExceptionCategory databaseExceptionCategory =
+          DatabaseExceptionCategory.fromSQLState(e.getSQLState());
+
+      switch (databaseExceptionCategory) {
+        case RESOURCE_NOT_FOUND:
+          throw new UserException(e, UserErrorCode.CARD_NOT_FOUND);
+        default:
+          throw new UserException(e, AppErrorCode.UNKNOWN);
+      }
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+  }
 }

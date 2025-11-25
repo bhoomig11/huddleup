@@ -64,4 +64,9 @@ public class UserController {
       @PathVariable String username, @RequestBody CardDetail cardDetail) {
     userService.addCardDetail(username, cardDetail);
   }
+
+  @DeleteMapping("/{username}/cards/{cardId}")
+  public void deleteCardDetail(@PathVariable String username, @PathVariable int cardId) {
+    userService.deleteCardDetail(username, cardId);
+  }
 }

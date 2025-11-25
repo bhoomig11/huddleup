@@ -9,6 +9,7 @@ public enum UserErrorCode implements IAppErrorCode {
   INVALID_EMAIL,
   INVALID_CARD_DETAIL,
   USER_NOT_FOUND,
+  CARD_NOT_FOUND,
   USERNAME_TAKEN,
   EMAIL_TAKEN;
 

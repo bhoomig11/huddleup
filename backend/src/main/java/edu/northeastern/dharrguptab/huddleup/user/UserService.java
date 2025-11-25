@@ -90,4 +90,14 @@ public class UserService {
   public void addCardDetail(String username, CardDetail cardDetail) {
     userRepository.addCardDetail(username, cardDetail);
   }
+
+  /**
+   * Delete a card detail for a user.
+   *
+   * @param username the username of the user
+   * @param cardId the ID of the card to delete
+   */
+  public void deleteCardDetail(String username, int cardId) {
+    userRepository.deleteCardDetail(username, cardId);
+  }
 }
