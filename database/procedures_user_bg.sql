@@ -149,7 +149,8 @@ DELIMITER ;
  *   - Signals SQLSTATE '45001' if the turf id is NULL or empty
  *   - Signals SQLSTATE '45001' if the rating is not valid
  *   - Signals SQLSTATE '45002' if the corresponding user or turf does not exist
- *   - Signals SQLSTATE '45003' if the user has never booked the turf before
+ *   - Signals SQLSTATE '45003' if the user has never booked and visited the turf before
+ *   - Signals SQLSTATE '45003' if the user has already reviewed the turf before
  */
 DROP PROCEDURE IF EXISTS add_review;
 DELIMITER $$
@@ -179,13 +180,22 @@ BEGIN
         SIGNAL SQLSTATE '45001' SET MESSAGE_TEXT = 'Rating must be between 1 and 5';
     END IF;
 
-    -- check if the user has booked that turf before - 
+    -- check if the user has booked and visited that turf before -
     -- only users who have booked the turf before can leave a review
     IF NOT EXISTS (
-        SELECT booking_id FROM booking WHERE username = p_username AND turf_id = p_turf_id)
-    THEN
+        SELECT booking_id FROM booking
+        WHERE
+            username = p_username AND
+            turf_id = p_turf_id AND
+            start_time_utc < UTC_TIMESTAMP()
+    ) THEN
         SIGNAL SQLSTATE '45003' 
-        SET MESSAGE_TEXT = 'User must have booked this turf before leaving a review';
+        SET MESSAGE_TEXT = 'User must have a previously attended booking with the turf to leave a review';
+    END IF;
+
+    -- limit users to at most one review for a turf
+    IF EXISTS (SELECT rating FROM review WHERE turf_id = p_turf_id AND username = p_username) THEN
+        SIGNAL SQLSTATE '45003' SET MESSAGE_TEXT = 'User has already reviewed this turf previously'
     END IF;
 
     -- insert a tuple in the review table
