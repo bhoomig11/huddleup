@@ -3,7 +3,9 @@ package edu.northeastern.dharrguptab.huddleup.user;
 import edu.northeastern.dharrguptab.huddleup.common.dto.Address;
 import edu.northeastern.dharrguptab.huddleup.common.exceptions.AppErrorCode;
 import edu.northeastern.dharrguptab.huddleup.common.exceptions.DatabaseExceptionCategory;
+import edu.northeastern.dharrguptab.huddleup.user.dto.CardDetail;
 import edu.northeastern.dharrguptab.huddleup.user.dto.UserProfile;
+import edu.northeastern.dharrguptab.huddleup.user.dto.UserProfileUpdate;
 import edu.northeastern.dharrguptab.huddleup.user.exceptions.UserErrorCode;
 import edu.northeastern.dharrguptab.huddleup.user.exceptions.UserException;
 import java.sql.CallableStatement;
@@ -76,5 +78,232 @@ public class UserRepository {
       throw new RuntimeException(e);
     }
     return null;
+  }
+
+  /**
+   * Update a user's profile details stored in the database.
+   *
+   * @param username the username of the user
+   * @param userProfileUpdate the fields to be updated
+   * @throws UserException if no such user is found
+   */
+  public void updateUserProfile(String username, UserProfileUpdate userProfileUpdate)
+      throws UserException {
+    String updateUserProfileQuery = "{CALL update_user_profile(?, ?, ?, ?, ?, ?, ?, ?, ?)}";
+    try (Connection connection = dataSource.getConnection();
+        CallableStatement cs = connection.prepareCall(updateUserProfileQuery)) {
+      cs.setString("p_username", username);
+      cs.setString("p_first_name", userProfileUpdate.firstName());
+      cs.setString("p_last_name", userProfileUpdate.lastName());
+      cs.setDate("p_birth_date", Date.valueOf(userProfileUpdate.birthDate()));
+      cs.setString("p_addr_street_1", userProfileUpdate.address().streetLine1());
+      cs.setString("p_addr_street_2", userProfileUpdate.address().streetLine2());
+      cs.setString("p_addr_town", userProfileUpdate.address().town());
+      cs.setString("p_addr_state", userProfileUpdate.address().state());
+      cs.setString("p_addr_zip_code", userProfileUpdate.address().zipcode());
+      cs.executeUpdate();
+    } catch (SQLException e) {
+      if (DatabaseExceptionCategory.RESOURCE_NOT_FOUND.matchesSQLState(e.getSQLState())) {
+        throw new UserException(e, UserErrorCode.USER_NOT_FOUND);
+      } else {
+        throw new UserException(e, AppErrorCode.UNKNOWN);
+      }
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  /**
+   * Update the username for a user.
+   *
+   * @param currentUsername the current username of the user
+   * @param newUsername the new username of the user
+   * @throws UserException if no such user with the current username is found
+   */
+  public void updateUsername(String currentUsername, String newUsername) throws UserException {
+    String updateUsernameQuery = "{CALL update_username(?, ?)}";
+    try (Connection connection = dataSource.getConnection();
+        CallableStatement cs = connection.prepareCall(updateUsernameQuery)) {
+      cs.setString("p_current_username", currentUsername);
+      cs.setString("p_new_username", newUsername);
+      cs.executeUpdate();
+    } catch (SQLException e) {
+      DatabaseExceptionCategory databaseExceptionCategory =
+          DatabaseExceptionCategory.fromSQLState(e.getSQLState());
+
+      switch (databaseExceptionCategory) {
+        case VALIDATION_ERROR:
+          throw new UserException(e, UserErrorCode.INVALID_USERNAME);
+        case RESOURCE_NOT_FOUND:
+          throw new UserException(e, UserErrorCode.USER_NOT_FOUND);
+        case RESOURCE_CONFLICT:
+          throw new UserException(e, UserErrorCode.USERNAME_TAKEN);
+        default:
+          throw new UserException(e, AppErrorCode.UNKNOWN);
+      }
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  /**
+   * Update the password hash for a user.
+   *
+   * @param username the username of the user
+   * @param passwordHash the new password hash for the user
+   * @throws UserException if no such user is found or if the password hash is invalid
+   */
+  public void updatePassword(String username, String passwordHash) throws UserException {
+    String updatePasswordQuery = "{CALL update_user_password(?, ?)}";
+    try (Connection connection = dataSource.getConnection();
+        CallableStatement cs = connection.prepareCall(updatePasswordQuery)) {
+      cs.setString("p_username", username);
+      cs.setString("p_password_hash", passwordHash);
+      cs.executeUpdate();
+    } catch (SQLException e) {
+      DatabaseExceptionCategory databaseExceptionCategory =
+          DatabaseExceptionCategory.fromSQLState(e.getSQLState());
+
+      switch (databaseExceptionCategory) {
+        case VALIDATION_ERROR:
+          throw new UserException(e, UserErrorCode.INVALID_PASSWORD);
+        case RESOURCE_NOT_FOUND:
+          throw new UserException(e, UserErrorCode.USER_NOT_FOUND);
+        default:
+          throw new UserException(e, AppErrorCode.UNKNOWN);
+      }
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  /**
+   * Update the email address for a user.
+   *
+   * @param username the username of the user
+   * @param email the new email address of the user
+   * @throws UserException if no such user is found, if the email is invalid, or if the email is already in use
+   */
+  public void updateEmail(String username, String email) throws UserException {
+    String updateEmailQuery = "{CALL update_user_email(?, ?)}";
+    try (Connection connection = dataSource.getConnection();
+        CallableStatement cs = connection.prepareCall(updateEmailQuery)) {
+      cs.setString("p_username", username);
+      cs.setString("p_email", email);
+      cs.executeUpdate();
+    } catch (SQLException e) {
+      DatabaseExceptionCategory databaseExceptionCategory =
+          DatabaseExceptionCategory.fromSQLState(e.getSQLState());
+
+      switch (databaseExceptionCategory) {
+        case VALIDATION_ERROR:
+          throw new UserException(e, UserErrorCode.INVALID_EMAIL);
+        case RESOURCE_NOT_FOUND:
+          throw new UserException(e, UserErrorCode.USER_NOT_FOUND);
+        case RESOURCE_CONFLICT:
+          throw new UserException(e, UserErrorCode.EMAIL_TAKEN);
+        default:
+          throw new UserException(e, AppErrorCode.UNKNOWN);
+      }
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  /**
+   * Delete a user from the database.
+   *
+   * @param username the username of the user to delete
+   * @throws UserException if no such user exists
+   */
+  public void deleteUser(String username) throws UserException {
+    String deleteUserQuery = "{CALL delete_user(?)}";
+    try (Connection connection = dataSource.getConnection();
+        CallableStatement cs = connection.prepareCall(deleteUserQuery)) {
+      cs.setString("p_username", username);
+      cs.executeUpdate();
+    } catch (SQLException e) {
+      DatabaseExceptionCategory databaseExceptionCategory =
+          DatabaseExceptionCategory.fromSQLState(e.getSQLState());
+
+      switch (databaseExceptionCategory) {
+        case RESOURCE_NOT_FOUND:
+          throw new UserException(e, UserErrorCode.USER_NOT_FOUND);
+        default:
+          throw new UserException(e, AppErrorCode.UNKNOWN);
+      }
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  /**
+   * Add a new card detail for a user.
+   *
+   * @param username the username of the user
+   * @param cardDetail the card detail information to add
+   * @throws UserException if no such user exists or if the card details are invalid
+   */
+  public void addCardDetail(String username, CardDetail cardDetail) throws UserException {
+    String addCardDetailQuery = "{CALL add_user_card_detail(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}";
+    try (Connection connection = dataSource.getConnection();
+        CallableStatement cs = connection.prepareCall(addCardDetailQuery)) {
+      Address billingAddress = cardDetail.billingAddress();
+      
+      cs.setString("p_username", username);
+      cs.setString("p_card_number", cardDetail.cardNumber());
+      cs.setString("p_name_on_card", cardDetail.nameOnCard());
+      cs.setString("p_expiry_month", cardDetail.expiryMonth());
+      cs.setString("p_expiry_year", cardDetail.expiryYear());
+      cs.setString("p_addr_street_1", billingAddress.streetLine1());
+      cs.setString("p_addr_street_2", billingAddress.streetLine2());
+      cs.setString("p_addr_town", billingAddress.town());
+      cs.setString("p_addr_state", billingAddress.state());
+      cs.setString("p_addr_zip_code", billingAddress.zipcode());
+      cs.executeUpdate();
+    } catch (SQLException e) {
+      DatabaseExceptionCategory databaseExceptionCategory =
+          DatabaseExceptionCategory.fromSQLState(e.getSQLState());
+
+      switch (databaseExceptionCategory) {
+        case VALIDATION_ERROR:
+          throw new UserException(e, UserErrorCode.INVALID_CARD_DETAIL);
+        case RESOURCE_NOT_FOUND:
+          throw new UserException(e, UserErrorCode.USER_NOT_FOUND);
+        default:
+          throw new UserException(e, AppErrorCode.UNKNOWN);
+      }
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  /**
+   * Delete a card detail for a user.
+   *
+   * @param username the username of the user
+   * @param cardId the ID of the card to delete
+   * @throws UserException if no such card exists for the user
+   */
+  public void deleteCardDetail(String username, int cardId) throws UserException {
+    String deleteCardDetailQuery = "{CALL delete_user_card_detail(?, ?)}";
+    try (Connection connection = dataSource.getConnection();
+        CallableStatement cs = connection.prepareCall(deleteCardDetailQuery)) {
+      cs.setString("p_username", username);
+      cs.setInt("p_card_id", cardId);
+      cs.executeUpdate();
+    } catch (SQLException e) {
+      DatabaseExceptionCategory databaseExceptionCategory =
+          DatabaseExceptionCategory.fromSQLState(e.getSQLState());
+
+      switch (databaseExceptionCategory) {
+        case RESOURCE_NOT_FOUND:
+          throw new UserException(e, UserErrorCode.CARD_NOT_FOUND);
+        default:
+          throw new UserException(e, AppErrorCode.UNKNOWN);
+      }
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
   }
 }
