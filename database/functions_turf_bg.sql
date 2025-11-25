@@ -29,7 +29,7 @@ BEGIN
     DECLARE avg_rating DECIMAL(1,1);
  
     IF NOT EXISTS (SELECT turf_id FROM turf WHERE turf_id = p_turf_id) THEN 
-        SIGNAL SQLSTATE '45001'
+        SIGNAL SQLSTATE '45002'
         SET MESSAGE_TEXT = 'No such turf exists';
     END IF;
  
