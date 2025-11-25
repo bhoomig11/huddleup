@@ -3,6 +3,7 @@ package edu.northeastern.dharrguptab.huddleup.user;
 import edu.northeastern.dharrguptab.huddleup.auth.dto.AuthResponse;
 import edu.northeastern.dharrguptab.huddleup.auth.dto.UserLoginCredentials;
 import edu.northeastern.dharrguptab.huddleup.auth.dto.UserSignupCredentials;
+import edu.northeastern.dharrguptab.huddleup.user.dto.AnnouncementDetail;
 import edu.northeastern.dharrguptab.huddleup.user.dto.AnnouncementSummary;
 import edu.northeastern.dharrguptab.huddleup.user.dto.CardDetail;
 import edu.northeastern.dharrguptab.huddleup.user.dto.EmailUpdate;
@@ -100,5 +101,11 @@ public class UserController {
   @GetMapping("/{username}/announcements")
   public List<AnnouncementSummary> getAnnouncements(@PathVariable String username) {
     return userService.getAnnouncements(username);
+  }
+
+  @GetMapping("/{username}/announcements/{announcementId}")
+  public AnnouncementDetail getAnnouncement(
+      @PathVariable String username, @PathVariable int announcementId) {
+    return userService.getAnnouncement(username, announcementId);
   }
 }

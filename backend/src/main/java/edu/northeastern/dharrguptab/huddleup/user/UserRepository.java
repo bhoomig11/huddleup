@@ -5,6 +5,7 @@ import edu.northeastern.dharrguptab.huddleup.auth.exception.InvalidCredentialsEx
 import edu.northeastern.dharrguptab.huddleup.common.dto.Address;
 import edu.northeastern.dharrguptab.huddleup.common.exceptions.AppErrorCode;
 import edu.northeastern.dharrguptab.huddleup.common.exceptions.DatabaseExceptionCategory;
+import edu.northeastern.dharrguptab.huddleup.user.dto.AnnouncementDetail;
 import edu.northeastern.dharrguptab.huddleup.user.dto.AnnouncementSummary;
 import edu.northeastern.dharrguptab.huddleup.user.dto.CardDetail;
 import edu.northeastern.dharrguptab.huddleup.user.dto.UserProfile;
@@ -422,6 +423,39 @@ public class UserRepository {
     } catch (SQLException e) {
       if (DatabaseExceptionCategory.VALIDATION_ERROR.matchesSQLState(e.getSQLState())) {
         throw new UserException(e, UserErrorCode.INVALID_USERNAME);
+      }
+      throw new UserException(e, AppErrorCode.UNKNOWN);
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  /**
+   * Retrieve a specific announcement for a user.
+   *
+   * @param username the username of the user
+   * @param announcementId the announcement identifier
+   * @return the announcement detail
+   */
+  public AnnouncementDetail getAnnouncement(String username, int announcementId) {
+    String getAnnouncementQuery = "{CALL get_user_announcement(?, ?)}";
+    try (Connection connection = dataSource.getConnection();
+        CallableStatement cs = connection.prepareCall(getAnnouncementQuery)) {
+      cs.setString("p_username", username);
+      cs.setInt("p_announcement_id", announcementId);
+      try (ResultSet rs = cs.executeQuery()) {
+        if (rs.next()) {
+          String title = rs.getString("announcement_title");
+          String message = rs.getString("announcement_message");
+          Instant sentAt = toInstantOrNull(rs.getTimestamp("sent_at"));
+          Instant readAt = toInstantOrNull(rs.getTimestamp("read_at"));
+          return new AnnouncementDetail(title, message, sentAt, readAt);
+        }
+      }
+      return null;
+    } catch (SQLException e) {
+      if (DatabaseExceptionCategory.RESOURCE_NOT_FOUND.matchesSQLState(e.getSQLState())) {
+        throw new UserException(e, UserErrorCode.ANNOUNCEMENT_NOT_FOUND);
       }
       throw new UserException(e, AppErrorCode.UNKNOWN);
     } catch (Exception e) {

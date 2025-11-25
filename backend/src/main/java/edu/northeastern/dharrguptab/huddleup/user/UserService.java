@@ -7,6 +7,7 @@ import edu.northeastern.dharrguptab.huddleup.auth.exception.InvalidCredentialsEx
 import edu.northeastern.dharrguptab.huddleup.auth.exception.UnauthenticatedException;
 import edu.northeastern.dharrguptab.huddleup.auth.exception.UnauthorizedException;
 import edu.northeastern.dharrguptab.huddleup.auth.jwt.JwtService;
+import edu.northeastern.dharrguptab.huddleup.user.dto.AnnouncementDetail;
 import edu.northeastern.dharrguptab.huddleup.user.dto.AnnouncementSummary;
 import edu.northeastern.dharrguptab.huddleup.user.dto.CardDetail;
 import edu.northeastern.dharrguptab.huddleup.user.dto.UserProfile;
@@ -168,5 +169,16 @@ public class UserService {
    */
   public List<AnnouncementSummary> getAnnouncements(String username) {
     return userRepository.getAllAnnouncements(username);
+  }
+
+  /**
+   * Retrieve a specific announcement for a user.
+   *
+   * @param username the username of the user
+   * @param announcementId the announcement ID
+   * @return the detailed announcement
+   */
+  public AnnouncementDetail getAnnouncement(String username, int announcementId) {
+    return userRepository.getAnnouncement(username, announcementId);
   }
 }
