@@ -1,19 +1,35 @@
 package edu.northeastern.dharrguptab.huddleup.auth.jwt;
 
+import edu.northeastern.dharrguptab.huddleup.auth.exception.UnauthenticatedException;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.security.Keys;
+import jakarta.annotation.PostConstruct;
+import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import javax.crypto.SecretKey;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 @Service
 public class JwtService {
-  private static final long VALID_DURATION_MS = 1000 * 60 * 60; // 1 hour
+  @Value("${jwt.expiration.ms}")
+  private long expiration;
 
-  // TODO: Move this to environment variable
-  private final SecretKey secretKey = Jwts.SIG.HS256.key().build();
+  @Value("${jwt.secret}")
+  private String jwtSecret;
+
+  private SecretKey secretKey;
+
+  /**
+   * Initializes the key after the class is instantiated and the jwtSecret is injected.
+   **/
+  @PostConstruct
+  public void init() {
+    this.secretKey = Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
+  }
 
   /**
    * Generate a JWT for a given user
@@ -25,7 +41,7 @@ public class JwtService {
     return Jwts.builder()
         .subject(username)
         .issuedAt(new Date())
-        .expiration(new Date(System.currentTimeMillis() + VALID_DURATION_MS))
+        .expiration(new Date(System.currentTimeMillis() + expiration))
         .signWith(secretKey)
         .compact();
   }
@@ -78,7 +94,7 @@ public class JwtService {
       boolean isExpired = claims.getExpiration().before(new Date());
       return isUserValid && !isExpired;
     } catch (JwtException e) {
-      throw new JwtException(e.getMessage());
+      throw new UnauthenticatedException();
     }
   }
 }
