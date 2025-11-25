@@ -1,5 +1,7 @@
 package edu.northeastern.dharrguptab.huddleup.user;
 
+import edu.northeastern.dharrguptab.huddleup.auth.dto.UserCredentials;
+import edu.northeastern.dharrguptab.huddleup.auth.exception.InvalidCredentialsException;
 import edu.northeastern.dharrguptab.huddleup.common.dto.Address;
 import edu.northeastern.dharrguptab.huddleup.common.exceptions.AppErrorCode;
 import edu.northeastern.dharrguptab.huddleup.common.exceptions.DatabaseExceptionCategory;
@@ -14,6 +16,7 @@ import java.sql.Date;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
+import java.util.Objects;
 import javax.sql.DataSource;
 import org.springframework.stereotype.Repository;
 
@@ -32,6 +35,88 @@ public class UserRepository {
    */
   public UserRepository(DataSource dataSource) {
     this.dataSource = dataSource;
+  }
+
+  /**
+   * Retrieve the login details for a given user.
+   *
+   * @param username the username of the user
+   * @return the user's profile data
+   */
+  public UserCredentials getLoginUser(String username) throws InvalidCredentialsException {
+    try (Connection connection = dataSource.getConnection();
+        CallableStatement cs = connection.prepareCall("{CALL get_user_login_details(?)}"); ) {
+      cs.setString("p_username", username);
+      try (ResultSet rs = cs.executeQuery()) {
+        if (rs.next()) {
+          String u = rs.getString("username");
+          String hash = rs.getString("password_hash");
+
+          return new UserCredentials(u, hash);
+        }
+      }
+    } catch (SQLException e) {
+      DatabaseExceptionCategory databaseExceptionCategory =
+          DatabaseExceptionCategory.fromSQLState(e.getSQLState());
+      if (Objects.requireNonNull(databaseExceptionCategory)
+          == DatabaseExceptionCategory.RESOURCE_NOT_FOUND) {
+        throw new InvalidCredentialsException();
+      }
+      throw new UserException(e, AppErrorCode.UNKNOWN);
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+    return null;
+  }
+
+  /**
+   * Creates a new user
+   *
+   * @param username username of the user to be created
+   * @param passwordHash hashed password of the user to be created
+   * @param firstName first name of the user to be created
+   * @param lastName last name of the user to be created
+   * @param email email address of the user to be created
+   * @param birthDate birth date of the user to be created
+   * @param address the address of the user to be created
+   */
+  public void createNewUser(
+      String username,
+      String passwordHash,
+      String firstName,
+      String lastName,
+      String email,
+      LocalDate birthDate,
+      Address address) {
+    try (Connection connection = dataSource.getConnection();
+        CallableStatement cs =
+            connection.prepareCall("{CALL create_new_user(?,?,?,?,?,?,?,?,?,?,?)}")) {
+      cs.setString("p_username", username);
+      cs.setString("p_password_hash", passwordHash);
+      cs.setString("p_first_name", firstName);
+      cs.setString("p_last_name", lastName);
+      cs.setString("p_email", email);
+      cs.setDate("p_birth_date", Date.valueOf(birthDate));
+      cs.setString("p_addr_street_1", address.streetLine1());
+      cs.setString("p_addr_street_2", address.streetLine2());
+      cs.setString("p_addr_town", address.town());
+      cs.setString("p_addr_state", address.state());
+      cs.setString("p_addr_zip_code", address.zipcode());
+      cs.execute();
+    } catch (SQLException e) {
+      DatabaseExceptionCategory databaseExceptionCategory =
+          DatabaseExceptionCategory.fromSQLState(e.getSQLState());
+      switch (databaseExceptionCategory) {
+        case VALIDATION_ERROR:
+          throw new UserException(e, UserErrorCode.INVALID_USER_FIELD);
+        case RESOURCE_CONFLICT:
+          throw new UserException(e, UserErrorCode.USERNAME_OR_EMAIL_TAKEN);
+        default:
+          throw new UserException(e, AppErrorCode.UNKNOWN);
+      }
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
   }
 
   /**
@@ -182,7 +267,8 @@ public class UserRepository {
    *
    * @param username the username of the user
    * @param email the new email address of the user
-   * @throws UserException if no such user is found, if the email is invalid, or if the email is already in use
+   * @throws UserException if no such user is found, if the email is invalid, or if the email is
+   *     already in use
    */
   public void updateEmail(String username, String email) throws UserException {
     String updateEmailQuery = "{CALL update_user_email(?, ?)}";
@@ -249,7 +335,7 @@ public class UserRepository {
     try (Connection connection = dataSource.getConnection();
         CallableStatement cs = connection.prepareCall(addCardDetailQuery)) {
       Address billingAddress = cardDetail.billingAddress();
-      
+
       cs.setString("p_username", username);
       cs.setString("p_card_number", cardDetail.cardNumber());
       cs.setString("p_name_on_card", cardDetail.nameOnCard());

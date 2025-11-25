@@ -1,23 +1,70 @@
 package edu.northeastern.dharrguptab.huddleup.user;
 
-import org.springframework.stereotype.Service;
-
+import edu.northeastern.dharrguptab.huddleup.auth.dto.UserCredentials;
+import edu.northeastern.dharrguptab.huddleup.auth.dto.UserLoginCredentials;
+import edu.northeastern.dharrguptab.huddleup.auth.dto.UserSignupCredentials;
+import edu.northeastern.dharrguptab.huddleup.auth.exception.InvalidCredentialsException;
+import edu.northeastern.dharrguptab.huddleup.auth.exception.UnauthenticatedException;
+import edu.northeastern.dharrguptab.huddleup.auth.exception.UnauthorizedException;
+import edu.northeastern.dharrguptab.huddleup.auth.jwt.JwtService;
 import edu.northeastern.dharrguptab.huddleup.user.dto.CardDetail;
 import edu.northeastern.dharrguptab.huddleup.user.dto.UserProfile;
 import edu.northeastern.dharrguptab.huddleup.user.dto.UserProfileUpdate;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
 
 /** Defines business logic pertaining to HuddleUp application users. */
 @Service
 public class UserService {
   private final UserRepository userRepository;
+  private final JwtService jwtService;
+  private final PasswordEncoder passwordEncoder;
 
   /**
    * Construct a new instance of the user service.
    *
    * @param userRepository the repository used to obtain database access to the users
    */
-  public UserService(UserRepository userRepository) {
+  public UserService(
+      UserRepository userRepository, JwtService jwtService, PasswordEncoder passwordEncoder) {
     this.userRepository = userRepository;
+    this.jwtService = jwtService;
+    this.passwordEncoder = passwordEncoder;
+  }
+
+  public String loginUser(UserLoginCredentials userLoginCredentials) {
+    UserCredentials userActualCredentials =
+        userRepository.getLoginUser(userLoginCredentials.username());
+    if (userActualCredentials == null) {
+      throw new InvalidCredentialsException();
+    }
+
+    boolean isPasswordCorrect =
+        passwordEncoder.matches(
+            userLoginCredentials.password(), userActualCredentials.passwordHash());
+    if (!isPasswordCorrect) {
+      throw new InvalidCredentialsException();
+    }
+
+    String token = jwtService.generateToken(userActualCredentials.username());
+    return token;
+  }
+
+  public String signupUser(UserSignupCredentials userSignupCredentials) {
+    String hashedPassword = passwordEncoder.encode(userSignupCredentials.password());
+    userRepository.createNewUser(
+        userSignupCredentials.username(),
+        hashedPassword,
+        userSignupCredentials.firstName(),
+        userSignupCredentials.lastName(),
+        userSignupCredentials.email(),
+        userSignupCredentials.birthDate(),
+        userSignupCredentials.address());
+    String token = jwtService.generateToken(userSignupCredentials.username());
+    return token;
   }
 
   /**
@@ -27,6 +74,17 @@ public class UserService {
    * @return the user's profile
    */
   public UserProfile getProfile(String username) {
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    if (authentication == null || !authentication.isAuthenticated()) {
+      throw new UnauthenticatedException();
+    }
+    Object principal = authentication.getPrincipal();
+    String authenticatedUsername =
+        (principal instanceof UserDetails ud) ? ud.getUsername() : principal.toString();
+
+    if (!username.equals(authenticatedUsername)) {
+      throw new UnauthorizedException();
+    }
     return userRepository.getUserProfile(username);
   }
 
@@ -57,8 +115,7 @@ public class UserService {
    * @param password the new password for the user
    */
   public void updatePassword(String username, String password) {
-    // TODO: Hash the password before storing it in the database
-    String passwordHash = password;
+    String passwordHash = passwordEncoder.encode(password);
     userRepository.updatePassword(username, passwordHash);
   }
 

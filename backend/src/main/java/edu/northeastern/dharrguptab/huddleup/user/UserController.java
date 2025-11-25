@@ -1,5 +1,8 @@
 package edu.northeastern.dharrguptab.huddleup.user;
 
+import edu.northeastern.dharrguptab.huddleup.auth.dto.AuthResponse;
+import edu.northeastern.dharrguptab.huddleup.auth.dto.UserLoginCredentials;
+import edu.northeastern.dharrguptab.huddleup.auth.dto.UserSignupCredentials;
 import edu.northeastern.dharrguptab.huddleup.user.dto.CardDetail;
 import edu.northeastern.dharrguptab.huddleup.user.dto.EmailUpdate;
 import edu.northeastern.dharrguptab.huddleup.user.dto.PasswordUpdate;
@@ -22,6 +25,30 @@ public class UserController {
 
   public UserController(UserService userService) {
     this.userService = userService;
+  }
+
+  /**
+   * Endpoint for user login
+   *
+   * @param request the user login and password passed in
+   * @return the generated JWT token
+   */
+  @PostMapping("/login")
+  public AuthResponse login(@RequestBody UserLoginCredentials request) {
+    String token = userService.loginUser(request);
+    return new AuthResponse(token);
+  }
+
+  /**
+   * Endpoint to create a new user signup to HuddleUp
+   *
+   * @param request the signup request payload
+   * @return 201 CREATED if success, 400 BAD_REQUEST if failure
+   */
+  @PostMapping("/signup")
+  public AuthResponse signup(@RequestBody UserSignupCredentials request) {
+    String token = userService.signupUser(request);
+    return new AuthResponse(token);
   }
 
   @GetMapping("/{username}/profile")
@@ -49,8 +76,7 @@ public class UserController {
   }
 
   @PutMapping("/{username}/email")
-  public void updateEmail(
-      @PathVariable String username, @RequestBody EmailUpdate emailUpdate) {
+  public void updateEmail(@PathVariable String username, @RequestBody EmailUpdate emailUpdate) {
     userService.updateEmail(username, emailUpdate.newEmail());
   }
 
@@ -60,8 +86,7 @@ public class UserController {
   }
 
   @PostMapping("/{username}/cards")
-  public void addCardDetail(
-      @PathVariable String username, @RequestBody CardDetail cardDetail) {
+  public void addCardDetail(@PathVariable String username, @RequestBody CardDetail cardDetail) {
     userService.addCardDetail(username, cardDetail);
   }
 
