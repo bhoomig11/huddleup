@@ -23,8 +23,10 @@ USE huddleup;
  *
  * Errors
  * ------
- *   - Signals SQLSTATE '45000' for any invalid input parameter
+ *   - Signals SQLSTATE '45001' for any invalid input parameter
+ *   - Signals SQLSTATE '45003' if a user identifier (like username or email) is already in use
  */
+DROP PROCEDURE IF EXISTS create_new_user;
 DELIMITER $$
 CREATE PROCEDURE create_new_user (
     IN p_username VARCHAR(64),
@@ -41,23 +43,23 @@ CREATE PROCEDURE create_new_user (
 )
 BEGIN
     IF (p_username IS NULL OR CHAR_LENGTH(p_username) = 0) THEN
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Username cannot be empty';
+        SIGNAL SQLSTATE '45001' SET MESSAGE_TEXT = 'Username cannot be empty';
     ELSEIF EXISTS (SELECT username FROM app_user WHERE username = p_username) THEN
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Username is taken';
+        SIGNAL SQLSTATE '45003' SET MESSAGE_TEXT = 'Username is taken';
     END IF;
 
     IF (p_password_hash IS NULL OR CHAR_LENGTH(p_password_hash) = 0) THEN
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Password hash cannot be empty';
+        SIGNAL SQLSTATE '45001' SET MESSAGE_TEXT = 'Password hash cannot be empty';
     END IF;
 
     IF (p_first_name IS NULL OR CHAR_LENGTH(p_first_name) = 0) THEN
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'First name cannot be empty';
+        SIGNAL SQLSTATE '45001' SET MESSAGE_TEXT = 'First name cannot be empty';
     END IF;
 
     IF (p_email IS NULL OR CHAR_LENGTH(p_email) = 0) THEN
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Email cannot be empty';
+        SIGNAL SQLSTATE '45001' SET MESSAGE_TEXT = 'Email cannot be empty';
     ELSEIF EXISTS (SELECT email FROM app_user WHERE email = p_email) THEN
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Email already in use';
+        SIGNAL SQLSTATE '45003' SET MESSAGE_TEXT = 'Email already in use';
     END IF;
 
     INSERT INTO app_user (
@@ -109,9 +111,9 @@ DELIMITER ;
  *
  * Errors
  * ------
- *   - Signals SQLSTATE '45000' with message 'User not found' if no user exists
- *     with the given username.
+ *   - Signals SQLSTATE '45002' if no user exists with the given username.
  */
+DROP PROCEDURE IF EXISTS get_user_login_details;
 DELIMITER $$
 CREATE PROCEDURE get_user_login_details(IN p_username VARCHAR(64))
 BEGIN
@@ -122,7 +124,7 @@ BEGIN
     WHERE username = p_username;
 
     IF (v_password_hash IS NULL) THEN
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'User not found';
+        SIGNAL SQLSTATE '45002' SET MESSAGE_TEXT = 'User not found';
     ELSE
         SELECT p_username AS username, v_password_hash AS password_hash;
     END IF;
@@ -149,13 +151,14 @@ DELIMITER ;
  *
  * Errors
  * ------
- *   - Signals SQLSTATE '45000' if the provided username is NULL.
+ *   - Signals SQLSTATE '45001' if the provided username is NULL.
  */
+DROP PROCEDURE IF EXISTS get_all_user_announcements;
 DELIMITER $$
 CREATE PROCEDURE get_all_user_announcements(IN p_username VARCHAR(64))
 BEGIN
     IF (p_username IS NULL) THEN
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Username cannot be NULL';
+        SIGNAL SQLSTATE '45001' SET MESSAGE_TEXT = 'Username cannot be NULL';
     END IF;
 
     SELECT announcement_title, sent_at, read_at
@@ -187,8 +190,9 @@ DELIMITER ;
  *
  * Errors
  * ------
- *   - Signals SQLSTATE '45000' if no such announcement exists for the user.
+ *   - Signals SQLSTATE '45002' if no such announcement exists for the user.
  */
+DROP PROCEDURE IF EXISTS get_user_announcement;
 DELIMITER $$
 CREATE PROCEDURE get_user_announcement(IN p_username VARCHAR(64), IN p_announcement_id INT)
 BEGIN
@@ -201,7 +205,7 @@ BEGIN
 
     DECLARE CONTINUE HANDLER FOR no_data_found
     BEGIN
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'No such announcement found';
+        SIGNAL SQLSTATE '45002' SET MESSAGE_TEXT = 'No such announcement found';
     END;
 
     SELECT anc.announcement_title, anc.announcement_message, arr.sent_at, arr.read_at
@@ -232,8 +236,9 @@ DELIMITER ;
  *
  * Errors
  * ------
- *   - Signals SQLSTATE '45000' if no such announcement exists for the user.
+ *   - Signals SQLSTATE '45002' if no such announcement exists for the user.
  */
+DROP PROCEDURE IF EXISTS mark_announcement_as_read;
 DELIMITER $$
 CREATE PROCEDURE mark_announcement_as_read(IN p_username VARCHAR(64), IN p_announcement_id INT)
 BEGIN
@@ -242,7 +247,7 @@ BEGIN
     WHERE username = p_username AND announcement_id = p_announcement_id;
 
     IF (ROW_COUNT() = 0) THEN
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'No such announcement found';
+        SIGNAL SQLSTATE '45002' SET MESSAGE_TEXT = 'No such announcement found';
     END IF;
 END $$
 DELIMITER ;
@@ -260,13 +265,14 @@ DELIMITER ;
  *
  * Errors
  * ------
- *   - Signals SQLSTATE '45000' if no such user exists.
+ *   - Signals SQLSTATE '45002' if no such user exists.
  */
+DROP PROCEDURE IF EXISTS mark_all_announcements_as_read;
 DELIMITER $$
 CREATE PROCEDURE mark_all_announcements_as_read(IN p_username VARCHAR(64))
 BEGIN
     IF NOT EXISTS (SELECT username FROM app_user WHERE username = p_username) THEN
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'No such user exists';
+        SIGNAL SQLSTATE '45002' SET MESSAGE_TEXT = 'No such user exists';
     END IF;
 
     UPDATE announcement_read_receipt
@@ -302,8 +308,9 @@ DELIMITER ;
  *
  * Errors
  * ------
- *   - Signals SQLSTATE '45000' if no such user exists.
+ *   - Signals SQLSTATE '45002' if no such user exists.
  */
+DROP PROCEDURE IF EXISTS get_user_profile;
 DELIMITER $$
 CREATE PROCEDURE get_user_profile(IN p_username VARCHAR(64))
 BEGIN
@@ -346,7 +353,7 @@ BEGIN
         username = p_username;
 
     IF (v_username IS NULL) THEN
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'No such user exists';
+        SIGNAL SQLSTATE '45002' SET MESSAGE_TEXT = 'No such user exists';
     END IF;
 
     SELECT
@@ -384,8 +391,9 @@ DELIMITER ;
  *
  * Errors
  * ------
- *   - Signals SQLSTATE '45000' if no such user exists.
+ *   - Signals SQLSTATE '45002' if no such user exists.
  */
+DROP PROCEDURE IF EXISTS update_user_profile;
 DELIMITER $$
 CREATE PROCEDURE update_user_profile(
     IN p_username VARCHAR(64),
@@ -400,7 +408,7 @@ CREATE PROCEDURE update_user_profile(
 )
 BEGIN
     IF NOT EXISTS (SELECT username FROM app_user WHERE username = p_username) THEN
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'No such user exists';
+        SIGNAL SQLSTATE '45002' SET MESSAGE_TEXT = 'No such user exists';
     END IF;
 
     UPDATE app_user
@@ -432,21 +440,22 @@ DELIMITER ;
  *
  * Errors
  * ------
- *   - Signals SQLSTATE '45000' if no user exists with the old username.
- *   - Signals SQLSTATE '45000' if the new username is null or empty.
- *   - Signals SQLSTATE '45000' if the new username is already taken.
+ *   - Signals SQLSTATE '45002' if no user exists with the old username.
+ *   - Signals SQLSTATE '45001' if the new username is null or empty.
+ *   - Signals SQLSTATE '45003' if the new username is already taken.
  */
+DROP PROCEDURE IF EXISTS update_username;
 DELIMITER $$
 CREATE PROCEDURE update_username(IN p_old_username VARCHAR(64), IN p_new_username VARCHAR(64))
 BEGIN
     IF NOT EXISTS (SELECT username FROM app_user WHERE username = p_old_username) THEN
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'No such user exists';
+        SIGNAL SQLSTATE '45002' SET MESSAGE_TEXT = 'No such user exists';
     END IF;
 
     IF (p_new_username IS NULL OR CHAR_LENGTH(p_new_username) = 0) THEN
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'New username cannot be empty';
+        SIGNAL SQLSTATE '45001' SET MESSAGE_TEXT = 'New username cannot be empty';
     ELSEIF EXISTS (SELECT username FROM app_user WHERE username = p_new_username) THEN
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Username is taken';
+        SIGNAL SQLSTATE '45003' SET MESSAGE_TEXT = 'Username is taken';
     END IF;
 
     UPDATE app_user
@@ -469,18 +478,19 @@ DELIMITER ;
  *
  * Errors
  * ------
- *   - Signals SQLSTATE '45000' if no such user exists.
- *   - Signals SQLSTATE '45000' if the password hash is null or empty.
+ *   - Signals SQLSTATE '45002' if no such user exists.
+ *   - Signals SQLSTATE '45001' if the password hash is null or empty.
  */
+DROP PROCEDURE IF EXISTS update_user_password;
 DELIMITER $$
 CREATE PROCEDURE update_user_password(IN p_username VARCHAR(64), IN p_password_hash VARCHAR(60))
 BEGIN
     IF NOT EXISTS (SELECT username FROM app_user WHERE username = p_username) THEN
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'No such user exists';
+        SIGNAL SQLSTATE '45002' SET MESSAGE_TEXT = 'No such user exists';
     END IF;
 
     IF (p_password_hash IS NULL OR CHAR_LENGTH(p_password_hash) = 0) THEN
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Password hash cannot be empty';
+        SIGNAL SQLSTATE '45001' SET MESSAGE_TEXT = 'Password hash cannot be empty';
     END IF;
 
     UPDATE app_user
@@ -503,21 +513,22 @@ DELIMITER ;
  *
  * Errors
  * ------
- *   - Signals SQLSTATE '45000' if no such user exists.
- *   - Signals SQLSTATE '45000' if the email address is null or empty.
- *   - Signals SQLSTATE '45000' if the email address is already in use.
+ *   - Signals SQLSTATE '45002' if no such user exists.
+ *   - Signals SQLSTATE '45001' if the email address is null or empty.
+ *   - Signals SQLSTATE '45003' if the email address is already in use.
  */
+DROP PROCEDURE IF EXISTS update_user_email;
 DELIMITER $$
 CREATE PROCEDURE update_user_email(IN p_username VARCHAR(64), IN p_email VARCHAR(64))
 BEGIN
     IF NOT EXISTS (SELECT username FROM app_user WHERE username = p_username) THEN
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'No such user exists';
+        SIGNAL SQLSTATE '45002' SET MESSAGE_TEXT = 'No such user exists';
     END IF;
 
     IF (p_email IS NULL OR CHAR_LENGTH(p_email) = 0) THEN
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Email cannot be empty';
+        SIGNAL SQLSTATE '45001' SET MESSAGE_TEXT = 'Email cannot be empty';
     ELSEIF EXISTS (SELECT email FROM app_user WHERE email = p_email) THEN
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Email already in use';
+        SIGNAL SQLSTATE '45003' SET MESSAGE_TEXT = 'Email already in use';
     END IF;
 
     UPDATE app_user
@@ -539,13 +550,14 @@ DELIMITER ;
  *
  * Errors
  * ------
- *   - Signals SQLSTATE '45000' if no such user exists.
+ *   - Signals SQLSTATE '45002' if no such user exists.
  */
+DROP PROCEDURE IF EXISTS delete_user;
 DELIMITER $$
 CREATE PROCEDURE delete_user(IN p_username VARCHAR(64))
 BEGIN
     IF NOT EXISTS (SELECT username FROM app_user WHERE username = p_username) THEN
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'No such user exists';
+        SIGNAL SQLSTATE '45002' SET MESSAGE_TEXT = 'No such user exists';
     END IF;
 
     DELETE FROM app_user WHERE username = p_username;
@@ -574,12 +586,13 @@ DELIMITER ;
  *
  * Errors
  * ------
- *   - Signals SQLSTATE '45000' if no such user exists.
- *   - Signals SQLSTATE '45000' if the card number is not provided.
- *   - Signals SQLSTATE '45000' if the name on the card is not provided.
- *   - Signals SQLSTATE '45000' if the card expiry date is invalid.
- *   - Signals SQLSTATE '45000' if any of the billing address components are not provided.
+ *   - Signals SQLSTATE '45002' if no such user exists.
+ *   - Signals SQLSTATE '45001' if the card number is not provided.
+ *   - Signals SQLSTATE '45001' if the name on the card is not provided.
+ *   - Signals SQLSTATE '45001' if the card expiry date is invalid.
+ *   - Signals SQLSTATE '45001' if any of the billing address components are not provided.
  */
+DROP PROCEDURE IF EXISTS add_user_card_detail;
 DELIMITER $$
 CREATE PROCEDURE add_user_card_detail(
     IN p_username VARCHAR(64),
@@ -598,15 +611,15 @@ BEGIN
     DECLARE v_expiry_date DATE;
 
     IF NOT EXISTS (SELECT username FROM app_user WHERE username = p_username) THEN
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'No such user exists';
+        SIGNAL SQLSTATE '45002' SET MESSAGE_TEXT = 'No such user exists';
     END IF;
 
     IF (p_card_number IS NULL OR CHAR_LENGTH(p_card_number) = 0) THEN
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Card number cannot be empty';
+        SIGNAL SQLSTATE '45001' SET MESSAGE_TEXT = 'Card number cannot be empty';
     END IF;
 
     IF (p_name_on_card IS NULL OR CHAR_LENGTH(p_name_on_card) = 0) THEN
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Name on card cannot be empty';
+        SIGNAL SQLSTATE '45001' SET MESSAGE_TEXT = 'Name on card cannot be empty';
     END IF;
 
     IF (p_expiry_month IS NOT NULL AND p_expiry_year IS NOT NULL) THEN
@@ -615,23 +628,23 @@ BEGIN
     END IF;
 
     IF (v_expiry_date IS NULL) THEN
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Invalid card expiry date';
+        SIGNAL SQLSTATE '45001' SET MESSAGE_TEXT = 'Invalid card expiry date';
     END IF;
 
     IF (p_addr_street_1 IS NULL OR CHAR_LENGTH(p_addr_street_1) = 0) THEN
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Card billing address (line 1) cannot be empty';
+        SIGNAL SQLSTATE '45001' SET MESSAGE_TEXT = 'Card billing address (line 1) cannot be empty';
     END IF;
 
     IF (p_addr_town IS NULL) THEN
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Card billing address town cannot be empty';
+        SIGNAL SQLSTATE '45001' SET MESSAGE_TEXT = 'Card billing address town cannot be empty';
     END IF;
 
     IF (p_addr_state IS NULL) THEN
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Card billing address state cannot be empty';
+        SIGNAL SQLSTATE '45001' SET MESSAGE_TEXT = 'Card billing address state cannot be empty';
     END IF;
 
     IF (p_addr_zip_code IS NULL) THEN
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Card billing address zip code cannot be empty';
+        SIGNAL SQLSTATE '45001' SET MESSAGE_TEXT = 'Card billing address zip code cannot be empty';
     END IF;
 
     INSERT INTO card_detail (
@@ -673,8 +686,9 @@ DELIMITER ;
  *
  * Errors
  * ------
- *   - Signals SQLSTATE '45000' if no such card exists for the user.
+ *   - Signals SQLSTATE '45002' if no such card exists for the user.
  */
+DROP PROCEDURE IF EXISTS delete_user_card_detail;
 DELIMITER $$
 CREATE PROCEDURE delete_user_card_detail(
     IN p_username VARCHAR(64),
@@ -684,7 +698,7 @@ BEGIN
     IF NOT EXISTS (
         SELECT card_id FROM card_detail WHERE username = p_username AND card_id = p_card_id
     ) THEN
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'No such card found for this user';
+        SIGNAL SQLSTATE '45002' SET MESSAGE_TEXT = 'No such card found for this user';
     END IF;
 
     DELETE FROM card_detail WHERE card_id = p_card_id;
