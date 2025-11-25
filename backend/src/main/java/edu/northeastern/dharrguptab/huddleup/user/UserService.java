@@ -77,17 +77,18 @@ public class UserService {
    * @return the user's profile
    */
   public UserProfile getProfile(String username) {
-    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-    if (authentication == null || !authentication.isAuthenticated()) {
+    String authenticatedUsername = getAuthenticatedUsername();
+
+    boolean isAuthenticated = authenticatedUsername != null;
+    if (!isAuthenticated) {
       throw new UnauthenticatedException();
     }
-    Object principal = authentication.getPrincipal();
-    String authenticatedUsername =
-        (principal instanceof UserDetails ud) ? ud.getUsername() : principal.toString();
 
-    if (!username.equals(authenticatedUsername)) {
+    boolean isAuthorized = username.equals(authenticatedUsername);
+    if (!isAuthorized) {
       throw new UnauthorizedException();
     }
+
     return userRepository.getUserProfile(username);
   }
 
@@ -98,6 +99,18 @@ public class UserService {
    * @param userProfileUpdate the modified profile information of the user
    */
   public void updateProfile(String username, UserProfileUpdate userProfileUpdate) {
+    String authenticatedUsername = getAuthenticatedUsername();
+
+    boolean isAuthenticated = authenticatedUsername != null;
+    if (!isAuthenticated) {
+      throw new UnauthenticatedException();
+    }
+
+    boolean isAuthorized = username.equals(authenticatedUsername);
+    if (!isAuthorized) {
+      throw new UnauthorizedException();
+    }
+
     userRepository.updateUserProfile(username, userProfileUpdate);
   }
 
@@ -108,6 +121,18 @@ public class UserService {
    * @param newUsername the new username of the user
    */
   public void updateUsername(String currentUsername, String newUsername) {
+    String authenticatedUsername = getAuthenticatedUsername();
+
+    boolean isAuthenticated = authenticatedUsername != null;
+    if (!isAuthenticated) {
+      throw new UnauthenticatedException();
+    }
+
+    boolean isAuthorized = currentUsername.equals(authenticatedUsername);
+    if (!isAuthorized) {
+      throw new UnauthorizedException();
+    }
+
     userRepository.updateUsername(currentUsername, newUsername);
   }
 
@@ -118,6 +143,18 @@ public class UserService {
    * @param password the new password for the user
    */
   public void updatePassword(String username, String password) {
+    String authenticatedUsername = getAuthenticatedUsername();
+
+    boolean isAuthenticated = authenticatedUsername != null;
+    if (!isAuthenticated) {
+      throw new UnauthenticatedException();
+    }
+
+    boolean isAuthorized = username.equals(authenticatedUsername);
+    if (!isAuthorized) {
+      throw new UnauthorizedException();
+    }
+
     String passwordHash = passwordEncoder.encode(password);
     userRepository.updatePassword(username, passwordHash);
   }
@@ -129,6 +166,18 @@ public class UserService {
    * @param newEmail the new email address of the user
    */
   public void updateEmail(String username, String newEmail) {
+    String authenticatedUsername = getAuthenticatedUsername();
+
+    boolean isAuthenticated = authenticatedUsername != null;
+    if (!isAuthenticated) {
+      throw new UnauthenticatedException();
+    }
+
+    boolean isAuthorized = username.equals(authenticatedUsername);
+    if (!isAuthorized) {
+      throw new UnauthorizedException();
+    }
+
     userRepository.updateEmail(username, newEmail);
   }
 
@@ -138,6 +187,18 @@ public class UserService {
    * @param username the username of the user to delete
    */
   public void deleteUser(String username) {
+    String authenticatedUsername = getAuthenticatedUsername();
+
+    boolean isAuthenticated = authenticatedUsername != null;
+    if (!isAuthenticated) {
+      throw new UnauthenticatedException();
+    }
+
+    boolean isAuthorized = username.equals(authenticatedUsername);
+    if (!isAuthorized) {
+      throw new UnauthorizedException();
+    }
+
     userRepository.deleteUser(username);
   }
 
@@ -148,6 +209,18 @@ public class UserService {
    * @param cardDetail the card detail information to add
    */
   public void addCardDetail(String username, CardDetail cardDetail) {
+    String authenticatedUsername = getAuthenticatedUsername();
+
+    boolean isAuthenticated = authenticatedUsername != null;
+    if (!isAuthenticated) {
+      throw new UnauthenticatedException();
+    }
+
+    boolean isAuthorized = username.equals(authenticatedUsername);
+    if (!isAuthorized) {
+      throw new UnauthorizedException();
+    }
+
     userRepository.addCardDetail(username, cardDetail);
   }
 
@@ -158,6 +231,18 @@ public class UserService {
    * @param cardId the ID of the card to delete
    */
   public void deleteCardDetail(String username, int cardId) {
+    String authenticatedUsername = getAuthenticatedUsername();
+
+    boolean isAuthenticated = authenticatedUsername != null;
+    if (!isAuthenticated) {
+      throw new UnauthenticatedException();
+    }
+
+    boolean isAuthorized = username.equals(authenticatedUsername);
+    if (!isAuthorized) {
+      throw new UnauthorizedException();
+    }
+
     userRepository.deleteCardDetail(username, cardId);
   }
 
@@ -168,6 +253,18 @@ public class UserService {
    * @return the list of announcement summaries
    */
   public List<AnnouncementSummary> getAnnouncements(String username) {
+    String authenticatedUsername = getAuthenticatedUsername();
+
+    boolean isAuthenticated = authenticatedUsername != null;
+    if (!isAuthenticated) {
+      throw new UnauthenticatedException();
+    }
+
+    boolean isAuthorized = username.equals(authenticatedUsername);
+    if (!isAuthorized) {
+      throw new UnauthorizedException();
+    }
+
     return userRepository.getAllAnnouncements(username);
   }
 
@@ -179,6 +276,18 @@ public class UserService {
    * @return the detailed announcement
    */
   public AnnouncementDetail getAnnouncement(String username, int announcementId) {
+    String authenticatedUsername = getAuthenticatedUsername();
+
+    boolean isAuthenticated = authenticatedUsername != null;
+    if (!isAuthenticated) {
+      throw new UnauthenticatedException();
+    }
+
+    boolean isAuthorized = username.equals(authenticatedUsername);
+    if (!isAuthorized) {
+      throw new UnauthorizedException();
+    }
+
     return userRepository.getAnnouncement(username, announcementId);
   }
 
@@ -189,6 +298,18 @@ public class UserService {
    * @param announcementId the announcement ID
    */
   public void markAnnouncementAsRead(String username, int announcementId) {
+    String authenticatedUsername = getAuthenticatedUsername();
+
+    boolean isAuthenticated = authenticatedUsername != null;
+    if (!isAuthenticated) {
+      throw new UnauthenticatedException();
+    }
+
+    boolean isAuthorized = username.equals(authenticatedUsername);
+    if (!isAuthorized) {
+      throw new UnauthorizedException();
+    }
+
     userRepository.markAnnouncementAsRead(username, announcementId);
   }
 
@@ -198,6 +319,46 @@ public class UserService {
    * @param username the username of the user
    */
   public void markAllAnnouncementsAsRead(String username) {
+    String authenticatedUsername = getAuthenticatedUsername();
+
+    boolean isAuthenticated = authenticatedUsername != null;
+    if (!isAuthenticated) {
+      throw new UnauthenticatedException();
+    }
+
+    boolean isAuthorized = username.equals(authenticatedUsername);
+    if (!isAuthorized) {
+      throw new UnauthorizedException();
+    }
+    
     userRepository.markAllAnnouncementsAsRead(username);
+  }
+
+  /**
+   * Retrieve the authenticated username from the security context, if present.
+   *
+   * @return the authenticated username, or null if the request is unauthenticated
+   */
+  private String getAuthenticatedUsername() {
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    if (authentication == null || !authentication.isAuthenticated()) {
+      return null;
+    }
+    return extractUsernameFromAuthentication(authentication);
+  }
+
+  /**
+   * Extract the username from an {@link Authentication} principal by handling both
+   * {@link UserDetails}-based and plain-string principals.
+   *
+   * @param authentication the authentication object containing the principal
+   * @return the username resolved from the principal
+   */
+  private String extractUsernameFromAuthentication(Authentication authentication) {
+    Object principal = authentication.getPrincipal();
+    if (principal instanceof UserDetails userDetails) {
+      return userDetails.getUsername();
+    }
+    return principal.toString();
   }
 }
