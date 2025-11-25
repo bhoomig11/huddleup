@@ -464,6 +464,29 @@ public class UserRepository {
   }
 
   /**
+   * Mark a single announcement as read for a user.
+   *
+   * @param username the username of the user
+   * @param announcementId the announcement identifier
+   */
+  public void markAnnouncementAsRead(String username, int announcementId) {
+    String markAnnouncementQuery = "{CALL mark_announcement_as_read(?, ?)}";
+    try (Connection connection = dataSource.getConnection();
+        CallableStatement cs = connection.prepareCall(markAnnouncementQuery)) {
+      cs.setString("p_username", username);
+      cs.setInt("p_announcement_id", announcementId);
+      cs.executeUpdate();
+    } catch (SQLException e) {
+      if (DatabaseExceptionCategory.RESOURCE_NOT_FOUND.matchesSQLState(e.getSQLState())) {
+        throw new UserException(e, UserErrorCode.ANNOUNCEMENT_NOT_FOUND);
+      }
+      throw new UserException(e, AppErrorCode.UNKNOWN);
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  /**
    * Convert a SQL {@link Timestamp} to an {@link Instant} while preserving null to avoid
    * an {@link IllegalArgumentException}.
    *

@@ -181,4 +181,14 @@ public class UserService {
   public AnnouncementDetail getAnnouncement(String username, int announcementId) {
     return userRepository.getAnnouncement(username, announcementId);
   }
+
+  /**
+   * Mark a single announcement as read for a user.
+   *
+   * @param username the username of the user
+   * @param announcementId the announcement ID
+   */
+  public void markAnnouncementAsRead(String username, int announcementId) {
+    userRepository.markAnnouncementAsRead(username, announcementId);
+  }
 }
