@@ -487,6 +487,27 @@ public class UserRepository {
   }
 
   /**
+   * Mark all announcements as read for a user.
+   *
+   * @param username the username of the user
+   */
+  public void markAllAnnouncementsAsRead(String username) {
+    String markAllAnnouncementsQuery = "{CALL mark_all_announcements_as_read(?)}";
+    try (Connection connection = dataSource.getConnection();
+        CallableStatement cs = connection.prepareCall(markAllAnnouncementsQuery)) {
+      cs.setString("p_username", username);
+      cs.executeUpdate();
+    } catch (SQLException e) {
+      if (DatabaseExceptionCategory.RESOURCE_NOT_FOUND.matchesSQLState(e.getSQLState())) {
+        throw new UserException(e, UserErrorCode.USER_NOT_FOUND);
+      }
+      throw new UserException(e, AppErrorCode.UNKNOWN);
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  /**
    * Convert a SQL {@link Timestamp} to an {@link Instant} while preserving null to avoid
    * an {@link IllegalArgumentException}.
    *

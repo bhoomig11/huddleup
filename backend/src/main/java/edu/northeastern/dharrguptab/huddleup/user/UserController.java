@@ -115,4 +115,9 @@ public class UserController {
       @PathVariable String username, @PathVariable int announcementId) {
     userService.markAnnouncementAsRead(username, announcementId);
   }
+
+  @PatchMapping("/{username}/announcements/read-all")
+  public void markAllAnnouncementsAsRead(@PathVariable String username) {
+    userService.markAllAnnouncementsAsRead(username);
+  }
 }

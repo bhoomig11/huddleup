@@ -191,4 +191,13 @@ public class UserService {
   public void markAnnouncementAsRead(String username, int announcementId) {
     userRepository.markAnnouncementAsRead(username, announcementId);
   }
+
+  /**
+   * Mark all announcements as read for a user.
+   *
+   * @param username the username of the user
+   */
+  public void markAllAnnouncementsAsRead(String username) {
+    userRepository.markAllAnnouncementsAsRead(username);
+  }
 }
