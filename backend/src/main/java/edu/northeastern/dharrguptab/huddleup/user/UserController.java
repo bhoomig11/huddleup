@@ -3,6 +3,7 @@ package edu.northeastern.dharrguptab.huddleup.user;
 import edu.northeastern.dharrguptab.huddleup.auth.dto.AuthResponse;
 import edu.northeastern.dharrguptab.huddleup.auth.dto.UserLoginCredentials;
 import edu.northeastern.dharrguptab.huddleup.auth.dto.UserSignupCredentials;
+import edu.northeastern.dharrguptab.huddleup.user.dto.AnnouncementSummary;
 import edu.northeastern.dharrguptab.huddleup.user.dto.CardDetail;
 import edu.northeastern.dharrguptab.huddleup.user.dto.EmailUpdate;
 import edu.northeastern.dharrguptab.huddleup.user.dto.PasswordUpdate;
@@ -11,6 +12,7 @@ import edu.northeastern.dharrguptab.huddleup.user.dto.UserProfileUpdate;
 import edu.northeastern.dharrguptab.huddleup.user.dto.UsernameUpdate;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import java.util.List;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -93,5 +95,10 @@ public class UserController {
   @DeleteMapping("/{username}/cards/{cardId}")
   public void deleteCardDetail(@PathVariable String username, @PathVariable int cardId) {
     userService.deleteCardDetail(username, cardId);
+  }
+
+  @GetMapping("/{username}/announcements")
+  public List<AnnouncementSummary> getAnnouncements(@PathVariable String username) {
+    return userService.getAnnouncements(username);
   }
 }

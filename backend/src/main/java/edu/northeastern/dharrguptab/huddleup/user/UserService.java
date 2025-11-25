@@ -7,9 +7,11 @@ import edu.northeastern.dharrguptab.huddleup.auth.exception.InvalidCredentialsEx
 import edu.northeastern.dharrguptab.huddleup.auth.exception.UnauthenticatedException;
 import edu.northeastern.dharrguptab.huddleup.auth.exception.UnauthorizedException;
 import edu.northeastern.dharrguptab.huddleup.auth.jwt.JwtService;
+import edu.northeastern.dharrguptab.huddleup.user.dto.AnnouncementSummary;
 import edu.northeastern.dharrguptab.huddleup.user.dto.CardDetail;
 import edu.northeastern.dharrguptab.huddleup.user.dto.UserProfile;
 import edu.northeastern.dharrguptab.huddleup.user.dto.UserProfileUpdate;
+import java.util.List;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -156,5 +158,15 @@ public class UserService {
    */
   public void deleteCardDetail(String username, int cardId) {
     userRepository.deleteCardDetail(username, cardId);
+  }
+
+  /**
+   * Retrieve all announcements for a user.
+   *
+   * @param username the username of the user
+   * @return the list of announcement summaries
+   */
+  public List<AnnouncementSummary> getAnnouncements(String username) {
+    return userRepository.getAllAnnouncements(username);
   }
 }
