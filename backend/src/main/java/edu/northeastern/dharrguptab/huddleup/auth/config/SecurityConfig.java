@@ -13,9 +13,11 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableWebSecurity
 public class SecurityConfig {
   private final UserJwtFilter userJwtFilter;
+  private final AuthEntryPoint authEntryPoint;
 
-  public SecurityConfig(UserJwtFilter userJwtFilter) {
+  public SecurityConfig(UserJwtFilter userJwtFilter, AuthEntryPoint authEntryPoint) {
     this.userJwtFilter = userJwtFilter;
+    this.authEntryPoint = authEntryPoint;
   }
 
   @Bean
@@ -36,7 +38,8 @@ public class SecurityConfig {
                     .hasRole("EMPLOYEE")
                     .anyRequest()
                     .authenticated())
-        .addFilterBefore(userJwtFilter, UsernamePasswordAuthenticationFilter.class);
+        .addFilterBefore(userJwtFilter, UsernamePasswordAuthenticationFilter.class)
+        .exceptionHandling(ex -> ex.authenticationEntryPoint(authEntryPoint));
 
     return http.build();
   }

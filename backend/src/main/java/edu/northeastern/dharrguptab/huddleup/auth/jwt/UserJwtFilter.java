@@ -72,7 +72,8 @@ public class UserJwtFilter extends OncePerRequestFilter {
       }
       filterChain.doFilter(request, response);
     } catch (JwtException e) {
-      throw new UnauthenticatedException();
+      // Invalid token - continue without authentication, Spring Security will handle it
+      filterChain.doFilter(request, response);
     }
   }
 }
