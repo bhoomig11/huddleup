@@ -1,5 +1,6 @@
 package edu.northeastern.dharrguptab.huddleup.auth.jwt;
 
+import edu.northeastern.dharrguptab.huddleup.auth.exception.UnauthenticatedException;
 import edu.northeastern.dharrguptab.huddleup.auth.service.AppUserService;
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
@@ -40,7 +41,7 @@ public class UserJwtFilter extends OncePerRequestFilter {
       @NotNull HttpServletRequest request,
       @NotNull HttpServletResponse response,
       @NotNull FilterChain filterChain)
-      throws ServletException, JwtException, IOException {
+      throws ServletException, IOException, UnauthenticatedException {
     try {
       String AUTHORIZATION_HEADER_KEY = "Authorization";
       String AUTHORIZATION_HEADER_VALUE_PREFIX = "Bearer ";
@@ -70,8 +71,8 @@ public class UserJwtFilter extends OncePerRequestFilter {
         }
       }
       filterChain.doFilter(request, response);
-    } catch (Exception e) {
-      throw new ServletException(e); // to be updated - add exception
+    } catch (JwtException e) {
+      throw new UnauthenticatedException();
     }
   }
 }
