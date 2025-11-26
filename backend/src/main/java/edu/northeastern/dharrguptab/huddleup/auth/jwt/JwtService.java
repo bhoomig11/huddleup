@@ -1,6 +1,5 @@
 package edu.northeastern.dharrguptab.huddleup.auth.jwt;
 
-import edu.northeastern.dharrguptab.huddleup.auth.exception.UnauthenticatedException;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
@@ -23,9 +22,7 @@ public class JwtService {
 
   private SecretKey secretKey;
 
-  /**
-   * Initializes the key after the class is instantiated and the jwtSecret is injected.
-   **/
+  /** Initializes the key after the class is instantiated and the jwtSecret is injected. */
   @PostConstruct
   public void init() {
     this.secretKey = Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
@@ -51,9 +48,34 @@ public class JwtService {
    *
    * @param token the JWT containing the username
    * @return the username if found, {@code null} otherwise
+   * @throws JwtException if the token is not valid
    */
-  public String extractUsername(String token) {
-    return parseToken(token).getSubject();
+  public String extractUsername(String token) throws JwtException {
+    try {
+      return parseToken(token).getSubject();
+    } catch (IllegalArgumentException e) {
+      return null;
+    }
+  }
+
+  /**
+   * Checks if a provided JWT is valid and belongs to a particular user.
+   *
+   * @param token the JWT to validate
+   * @param userDetails the details of the user to validate against
+   * @return true if the token is valid and belongs to the user, false otherwise
+   */
+  public boolean validateToken(String token, UserDetails userDetails) {
+    Claims claims;
+    try {
+      claims = parseToken(token);
+    } catch (Exception e) {
+      return false;
+    }
+
+    boolean isUserValid = claims.getSubject().equals(userDetails.getUsername());
+    boolean isExpired = claims.getExpiration().before(new Date());
+    return isUserValid && !isExpired;
   }
 
   /**
@@ -61,40 +83,10 @@ public class JwtService {
    *
    * @param token the token to parse
    * @return the decoded JWT payload
+   * @throws JwtException if the token is invalid
+   * @throws IllegalArgumentException if the token is <code>null</code> or empty or only whitespace
    */
   private Claims parseToken(String token) throws JwtException {
-    try {
-      return Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload();
-    } catch (JwtException e) {
-      throw new JwtException(e.getMessage());
-    }
-  }
-
-  public Claims extractAllClaims(String token) {
     return Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload();
-  }
-
-  public String extractHeader(String token) {
-    return Jwts.parser()
-        .verifyWith(secretKey)
-        .build()
-        .parseSignedClaims(token)
-        .getHeader()
-        .toString();
-  }
-
-  public String extractSignature(String token) {
-    return Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getSignature();
-  }
-
-  public Boolean validateToken(String token, UserDetails userDetails) throws JwtException {
-    try {
-      Claims claims = parseToken(token);
-      boolean isUserValid = claims.getSubject().equals(userDetails.getUsername());
-      boolean isExpired = claims.getExpiration().before(new Date());
-      return isUserValid && !isExpired;
-    } catch (JwtException e) {
-      throw new UnauthenticatedException();
-    }
   }
 }
