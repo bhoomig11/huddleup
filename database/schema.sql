@@ -70,6 +70,7 @@ CREATE TABLE turf (
     manager_id INT NOT NULL,
     addr_street_1 VARCHAR(64),
     addr_street_2 VARCHAR(64),
+    addr_town VARCHAR(64),
     addr_state CHAR(2),
     addr_zip_code CHAR(5),
     sport_name VARCHAR(64) NOT NULL,
