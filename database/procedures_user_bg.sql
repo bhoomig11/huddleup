@@ -301,16 +301,16 @@ CREATE PROCEDURE delete_user_complaint(
 BEGIN
      -- check for valid username
     IF (p_username IS NULL OR CHAR_LENGTH(p_username) = 0) THEN
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Username cannot be empty';
+        SIGNAL SQLSTATE '45001' SET MESSAGE_TEXT = 'Username cannot be empty';
     ELSEIF NOT EXISTS (SELECT username FROM app_user WHERE username = p_username) THEN
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Invalid username';
+        SIGNAL SQLSTATE '45002' SET MESSAGE_TEXT = 'Invalid username';
     END IF;
 
     -- check for valid booking
     IF NOT EXISTS (
         SELECT booking_id FROM booking WHERE booking_id = p_booking_id
     ) THEN
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'No such booking found for this user';
+        SIGNAL SQLSTATE '45001' SET MESSAGE_TEXT = 'No such booking found for this user';
     END IF;
 
     UPDATE booking
@@ -347,9 +347,9 @@ CREATE PROCEDURE delete_user_review(
 BEGIN
      -- check for valid username
     IF (p_username IS NULL OR CHAR_LENGTH(p_username) = 0) THEN
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Username cannot be empty';
+        SIGNAL SQLSTATE '45001' SET MESSAGE_TEXT = 'Username cannot be empty';
     ELSEIF NOT EXISTS (SELECT username FROM app_user WHERE username = p_username) THEN
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Invalid username';
+        SIGNAL SQLSTATE '45002' SET MESSAGE_TEXT = 'Invalid username';
     END IF;
 
     -- check for valid turf
@@ -365,3 +365,4 @@ BEGIN
         AND username = p_username;
 END $$
 DELIMITER ;
+

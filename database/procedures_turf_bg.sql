@@ -20,6 +20,11 @@ BEGIN
     SELECT t.turf_id,
            t.turf_name, 
            img.image_url,
+           addr_street_1,
+           addr_street_2,
+           addr_town,
+           addr_state,
+           addr_zip_code,
            get_avg_turf_rating(t.turf_id) AS turf_rating
     FROM turf AS t
     INNER JOIN turf_image AS img
@@ -53,6 +58,7 @@ DELIMITER ;
  *   - manager_id - id of the manager of the selected turf
  *   - addr_street_1
  *   - addr_street_2
+ *   - addr_town - state of the selected_turf
  *   - addr_state - state of the selected_turf
  *   - addr_zip_code - zipcode of the selected_turf
  *   - sport_name - type of sport that can be played on the selected turf
@@ -83,7 +89,8 @@ BEGIN
             t.addr_street_1,
             t.addr_street_2,
             t.addr_state,
-            t.addr_zip_code
+            t.addr_zip_code,
+            get_avg_turf_rating(t.turf_id) AS avg_rating
     FROM turf AS t
     WHERE t.turf_id = p_turf_id;
 END $$
