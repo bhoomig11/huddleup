@@ -5,6 +5,8 @@ import edu.northeastern.dharrguptab.huddleup.auth.exception.InvalidCredentialsEx
 import edu.northeastern.dharrguptab.huddleup.common.dto.Address;
 import edu.northeastern.dharrguptab.huddleup.common.exceptions.AppErrorCode;
 import edu.northeastern.dharrguptab.huddleup.common.exceptions.DatabaseExceptionCategory;
+import edu.northeastern.dharrguptab.huddleup.user.dto.AnnouncementDetail;
+import edu.northeastern.dharrguptab.huddleup.user.dto.AnnouncementSummary;
 import edu.northeastern.dharrguptab.huddleup.user.dto.CardDetail;
 import edu.northeastern.dharrguptab.huddleup.user.dto.UserProfile;
 import edu.northeastern.dharrguptab.huddleup.user.dto.UserProfileUpdate;
@@ -17,6 +19,10 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.Objects;
+import java.sql.Timestamp;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 import javax.sql.DataSource;
 import org.springframework.stereotype.Repository;
 
@@ -391,5 +397,124 @@ public class UserRepository {
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
+  }
+
+  /**
+   * Retrieve all announcements for a user.
+   *
+   * @param username the username of the user
+   * @return the list of announcements
+   */
+  public List<AnnouncementSummary> getAllAnnouncements(String username) {
+    String getAnnouncementsQuery = "{CALL get_all_user_announcements(?)}";
+    List<AnnouncementSummary> announcements = new ArrayList<>();
+    try (Connection connection = dataSource.getConnection();
+        CallableStatement cs = connection.prepareCall(getAnnouncementsQuery)) {
+      cs.setString("p_username", username);
+      try (ResultSet rs = cs.executeQuery()) {
+        while (rs.next()) {
+          String title = rs.getString("announcement_title");
+          Instant sentAt = toInstantOrNull(rs.getTimestamp("sent_at"));
+          Instant readAt = toInstantOrNull(rs.getTimestamp("read_at"));
+          announcements.add(new AnnouncementSummary(title, sentAt, readAt));
+        }
+      }
+      return announcements;
+    } catch (SQLException e) {
+      if (DatabaseExceptionCategory.VALIDATION_ERROR.matchesSQLState(e.getSQLState())) {
+        throw new UserException(e, UserErrorCode.INVALID_USERNAME);
+      }
+      throw new UserException(e, AppErrorCode.UNKNOWN);
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  /**
+   * Retrieve a specific announcement for a user.
+   *
+   * @param username the username of the user
+   * @param announcementId the announcement identifier
+   * @return the announcement detail
+   */
+  public AnnouncementDetail getAnnouncement(String username, int announcementId) {
+    String getAnnouncementQuery = "{CALL get_user_announcement(?, ?)}";
+    try (Connection connection = dataSource.getConnection();
+        CallableStatement cs = connection.prepareCall(getAnnouncementQuery)) {
+      cs.setString("p_username", username);
+      cs.setInt("p_announcement_id", announcementId);
+      try (ResultSet rs = cs.executeQuery()) {
+        if (rs.next()) {
+          String title = rs.getString("announcement_title");
+          String message = rs.getString("announcement_message");
+          Instant sentAt = toInstantOrNull(rs.getTimestamp("sent_at"));
+          Instant readAt = toInstantOrNull(rs.getTimestamp("read_at"));
+          return new AnnouncementDetail(title, message, sentAt, readAt);
+        }
+      }
+      return null;
+    } catch (SQLException e) {
+      if (DatabaseExceptionCategory.RESOURCE_NOT_FOUND.matchesSQLState(e.getSQLState())) {
+        throw new UserException(e, UserErrorCode.ANNOUNCEMENT_NOT_FOUND);
+      }
+      throw new UserException(e, AppErrorCode.UNKNOWN);
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  /**
+   * Mark a single announcement as read for a user.
+   *
+   * @param username the username of the user
+   * @param announcementId the announcement identifier
+   */
+  public void markAnnouncementAsRead(String username, int announcementId) {
+    String markAnnouncementQuery = "{CALL mark_announcement_as_read(?, ?)}";
+    try (Connection connection = dataSource.getConnection();
+        CallableStatement cs = connection.prepareCall(markAnnouncementQuery)) {
+      cs.setString("p_username", username);
+      cs.setInt("p_announcement_id", announcementId);
+      cs.executeUpdate();
+    } catch (SQLException e) {
+      if (DatabaseExceptionCategory.RESOURCE_NOT_FOUND.matchesSQLState(e.getSQLState())) {
+        throw new UserException(e, UserErrorCode.ANNOUNCEMENT_NOT_FOUND);
+      }
+      throw new UserException(e, AppErrorCode.UNKNOWN);
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  /**
+   * Mark all announcements as read for a user.
+   *
+   * @param username the username of the user
+   */
+  public void markAllAnnouncementsAsRead(String username) {
+    String markAllAnnouncementsQuery = "{CALL mark_all_announcements_as_read(?)}";
+    try (Connection connection = dataSource.getConnection();
+        CallableStatement cs = connection.prepareCall(markAllAnnouncementsQuery)) {
+      cs.setString("p_username", username);
+      cs.executeUpdate();
+    } catch (SQLException e) {
+      if (DatabaseExceptionCategory.RESOURCE_NOT_FOUND.matchesSQLState(e.getSQLState())) {
+        throw new UserException(e, UserErrorCode.USER_NOT_FOUND);
+      }
+      throw new UserException(e, AppErrorCode.UNKNOWN);
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  /**
+   * Convert a SQL {@link Timestamp} to an {@link Instant} while preserving null to avoid
+   * an {@link IllegalArgumentException}.
+   *
+   * @param timestamp the SQL timestamp to convert
+   * @return the converted instant, or null if the timestamp is null
+   */
+  private Instant toInstantOrNull(Timestamp timestamp) {
+    return timestamp == null ? null : timestamp.toInstant();
   }
 }
