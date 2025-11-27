@@ -1,4 +1,21 @@
-import { LandPlot, MapPin } from "lucide-react";
+import { add, format } from "date-fns";
+import { ChevronDownIcon, LandPlot } from "lucide-react";
+import { useState } from "react";
+import { Button } from "~/components/ui/button";
+import { Calendar } from "~/components/ui/calendar";
+import { Input } from "~/components/ui/input";
+// import { Label } from "~/components/ui/label";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "~/components/ui/popover";
+import {
+  Command,
+  CommandList,
+  CommandGroup,
+  CommandItem,
+} from "~/components/ui/command";
 
 const turfs = [
   {
@@ -310,16 +327,45 @@ const turfs = [
 
 export default function BrowseTurfsPage() {
   return (
-    <div className="w-screen">
-      <header className="w-full"></header>
+    <div className="w-screen bg-stone-100">
+      <div className="h-20 w-full border-b border-stone-300/80 bg-stone-100 py-4">
+        <header className="mx-auto grid max-w-7xl grid-cols-[1fr_48rem_1fr]">
+          <div className="self-center justify-self-start">
+            <span className="bg-green-700 px-4 py-2 text-3xl font-bold tracking-wide text-white">
+              HuddleUp
+            </span>
+          </div>
+          <div className="flex h-12 w-3xl flex-row gap-4">
+            <div className="flex h-12 flex-1 flex-row self-baseline justify-self-center overflow-hidden rounded border border-stone-300/80">
+              <Input
+                type="text"
+                className="h-12 self-baseline rounded-none border-0 border-r border-stone-300/80 bg-white px-4 py-2 font-medium text-teal-800"
+              />
+              <DatePicker />
+              <TimeSlotPicker />
+            </div>
+            <div className="flex-none">
+              <Button
+                variant="default"
+                className="h-12 w-24 self-baseline rounded border-stone-300/80 bg-stone-600 text-white"
+              >
+                Search
+              </Button>
+            </div>
+          </div>
+          <div className="self-baseline justify-self-end"></div>
+        </header>
+      </div>
       <main className="flex w-full flex-col items-center">
-        <h1>List of all turfs:</h1>
-        <ul className="space-y-4">
+        <div className="w-3xl py-4">
+          <h1 className="text-lg font-bold text-stone-600">Search Results</h1>
+        </div>
+        <ul className="space-y-4 pb-8">
           {turfs
             .filter(({ sport }) => sport === "Soccer")
             .map((turf) => (
               <li
-                className="flex w-3xl flex-row overflow-hidden rounded-lg border border-gray-300/50 bg-white shadow"
+                className="flex w-3xl flex-row overflow-hidden rounded-lg border border-stone-300/60 bg-white shadow"
                 key={turf.name}
               >
                 <div className="flex-none">
@@ -327,13 +373,13 @@ export default function BrowseTurfsPage() {
                 </div>
                 <div className="flex-1">
                   <div className="flex flex-row gap-4 p-4">
-                    <div className="flex flex-1 flex-col gap-2">
-                      <h2 className="text-2xl font-bold text-teal-800">
+                    <div className="flex flex-1 flex-col gap-0.5">
+                      <h2 className="text-2xl leading-6 font-bold text-stone-600">
                         {turf.name}
                       </h2>
                       <div className="flex flex-row items-center gap-0.5">
-                        <MapPin className="size-5 text-teal-600" />
-                        <p className="text-sm font-medium text-teal-600">
+                        {/* <MapPin className="size-5 text-stone-500" /> */}
+                        <p className="text-sm text-stone-400">
                           {[
                             turf.addressStreet1,
                             turf.addressTown,
@@ -343,21 +389,21 @@ export default function BrowseTurfsPage() {
                         </p>
                       </div>
                       <div className="mt-3 flex flex-row items-center gap-1.5">
-                        <LandPlot className="size-6 text-teal-800" />
-                        <p className="text-xl font-semibold text-teal-800">
+                        <LandPlot className="size-5 text-stone-500" />
+                        <p className="text-lg font-bold text-stone-500">
                           {turf.sport}
                         </p>
                       </div>
                     </div>
                     <div className="flex flex-none flex-row items-start gap-1">
-                      <span className="text-teal-800">$</span>
-                      <span className="text-4xl font-bold text-teal-800">
+                      <span className="font-medium text-stone-500">$</span>
+                      <span className="text-4xl font-bold text-stone-600">
                         {turf.pricePerHour.toFixed(2)}
                       </span>
-                      <span className="text-teal-800">/hr</span>
+                      <span className="font-medium text-stone-500">/hr</span>
                     </div>
                   </div>
-                  <div className="flex flex-row items-baseline justify-between bg-yellow-100/25 p-4">
+                  <div className="flex flex-row items-baseline justify-between bg-stone-100/60 p-4">
                     <div>
                       <div className="flex flex-row items-baseline gap-1">
                         <span className="self-center text-yellow-400">
@@ -374,22 +420,20 @@ export default function BrowseTurfsPage() {
                             />
                           </svg>
                         </span>
-                        <span className="text-2xl font-semibold text-teal-800">
+                        <span className="text-2xl font-bold text-stone-600">
                           {turf.averageRating}
                         </span>
-                        <span className="text-sm font-medium text-teal-600">
-                          / 5.0
-                        </span>
-                        <span className="text-sm font-medium text-teal-600">
+                        <span className="text-sm text-stone-400">/ 5.0</span>
+                        <span className="text-sm font-medium text-stone-500">
                           ({turf.numberOfRatings})
                         </span>
                       </div>
                     </div>
                     <div className="flex flex-row gap-2">
-                      <button className="px-3.5 py-1.5 font-semibold text-teal-700">
+                      <button className="px-3.5 py-1.5 font-semibold text-green-700">
                         View Details
                       </button>
-                      <button className="rounded bg-teal-700 px-3.5 py-1.5 text-teal-50">
+                      <button className="rounded bg-green-700 px-3.5 py-1.5 text-teal-50">
                         Book Now
                       </button>
                     </div>
@@ -400,5 +444,165 @@ export default function BrowseTurfsPage() {
         </ul>
       </main>
     </div>
+  );
+}
+
+function DatePicker() {
+  const [open, setOpen] = useState(false);
+  const [date, setDate] = useState<Date | undefined>(undefined);
+
+  const validBookingStartDate = new Date();
+  const validBookingEndDate = add(validBookingStartDate, { months: 2 });
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          id="date-picker"
+          className="h-12 w-32 justify-between rounded-none border-0 border-r border-stone-300/80 bg-white font-normal"
+        >
+          {date ? format(date, "EEE, MMM dd") : "Select date"}
+          <ChevronDownIcon />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent
+        className="w-auto overflow-hidden bg-white p-0"
+        align="start"
+      >
+        <Calendar
+          mode="single"
+          selected={date}
+          captionLayout="dropdown"
+          onSelect={(date) => {
+            setDate(date);
+            setOpen(false);
+          }}
+          defaultMonth={date ?? validBookingStartDate}
+          startMonth={validBookingStartDate}
+          endMonth={validBookingEndDate}
+          disabled={{
+            before: validBookingStartDate,
+            after: validBookingEndDate,
+          }}
+        />
+      </PopoverContent>
+    </Popover>
+  );
+}
+
+/**
+ * Constructs a time string in the 24-hours format "HH:MM" (e.g. "14:27").
+ *
+ * @param hour the hour mark for the time (0-23)
+ * @param minute the minute mark for the time (0-59)
+ * @returns the constructed time string
+ */
+function create24HrTimeString(hour: number, minute: number): string {
+  const hourString = hour.toString().padStart(2, "0"); // E.g. converts 3 to "03"
+  const minuteString = minute.toString().padStart(2, "0");
+  return `${hourString}:${minuteString}`;
+}
+
+const hours = Array.from({ length: 24 }, (_, i) => i);
+
+const fromTimes = hours.reduce((times, hour) => {
+  const startOfHour = create24HrTimeString(hour, 0);
+  const halfPastHour = create24HrTimeString(hour, 30);
+  return [...times, startOfHour, halfPastHour];
+}, [] as string[]);
+
+const toTimes = hours.reduce((times, hour) => {
+  const beforeHalfPastHour = create24HrTimeString(hour, 29);
+  const beforeEndOfHour = create24HrTimeString(hour, 59);
+  return [...times, beforeHalfPastHour, beforeEndOfHour];
+}, [] as string[]);
+
+function TimeSlotPicker() {
+  const [open, setOpen] = useState(false);
+  const [fromTime, setFromTime] = useState<string | null>(null);
+  const [toTime, setToTime] = useState<string | null>(null);
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          id="time-picker"
+          className="h-12 w-40 justify-between rounded-none border-0 bg-white"
+        >
+          {fromTime ? `${fromTime} to ${toTime ?? "..."}` : "Select time"}
+          <ChevronDownIcon />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent
+        className="w-auto overflow-hidden bg-white p-0"
+        align="start"
+      >
+        <div className="w-72 p-2">
+          <div className="flex flex-row gap-3">
+            <div>
+              <div className="px-1 pb-1 text-xs font-medium text-stone-500">
+                From
+              </div>
+              <Command>
+                <CommandList>
+                  <CommandGroup>
+                    {fromTimes.map((t) => (
+                      <CommandItem
+                        key={t}
+                        onSelect={() => {
+                          setFromTime(t);
+                          setToTime(null);
+                        }}
+                      >
+                        {t}
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                </CommandList>
+              </Command>
+            </div>
+
+            <div>
+              <div className="px-1 pb-1 text-xs font-medium text-stone-500">
+                To
+              </div>
+              <Command>
+                <CommandList>
+                  <CommandGroup>
+                    {toTimes.map((t) => (
+                      <CommandItem
+                        key={t}
+                        disabled={!fromTime || t <= (fromTime ?? "")}
+                        onSelect={() => {
+                          setToTime(t);
+                          setOpen(false);
+                        }}
+                      >
+                        {t}
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                </CommandList>
+              </Command>
+            </div>
+
+            <div className="flex justify-end">
+              <Button
+                variant="ghost"
+                className="text-sm"
+                onClick={() => {
+                  setFromTime(null);
+                  setToTime(null);
+                }}
+              >
+                Reset
+              </Button>
+            </div>
+          </div>
+        </div>
+      </PopoverContent>
+    </Popover>
   );
 }
