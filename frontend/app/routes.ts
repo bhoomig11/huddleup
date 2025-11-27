@@ -8,8 +8,9 @@ import {
 export default [
   index("routes/home.tsx"),
   route("login", "routes/login.tsx"),
+  route("browse", "routes/turf/browse-turfs.tsx"),
+  route("signup", "routes/signup.tsx"),
   layout("routes/layout.tsx", [
     // add protected routes here
   ]),
-  route("browse", "routes/turf/browse-turfs.tsx"),
 ] satisfies RouteConfig;
