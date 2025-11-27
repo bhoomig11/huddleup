@@ -290,7 +290,8 @@ DELIMITER ;
  *
  * Errors
  * ------
- *   - Signals SQLSTATE '45000' if no such user or booking found.
+ *   - Signals SQLSTATE '45001' if the username is NULL or empty.
+ *   - Signals SQLSTATE '45002' if no such user or booking found.
  */
 DROP PROCEDURE IF EXISTS delete_user_complaint;
 DELIMITER $$
@@ -303,14 +304,14 @@ BEGIN
     IF (p_username IS NULL OR CHAR_LENGTH(p_username) = 0) THEN
         SIGNAL SQLSTATE '45001' SET MESSAGE_TEXT = 'Username cannot be empty';
     ELSEIF NOT EXISTS (SELECT username FROM app_user WHERE username = p_username) THEN
-        SIGNAL SQLSTATE '45002' SET MESSAGE_TEXT = 'Invalid username';
+        SIGNAL SQLSTATE '45002' SET MESSAGE_TEXT = 'No such user exists';
     END IF;
 
     -- check for valid booking
     IF NOT EXISTS (
         SELECT booking_id FROM booking WHERE booking_id = p_booking_id
     ) THEN
-        SIGNAL SQLSTATE '45001' SET MESSAGE_TEXT = 'No such booking found for this user';
+        SIGNAL SQLSTATE '45002' SET MESSAGE_TEXT = 'No such booking found for this user';
     END IF;
 
     UPDATE booking
@@ -336,7 +337,8 @@ DELIMITER ;
  *
  * Errors
  * ------
- *   - Signals SQLSTATE '45000' if no such user or turf found.
+ *   - Signals SQLSTATE '45001' if the username is NULL or empty.
+ *   - Signals SQLSTATE '45002' if no such user or turf found.
  */
 DROP PROCEDURE IF EXISTS delete_user_review;
 DELIMITER $$
@@ -349,14 +351,14 @@ BEGIN
     IF (p_username IS NULL OR CHAR_LENGTH(p_username) = 0) THEN
         SIGNAL SQLSTATE '45001' SET MESSAGE_TEXT = 'Username cannot be empty';
     ELSEIF NOT EXISTS (SELECT username FROM app_user WHERE username = p_username) THEN
-        SIGNAL SQLSTATE '45002' SET MESSAGE_TEXT = 'Invalid username';
+        SIGNAL SQLSTATE '45002' SET MESSAGE_TEXT = 'No such user exists';
     END IF;
 
     -- check for valid turf
     IF NOT EXISTS (
         SELECT turf_id FROM turf WHERE turf_id = p_turf_id
     ) THEN
-        SIGNAL SQLSTATE '45000'
+        SIGNAL SQLSTATE '45002'
         SET MESSAGE_TEXT = 'No such turf found';
     END IF;
 
