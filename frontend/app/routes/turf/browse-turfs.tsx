@@ -1,9 +1,9 @@
 import { add, format } from "date-fns";
-import { ChevronDownIcon, LandPlot } from "lucide-react";
+import { ChevronDownIcon, LandPlot, Search } from "lucide-react";
 import { useState } from "react";
 import { Button } from "~/components/ui/button";
 import { Calendar } from "~/components/ui/calendar";
-import { Input } from "~/components/ui/input";
+// import { Input } from "~/components/ui/input";
 // import { Label } from "~/components/ui/label";
 import {
   Popover,
@@ -16,6 +16,11 @@ import {
   CommandGroup,
   CommandItem,
 } from "~/components/ui/command";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from "~/components/ui/input-group";
 
 const turfs = [
   {
@@ -336,18 +341,28 @@ export default function BrowseTurfsPage() {
             </span>
           </div>
           <div className="flex h-12 w-3xl flex-row gap-4">
-            <div className="flex h-12 flex-1 flex-row self-baseline justify-self-center overflow-hidden rounded border border-stone-300/80">
-              <Input
+            <div className="flex h-12 flex-1 flex-row self-baseline justify-self-center overflow-hidden rounded border border-stone-300/80 has-[[data-slot='popover-trigger'][data-state='open']]:border-green-800 has-[[data-slot='popover-trigger'][data-state='open']]:ring has-[[data-slot='popover-trigger'][data-state='open']]:ring-green-800/50 has-[input:focus-visible]:border-green-800 has-[input:focus-visible]:ring has-[input:focus-visible]:ring-green-800/50">
+              <InputGroup className="h-12 self-baseline rounded-none border-0 border-r border-stone-300/80 bg-white">
+                <InputGroupInput
+                  type="text"
+                  className="h-12 rounded-none px-4 py-2 font-medium text-stone-600"
+                  placeholder="Enter city, state, or zip code"
+                />
+                <InputGroupAddon>
+                  <Search className="size-5 text-stone-500" />
+                </InputGroupAddon>
+              </InputGroup>
+              {/* <Input
                 type="text"
                 className="h-12 self-baseline rounded-none border-0 border-r border-stone-300/80 bg-white px-4 py-2 font-medium text-teal-800"
-              />
+              /> */}
               <DatePicker />
               <TimeSlotPicker />
             </div>
             <div className="flex-none">
               <Button
                 variant="default"
-                className="h-12 w-24 self-baseline rounded border-stone-300/80 bg-stone-600 text-white"
+                className="h-12 w-24 self-baseline rounded border-stone-300/80 bg-green-700 text-white hover:bg-green-600 active:bg-green-700"
               >
                 Search
               </Button>
@@ -430,12 +445,18 @@ export default function BrowseTurfsPage() {
                       </div>
                     </div>
                     <div className="flex flex-row gap-2">
-                      <button className="px-3.5 py-1.5 font-semibold text-green-700">
+                      <Button
+                        variant="ghost"
+                        className="px-3.5 py-1.5 font-semibold text-green-700 hover:bg-stone-300/30 active:bg-stone-300/60"
+                      >
                         View Details
-                      </button>
-                      <button className="rounded bg-green-700 px-3.5 py-1.5 text-teal-50">
+                      </Button>
+                      <Button
+                        variant="default"
+                        className="rounded bg-green-700 px-3.5 py-1.5 text-white hover:bg-green-600 active:bg-green-700"
+                      >
                         Book Now
-                      </button>
+                      </Button>
                     </div>
                   </div>
                 </div>
