@@ -195,7 +195,7 @@ BEGIN
 
     -- limit users to at most one review for a turf
     IF EXISTS (SELECT rating FROM review WHERE turf_id = p_turf_id AND username = p_username) THEN
-        SIGNAL SQLSTATE '45003' SET MESSAGE_TEXT = 'User has already reviewed this turf previously'
+        SIGNAL SQLSTATE '45003' SET MESSAGE_TEXT = 'User has already reviewed this turf previously';
     END IF;
 
     -- insert a tuple in the review table

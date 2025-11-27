@@ -49,8 +49,8 @@ public class TurfRepository {
           String streetLine2 = rs.getString("addr_street_2");
           String town = rs.getString("addr_town");
           String state = rs.getString("addr_state");
-          String zipcode = rs.getString("addr_zipcode");
-          float turfRating = rs.getFloat("turf_rating");
+          String zipcode = rs.getString("addr_zip_code");
+          float turfRating = rs.getFloat("avg_rating");
           turfs.add(
               new TurfSummary(
                   turfId,

@@ -23,10 +23,10 @@ USE huddleup;
 DROP FUNCTION IF EXISTS get_avg_turf_rating;
 DELIMITER $$
 CREATE FUNCTION get_avg_turf_rating(p_turf_id INT)
-RETURNS INT DETERMINISTIC
+RETURNS DECIMAL(2,1) DETERMINISTIC
 READS SQL DATA
 BEGIN
-    DECLARE avg_rating DECIMAL(1,1);
+    DECLARE avg_rating DECIMAL(2,1);
  
     IF NOT EXISTS (SELECT turf_id FROM turf WHERE turf_id = p_turf_id) THEN 
         SIGNAL SQLSTATE '45002'
