@@ -11,7 +11,12 @@ USE huddleup;
  *   - turf_id - The id (PK) of the turf
  *   - turf_name - The name of the turf
  *   - image_url - The first or default image of the turf
- *   - turf_rating - Derived average rating of the turf
+ *   - addr_street_1 - primary street address line of the turf
+ *   - addr_street_2 - secondary street address line of the turf
+ *   - addr_town - town of the turf
+ *   - addr_state - state of the turf
+ *   - addr_zip_code - zipcode of the turf
+ *   - avg_rating - Derived average rating of the turf
  */
 DROP PROCEDURE IF EXISTS get_all_turfs;
 DELIMITER $$
@@ -20,7 +25,12 @@ BEGIN
     SELECT t.turf_id,
            t.turf_name, 
            img.image_url,
-           get_avg_turf_rating(t.turf_id) AS turf_rating
+           t.addr_street_1,
+           t.addr_street_2,
+           t.addr_town,
+           t.addr_state,
+           t.addr_zip_code,
+           get_avg_turf_rating(t.turf_id) AS avg_rating
     FROM turf AS t
     INNER JOIN turf_image AS img
     ON t.turf_id = img.turf_id
@@ -41,21 +51,22 @@ DELIMITER ;
  *
  * Output Columns
  * --------------
- *   - turf_id - id of the selected_turf
+ *   - turf_id - id of the selected turf
  *   - turf_name - name of the selected turf
- *   - turf_description - description of the selected_turf
+ *   - turf_description - description of the selected turf
  *   - floor_material - floor material of the selected turf
  *   - floor_width - floor width of the selected turf
  *   - floor_length length of the floor of the selected turf
- *   - hourly_rate - the hourly rate for the selected_turf
+ *   - hourly_rate - the hourly rate for the selected turf
  *   - opens_at_utc opening time of the selected turf
  *   - closes_at_utc - closing time of the selected turf
- *   - manager_id - id of the manager of the selected turf
- *   - addr_street_1
- *   - addr_street_2
- *   - addr_state - state of the selected_turf
- *   - addr_zip_code - zipcode of the selected_turf
+ *   - addr_street_1 - primary street address line of the selected turf
+ *   - addr_street_2 - secondary street address line of the selected turf
+ *   - addr_town - town of the selected turf
+ *   - addr_state - state of the selected turf
+ *   - addr_zip_code - zipcode of the selected turf
  *   - sport_name - type of sport that can be played on the selected turf
+ *   - avg_rating - the average user rating of the selected turf
  *
  *
  * Errors
@@ -82,8 +93,11 @@ BEGIN
             t.closes_at_utc,
             t.addr_street_1,
             t.addr_street_2,
+            t.addr_town,
             t.addr_state,
-            t.addr_zip_code
+            t.addr_zip_code,
+            t.sport_name,
+            get_avg_turf_rating(t.turf_id) AS avg_rating
     FROM turf AS t
     WHERE t.turf_id = p_turf_id;
 END $$

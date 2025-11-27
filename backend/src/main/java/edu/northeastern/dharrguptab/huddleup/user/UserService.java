@@ -9,7 +9,9 @@ import edu.northeastern.dharrguptab.huddleup.auth.exception.UnauthorizedExceptio
 import edu.northeastern.dharrguptab.huddleup.auth.jwt.JwtService;
 import edu.northeastern.dharrguptab.huddleup.user.dto.AnnouncementDetail;
 import edu.northeastern.dharrguptab.huddleup.user.dto.AnnouncementSummary;
-import edu.northeastern.dharrguptab.huddleup.user.dto.CardDetail;
+import edu.northeastern.dharrguptab.huddleup.user.dto.BookingSummary;
+import edu.northeastern.dharrguptab.huddleup.user.dto.ComplaintRequest;
+import edu.northeastern.dharrguptab.huddleup.user.dto.NewCardDetail;
 import edu.northeastern.dharrguptab.huddleup.user.dto.UserProfile;
 import edu.northeastern.dharrguptab.huddleup.user.dto.UserProfileUpdate;
 import java.util.List;
@@ -206,9 +208,9 @@ public class UserService {
    * Add a new card detail for a user.
    *
    * @param username the username of the user
-   * @param cardDetail the card detail information to add
+   * @param newCardDetail the card detail information to add
    */
-  public void addCardDetail(String username, CardDetail cardDetail) {
+  public void addCardDetail(String username, NewCardDetail newCardDetail) {
     String authenticatedUsername = getAuthenticatedUsername();
 
     boolean isAuthenticated = authenticatedUsername != null;
@@ -221,8 +223,10 @@ public class UserService {
       throw new UnauthorizedException();
     }
 
-    userRepository.addCardDetail(username, cardDetail);
+    userRepository.addCardDetail(username, newCardDetail);
   }
+
+  public List<NewCardDetail> getAllCardDetails(String username) {}
 
   /**
    * Delete a card detail for a user.
@@ -330,8 +334,98 @@ public class UserService {
     if (!isAuthorized) {
       throw new UnauthorizedException();
     }
-    
+
     userRepository.markAllAnnouncementsAsRead(username);
+  }
+
+  /**
+   * Retrieve all bookings for a user.
+   *
+   * @param username the username of the user
+   * @return the list of booking summaries
+   */
+  public List<BookingSummary> getAllUserBookings(String username) {
+    String authenticatedUsername = getAuthenticatedUsername();
+
+    boolean isAuthenticated = authenticatedUsername != null;
+    if (!isAuthenticated) {
+      throw new UnauthenticatedException();
+    }
+
+    boolean isAuthorized = username.equals(authenticatedUsername);
+    if (!isAuthorized) {
+      throw new UnauthorizedException();
+    }
+
+    return userRepository.getAllUserBookings(username);
+  }
+
+  /**
+   * Retrieve a specific booking for a user.
+   *
+   * @param username the username of the user
+   * @param bookingId the booking ID
+   * @return the booking detail
+   */
+  public BookingSummary getUserBooking(String username, int bookingId) {
+    String authenticatedUsername = getAuthenticatedUsername();
+
+    boolean isAuthenticated = authenticatedUsername != null;
+    if (!isAuthenticated) {
+      throw new UnauthenticatedException();
+    }
+
+    boolean isAuthorized = username.equals(authenticatedUsername);
+    if (!isAuthorized) {
+      throw new UnauthorizedException();
+    }
+
+    return userRepository.getUserBooking(username, bookingId);
+  }
+
+  /**
+   * File a complaint for a user's booking.
+   *
+   * @param username the username of the user
+   * @param bookingId the booking ID for which the complaint is being filed
+   * @param complaintRequest the complaint details
+   */
+  public void fileComplaint(String username, int bookingId, ComplaintRequest complaintRequest) {
+    String authenticatedUsername = getAuthenticatedUsername();
+
+    boolean isAuthenticated = authenticatedUsername != null;
+    if (!isAuthenticated) {
+      throw new UnauthenticatedException();
+    }
+
+    boolean isAuthorized = username.equals(authenticatedUsername);
+    if (!isAuthorized) {
+      throw new UnauthorizedException();
+    }
+
+    userRepository.fileComplaint(username, bookingId, complaintRequest);
+  }
+
+  /**
+   * Delete a review for a user's turf.
+   *
+   * @param username the username of the user
+   * @param turfId the ID of the turf for which the review is being deleted
+   */
+  public void deleteUserReview(String username, int turfId) {
+    String authenticatedUsername = getAuthenticatedUsername();
+
+    boolean isAuthenticated = authenticatedUsername != null;
+    if (!isAuthenticated) {
+      throw new UnauthenticatedException();
+    }
+
+    boolean isAuthorized = username.equals(authenticatedUsername);
+    if (!isAuthorized) {
+      throw new UnauthorizedException();
+    }
+
+    userRepository.deleteUserReview(username, turfId);
   }
 
   /**
@@ -348,8 +442,8 @@ public class UserService {
   }
 
   /**
-   * Extract the username from an {@link Authentication} principal by handling both
-   * {@link UserDetails}-based and plain-string principals.
+   * Extract the username from an {@link Authentication} principal by handling both {@link
+   * UserDetails}-based and plain-string principals.
    *
    * @param authentication the authentication object containing the principal
    * @return the username resolved from the principal

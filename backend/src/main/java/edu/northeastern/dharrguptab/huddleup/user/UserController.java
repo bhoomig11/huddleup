@@ -5,17 +5,19 @@ import edu.northeastern.dharrguptab.huddleup.auth.dto.UserLoginCredentials;
 import edu.northeastern.dharrguptab.huddleup.auth.dto.UserSignupCredentials;
 import edu.northeastern.dharrguptab.huddleup.user.dto.AnnouncementDetail;
 import edu.northeastern.dharrguptab.huddleup.user.dto.AnnouncementSummary;
-import edu.northeastern.dharrguptab.huddleup.user.dto.CardDetail;
+import edu.northeastern.dharrguptab.huddleup.user.dto.BookingSummary;
+import edu.northeastern.dharrguptab.huddleup.user.dto.ComplaintRequest;
 import edu.northeastern.dharrguptab.huddleup.user.dto.EmailUpdate;
+import edu.northeastern.dharrguptab.huddleup.user.dto.NewCardDetail;
 import edu.northeastern.dharrguptab.huddleup.user.dto.PasswordUpdate;
 import edu.northeastern.dharrguptab.huddleup.user.dto.UserProfile;
 import edu.northeastern.dharrguptab.huddleup.user.dto.UserProfileUpdate;
 import edu.northeastern.dharrguptab.huddleup.user.dto.UsernameUpdate;
+import java.util.List;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import java.util.List;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -90,9 +92,12 @@ public class UserController {
   }
 
   @PostMapping("/{username}/cards")
-  public void addCardDetail(@PathVariable String username, @RequestBody CardDetail cardDetail) {
-    userService.addCardDetail(username, cardDetail);
+  public void addCardDetail(@PathVariable String username, @RequestBody NewCardDetail newCardDetail) {
+    userService.addCardDetail(username, newCardDetail);
   }
+
+  @GetMapping("/{username}/cards")
+  public List<NewCardDetail> getAllCardDetails(@PathVariable String username) {}
 
   @DeleteMapping("/{username}/cards/{cardId}")
   public void deleteCardDetail(@PathVariable String username, @PathVariable int cardId) {
@@ -119,5 +124,29 @@ public class UserController {
   @PatchMapping("/{username}/announcements/read-all")
   public void markAllAnnouncementsAsRead(@PathVariable String username) {
     userService.markAllAnnouncementsAsRead(username);
+  }
+
+  @GetMapping("/{username}/booking")
+  public List<BookingSummary> getAllUserBookings(@PathVariable String username) {
+    return userService.getAllUserBookings(username);
+  }
+
+  @GetMapping("/{username}/booking/{booking_id}")
+  public BookingSummary getUserBooking(
+      @PathVariable String username, @PathVariable int booking_id) {
+    return userService.getUserBooking(username, booking_id);
+  }
+
+  @PutMapping("/{username}/booking/{booking_id}/complaint")
+  public void fileComplaint(
+      @PathVariable String username,
+      @PathVariable int booking_id,
+      @RequestBody ComplaintRequest complaintRequest) {
+    userService.fileComplaint(username, booking_id, complaintRequest);
+  }
+
+  @DeleteMapping("/{username}/review/{turf_id}")
+  public void deleteUserReview(@PathVariable String username, @PathVariable int turf_id) {
+    userService.deleteUserReview(username, turf_id);
   }
 }
