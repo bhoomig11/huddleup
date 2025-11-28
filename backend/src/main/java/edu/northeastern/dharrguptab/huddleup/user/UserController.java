@@ -3,16 +3,7 @@ package edu.northeastern.dharrguptab.huddleup.user;
 import edu.northeastern.dharrguptab.huddleup.auth.dto.AuthResponse;
 import edu.northeastern.dharrguptab.huddleup.auth.dto.UserLoginCredentials;
 import edu.northeastern.dharrguptab.huddleup.auth.dto.UserSignupCredentials;
-import edu.northeastern.dharrguptab.huddleup.user.dto.AnnouncementDetail;
-import edu.northeastern.dharrguptab.huddleup.user.dto.AnnouncementSummary;
-import edu.northeastern.dharrguptab.huddleup.user.dto.BookingSummary;
-import edu.northeastern.dharrguptab.huddleup.user.dto.ComplaintRequest;
-import edu.northeastern.dharrguptab.huddleup.user.dto.EmailUpdate;
-import edu.northeastern.dharrguptab.huddleup.user.dto.NewCardDetail;
-import edu.northeastern.dharrguptab.huddleup.user.dto.PasswordUpdate;
-import edu.northeastern.dharrguptab.huddleup.user.dto.UserProfile;
-import edu.northeastern.dharrguptab.huddleup.user.dto.UserProfileUpdate;
-import edu.northeastern.dharrguptab.huddleup.user.dto.UsernameUpdate;
+import edu.northeastern.dharrguptab.huddleup.user.dto.*;
 import java.util.List;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -92,12 +83,15 @@ public class UserController {
   }
 
   @PostMapping("/{username}/cards")
-  public void addCardDetail(@PathVariable String username, @RequestBody NewCardDetail newCardDetail) {
+  public void addCardDetail(
+      @PathVariable String username, @RequestBody NewCardDetail newCardDetail) {
     userService.addCardDetail(username, newCardDetail);
   }
 
   @GetMapping("/{username}/cards")
-  public List<NewCardDetail> getAllCardDetails(@PathVariable String username) {}
+  public List<CardDetail> getAllCardDetails(@PathVariable String username) {
+    return userService.getAllCardDetails(username);
+  }
 
   @DeleteMapping("/{username}/cards/{cardId}")
   public void deleteCardDetail(@PathVariable String username, @PathVariable int cardId) {

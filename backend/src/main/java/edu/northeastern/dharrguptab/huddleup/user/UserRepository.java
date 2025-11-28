@@ -570,6 +570,7 @@ public class UserRepository {
           Instant complaintResolvedAtUtc =
               toInstantOrNull(rs.getTimestamp("complaint_resolved_at_utc"));
           int turfId = rs.getInt("turf_id");
+          String turfName = rs.getString("turf_name");
           String bookingUsername = rs.getString("username");
           String maskedCardNumber = rs.getString("masked_card_number");
           Integer couponId = rs.getObject("coupon_id", Integer.class);
@@ -585,6 +586,7 @@ public class UserRepository {
                   complaintFiledAtUtc,
                   complaintResolvedAtUtc,
                   turfId,
+                  turfName,
                   bookingUsername,
                   maskedCardNumber,
                   couponId));
@@ -633,6 +635,7 @@ public class UserRepository {
           Instant complaintResolvedAtUtc =
               toInstantOrNull(rs.getTimestamp("complaint_resolved_at_utc"));
           int turfId = rs.getInt("turf_id");
+          String turfName = rs.getString("turf_name");
           String bookingUsername = rs.getString("username");
           String maskedCardNumber = rs.getString("masked_card_number");
           Integer couponId = rs.getObject("coupon_id", Integer.class);
@@ -647,6 +650,7 @@ public class UserRepository {
               complaintFiledAtUtc,
               complaintResolvedAtUtc,
               turfId,
+              turfName,
               bookingUsername,
               maskedCardNumber,
               couponId);

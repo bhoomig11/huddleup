@@ -44,19 +44,22 @@ BEGIN
     END IF;
 
     SELECT
-        booking_id,
-        start_time_utc,
-        duration_mins,
-        amount,
-        complaint_subject,
-        complaint_description,
-        complaint_filed_at_utc,
-        complaint_resolved_at_utc,
-        turf_id,
-        username,
-        masked_card_number,
-        coupon_id
-    FROM booking
+        b.booking_id,
+        b.start_time_utc,
+        b.duration_mins,
+        b.amount,
+        b.complaint_subject,
+        b.complaint_description,
+        b.complaint_filed_at_utc,
+        b.complaint_resolved_at_utc,
+        b.turf_id,
+        b.username,
+        b.masked_card_number,
+        b.coupon_id,
+        t.turf_name
+    FROM booking AS b
+    INNER JOIN turf AS t
+    ON booking.turf_id = turf.turf_id
     WHERE username = p_username;
 END $$
 DELIMITER ;
@@ -86,6 +89,7 @@ DELIMITER ;
  *   - username - the username of the user who made the booking
  *   - masked_card_number - the masked number of the card used to confirm the booking
  *   - coupon_id - the ID of the coupon applied to the booking if any
+ *   - turf_name - the name of the booked turf
  *
  * Errors
  * ------
@@ -113,19 +117,22 @@ BEGIN
     END IF;
 
     SELECT 
-        booking_id,
-        start_time_utc,
-        duration_mins,
-        amount,
-        complaint_subject,
-        complaint_description,
-        complaint_filed_at_utc,
-        complaint_resolved_at_utc,
-        turf_id,
-        username,
-        masked_card_number,
-        coupon_id
-    FROM booking
+        b.booking_id,
+        b.start_time_utc,
+        b.duration_mins,
+        b.amount,
+        b.complaint_subject,
+        b.complaint_description,
+        b.complaint_filed_at_utc,
+        b.complaint_resolved_at_utc,
+        b.turf_id,
+        b.username,
+        b.masked_card_number,
+        b.coupon_id,
+        t.turf_name
+    FROM booking AS b
+    INNER JOIN turf AS t
+    ON booking.turf_id = turf.turf_id
     WHERE booking_id = p_booking_id AND username = p_username;
 END $$
 DELIMITER ;
