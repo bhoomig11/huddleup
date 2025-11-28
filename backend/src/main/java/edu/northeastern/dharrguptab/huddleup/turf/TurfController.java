@@ -3,6 +3,7 @@ package edu.northeastern.dharrguptab.huddleup.turf;
 import edu.northeastern.dharrguptab.huddleup.turf.dto.ReviewRequest;
 import edu.northeastern.dharrguptab.huddleup.turf.dto.TurfBookingRequest;
 import edu.northeastern.dharrguptab.huddleup.turf.dto.TurfData;
+import edu.northeastern.dharrguptab.huddleup.turf.dto.TurfReview;
 import edu.northeastern.dharrguptab.huddleup.turf.dto.TurfSummary;
 import java.util.List;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -58,7 +59,7 @@ public class TurfController {
 
   /** Endpoint for getting all the reviews for a turf */
   @GetMapping("/{turf_id}/review")
-  public List<ReviewRequest> getTurfReviews(@PathVariable int turf_id) {
-    return getTurfReviews(turf_id);
+  public List<TurfReview> getTurfReviews(@PathVariable int turf_id) {
+    return turfService.getTurfReviews(turf_id);
   }
 }
