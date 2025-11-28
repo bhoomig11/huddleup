@@ -1,6 +1,7 @@
 package edu.northeastern.dharrguptab.huddleup.turf.dto;
 
 import edu.northeastern.dharrguptab.huddleup.common.dto.Address;
+import java.math.BigDecimal;
 import java.sql.Time;
 
 /** Represents a turf's information. */
@@ -8,11 +9,12 @@ public record TurfData(
     int turfId,
     String turfName,
     String turfDescription,
-    float floorWidth,
-    float floorLength,
+    BigDecimal floorWidth,
+    BigDecimal floorLength,
     String floorMaterial,
-    float hourlyRate,
+    BigDecimal hourlyRate,
+    BigDecimal averageRating,
+    int numberOfRatings,
     Time opensAtDate,
     Time closesAtDate,
-    Address address,
-    float averageRating) {}
+    Address address) {}

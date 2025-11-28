@@ -42,6 +42,47 @@ END $$
 DELIMITER ;
 
 /**
+ * Function: get_count_turf_rating
+ * -------------------------------
+ * Returns the number of ratings for a given turf.
+ *
+ *
+ * Parameters
+ * ----------
+ *   - p_turf_id - the turf to to calculate the average rating for
+ *
+ *
+ * Errors
+ * ------
+ *   - Signals SQLSTATE '45001' if no such turf exists
+ *
+ *
+ * Returns
+ * -------
+ * The number of ratings for the given turf
+ */
+DROP FUNCTION IF EXISTS get_count_turf_rating;
+DELIMITER $$
+CREATE FUNCTION get_count_turf_rating(p_turf_id INT)
+RETURNS INT DETERMINISTIC
+READS SQL DATA
+BEGIN
+    DECLARE count_rating INT DEFAULT 0;
+ 
+    IF NOT EXISTS (SELECT turf_id FROM turf WHERE turf_id = p_turf_id) THEN 
+        SIGNAL SQLSTATE '45002'
+        SET MESSAGE_TEXT = 'No such turf exists';
+    END IF;
+ 
+    SELECT COUNT(r.rating) INTO count_rating
+    FROM review AS r
+    WHERE r.turf_id = p_turf_id;
+
+    RETURN count_rating;
+END $$
+DELIMITER ;
+
+/**
  * Function: get_masked_card_number
  * --------------------------------
  * Returns the masked card number for a given card.
