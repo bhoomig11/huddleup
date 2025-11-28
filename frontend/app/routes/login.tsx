@@ -27,7 +27,7 @@ export default function LoginPage({ actionData }: Route.ComponentProps) {
       <section className="w-full max-w-md space-y-6">
         {/* Header */}
         <div>
-          <h1 className="text-4xl font-semibold text-green-500">HuddleUp</h1>
+          <h1 className="text-4xl font-semibold text-green-600">HuddleUp</h1>
           <p className="text-muted-foreground mt-4">
             Welcome back! Login to get started.
           </p>
@@ -123,7 +123,7 @@ export default function LoginPage({ actionData }: Route.ComponentProps) {
             {/* Submit button */}
             <Button 
               type="submit" 
-              className="w-full h-11 text-base bg-green-500"
+              className="w-full h-11 text-base bg-green-600"
               disabled={isSubmitting}
             >
               {isSubmitting ? (

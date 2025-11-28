@@ -26,7 +26,7 @@ export default function SignupPage({ actionData }: Route.ComponentProps) {
       <section className="w-full max-w-md space-y-6">
         {/* Header */}
         <div>
-          <h1 className="text-4xl font-semibold text-green-500">HuddleUp</h1>
+          <h1 className="text-4xl font-semibold text-green-600">HuddleUp</h1>
           <p className="text-muted-foreground mt-4">
             Create an account to get started.
           </p>
@@ -140,95 +140,10 @@ export default function SignupPage({ actionData }: Route.ComponentProps) {
                 )}
               </div>
 
-              {/* Birth Date */}
-              <div className="space-y-2">
-                <Label htmlFor="birthDate">Birth Date *</Label>
-                <Input
-                  id="birthDate"
-                  name="birthDate"
-                  type="date"
-                />
-                {formErrors !== null && "birthDate" in formErrors && (
-                  <p className="text-sm text-red-600">{formErrors.birthDate}</p>
-                )}
-              </div>
-
-              {/* Address Section */}
-              <div className="space-y-4 rounded-md border border-gray-200 p-4">
-                <h3 className="text-sm font-semibold text-gray-800">Address</h3>
-
-                {/* Street Line 1 */}
-                <div className="space-y-2">
-                  <Label htmlFor="streetLine1">Street Address *</Label>
-                  <Input
-                    id="streetLine1"
-                    name="streetLine1"
-                    placeholder="Enter street address"
-                  />
-                  {formErrors !== null && "streetLine1" in formErrors && (
-                    <p className="text-sm text-red-600">{formErrors.streetLine1}</p>
-                  )}
-                </div>
-
-                {/* Street Line 2 */}
-                <div className="space-y-2">
-                  <Label htmlFor="streetLine2">Apartment, suite, etc.</Label>
-                  <Input
-                    id="streetLine2"
-                    name="streetLine2"
-                    placeholder="Enter apartment or suite (optional)"
-                  />
-                  {formErrors !== null && "streetLine2" in formErrors && (
-                    <p className="text-sm text-red-600">{formErrors.streetLine2}</p>
-                  )}
-                </div>
-
-                {/* Town */}
-                <div className="space-y-2">
-                  <Label htmlFor="town">City/Town *</Label>
-                  <Input
-                    id="town"
-                    name="town"
-                    placeholder="Enter city or town"
-                  />
-                  {formErrors !== null && "town" in formErrors && (
-                    <p className="text-sm text-red-600">{formErrors.town}</p>
-                  )}
-                </div>
-
-                {/* State */}
-                <div className="space-y-2">
-                  <Label htmlFor="state">State *</Label>
-                  <Input
-                    id="state"
-                    name="state"
-                    placeholder="Enter 2-letter state code (e.g., MA)"
-                    maxLength={2}
-                  />
-                  {formErrors !== null && "state" in formErrors && (
-                    <p className="text-sm text-red-600">{formErrors.state}</p>
-                  )}
-                </div>
-
-                {/* Zipcode */}
-                <div className="space-y-2">
-                  <Label htmlFor="zipcode">ZIP Code *</Label>
-                  <Input
-                    id="zipcode"
-                    name="zipcode"
-                    placeholder="Enter 5-digit ZIP code"
-                    maxLength={5}
-                  />
-                  {formErrors !== null && "zipcode" in formErrors && (
-                    <p className="text-sm text-red-600">{formErrors.zipcode}</p>
-                  )}
-                </div>
-              </div>
-
               {/* Submit button */}
               <Button 
                 type="submit" 
-                className="w-full h-11 text-base bg-green-500"
+                className="w-full h-11 text-base bg-green-600"
                 disabled={isSubmitting}
               >
                 {isSubmitting ? (
@@ -298,42 +213,6 @@ export async function action({ request }: Route.ActionArgs) {
     hasFormErrors = true;
   }
 
-  const birthDate = formData.get("birthDate");
-  if (birthDate === null || birthDate.toString().trim() === "") {
-    formErrors.birthDate = "Birth date is required";
-    hasFormErrors = true;
-  }
-
-  const streetLine1 = formData.get("streetLine1");
-  if (streetLine1 === null || streetLine1.toString().trim() === "") {
-    formErrors.streetLine1 = "Street address is required";
-    hasFormErrors = true;
-  }
-
-  const town = formData.get("town");
-  if (town === null || town.toString().trim() === "") {
-    formErrors.town = "City/Town is required";
-    hasFormErrors = true;
-  }
-
-  const state = formData.get("state");
-  if (state === null || state.toString().trim() === "") {
-    formErrors.state = "State is required";
-    hasFormErrors = true;
-  } else if (state.toString().trim().length !== 2) {
-    formErrors.state = "State must be a 2-letter code";
-    hasFormErrors = true;
-  }
-
-  const zipcode = formData.get("zipcode");
-  if (zipcode === null || zipcode.toString().trim() === "") {
-    formErrors.zipcode = "ZIP code is required";
-    hasFormErrors = true;
-  } else if (zipcode.toString().trim().length !== 5) {
-    formErrors.zipcode = "ZIP code must be 5 digits";
-    hasFormErrors = true;
-  }
-
   if (hasFormErrors) {
     return data(
       { ok: false, status: 400 as const, errors: formErrors },
@@ -342,8 +221,20 @@ export async function action({ request }: Route.ActionArgs) {
   }
 
   // Build the signup payload
+  // Note: Backend requires birthDate and address, so we send default values
   const lastName = formData.get("lastName")?.toString() ?? "";
-  const streetLine2 = formData.get("streetLine2")?.toString() ?? "";
+  
+  // Default birthDate (2000-01-01) - backend requires this field
+  const defaultBirthDate = "2000-01-01";
+  
+  // Default address - backend requires this field
+  const defaultAddress = {
+    streetLine1: "",
+    streetLine2: "",
+    town: "",
+    state: "",
+    zipcode: "",
+  };
 
   const signupPayload = {
     firstName: firstName!.toString().trim(),
@@ -351,14 +242,8 @@ export async function action({ request }: Route.ActionArgs) {
     username: username!.toString().trim(),
     email: email!.toString().trim(),
     password: password!.toString(),
-    birthDate: birthDate!.toString(),
-    address: {
-      streetLine1: streetLine1!.toString().trim(),
-      streetLine2: streetLine2.trim(),
-      town: town!.toString().trim(),
-      state: state!.toString().trim().toUpperCase(),
-      zipcode: zipcode!.toString().trim(),
-    },
+    birthDate: defaultBirthDate,
+    address: defaultAddress,
   };
 
   const result = await signupUser(signupPayload);
