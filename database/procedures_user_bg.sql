@@ -331,6 +331,52 @@ END $$
 DELIMITER ;
 
 /**
+ * Procedure: mark_complaint_as_resolved
+ * ----------------------------------
+ * Mark the complaint as resolved for a booking
+ *
+ *
+ * Input Parameters
+ * ----------------
+ *   - p_username - the username of the user
+ *   - p_booking_id - the ID of the card to be deleted
+ *
+ *
+ * Errors
+ * ------
+ *   - Signals SQLSTATE '45001' if the username is NULL or empty.
+ *   - Signals SQLSTATE '45002' if no such user or booking found.
+ */
+ DROP PROCEDURE IF EXISTS mark_complaint_as_resolved;
+DELIMITER $$
+CREATE PROCEDURE mark_complaint_as_resolved(
+    IN p_username VARCHAR(64),
+    IN p_booking_id INT
+)
+BEGIN
+     -- check for valid username
+    IF (p_username IS NULL OR CHAR_LENGTH(p_username) = 0) THEN
+        SIGNAL SQLSTATE '45001' SET MESSAGE_TEXT = 'Username cannot be empty';
+    ELSEIF NOT EXISTS (SELECT username FROM app_user WHERE username = p_username) THEN
+        SIGNAL SQLSTATE '45002' SET MESSAGE_TEXT = 'No such user exists';
+    END IF;
+
+    -- check for valid booking
+    IF NOT EXISTS (
+        SELECT booking_id FROM booking WHERE booking_id = p_booking_id
+    ) THEN
+        SIGNAL SQLSTATE '45002' SET MESSAGE_TEXT = 'No such booking found for this user';
+    END IF;
+
+    UPDATE booking
+    SET complaint_resolved_at_utc = UTC_TIMESTAMP()
+    WHERE booking_id = p_booking_id
+        AND username = p_username;
+END $$
+DELIMITER ;
+ 
+
+/**
  * Procedure: delete_user_review
  * ----------------------------------
  * Delete review left by the user.
