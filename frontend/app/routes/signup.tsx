@@ -1,9 +1,4 @@
-import {
-  Tabs,
-  TabsList,
-  TabsTrigger,
-  TabsContent,
-} from "~/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "~/components/ui/tabs";
 import { Label } from "~/components/ui/label";
 import { Input } from "~/components/ui/input";
 
@@ -18,8 +13,14 @@ export default function SignupPage({ actionData }: Route.ComponentProps) {
   const navigate = useNavigate();
   const isSubmitting = navigation.state === "submitting";
 
-  const signupError = actionData?.status === 400 && "error" in actionData ? actionData.error : null;
-  const formErrors = actionData?.status === 400 && "errors" in actionData ? actionData.errors : null;
+  const signupError =
+    actionData?.status === 400 && "error" in actionData
+      ? actionData.error
+      : null;
+  const formErrors =
+    actionData?.status === 400 && "errors" in actionData
+      ? actionData.errors
+      : null;
 
   return (
     <main className="grid h-screen w-screen place-items-center p-8">
@@ -27,7 +28,7 @@ export default function SignupPage({ actionData }: Route.ComponentProps) {
         {/* Header */}
         <div>
           <h1 className="text-4xl font-semibold text-green-600">HuddleUp</h1>
-          <p className="text-muted-foreground mt-4">
+          <p className="mt-4 text-muted-foreground">
             Create an account to get started.
           </p>
         </div>
@@ -35,8 +36,8 @@ export default function SignupPage({ actionData }: Route.ComponentProps) {
         {/* Tabs - Login or signup */}
         <Tabs value="signup" className="w-full">
           <TabsList className="grid grid-cols-2 rounded-xl bg-muted">
-            <TabsTrigger 
-              value="login" 
+            <TabsTrigger
+              value="login"
               className="rounded-xl"
               onClick={(e) => {
                 e.preventDefault();
@@ -51,12 +52,7 @@ export default function SignupPage({ actionData }: Route.ComponentProps) {
           </TabsList>
 
           <TabsContent value="signup" className="pt-6">
-            <Form
-              method="post"
-              action="/signup"
-              className="space-y-6"
-              replace
-            >
+            <Form method="post" action="/signup" className="space-y-6" replace>
               {signupError !== null && (
                 <div className="flex items-center gap-2 rounded-md border border-red-300 bg-red-50 p-3 text-sm text-red-700">
                   <svg
@@ -141,9 +137,9 @@ export default function SignupPage({ actionData }: Route.ComponentProps) {
               </div>
 
               {/* Submit button */}
-              <Button 
-                type="submit" 
-                className="w-full h-11 text-base bg-green-600"
+              <Button
+                type="submit"
+                className="h-11 w-full bg-green-600 text-base"
                 disabled={isSubmitting}
               >
                 {isSubmitting ? (
@@ -223,10 +219,10 @@ export async function action({ request }: Route.ActionArgs) {
   // Build the signup payload
   // Note: Backend requires birthDate and address, so we send default values
   const lastName = formData.get("lastName")?.toString() ?? "";
-  
+
   // Default birthDate (2000-01-01) - backend requires this field
   const defaultBirthDate = "2000-01-01";
-  
+
   // Default address - backend requires this field
   const defaultAddress = {
     streetLine1: "",
@@ -288,4 +284,3 @@ export async function clientAction({ serverAction }: Route.ClientActionArgs) {
     return response;
   }
 }
-

@@ -73,7 +73,7 @@ export function AddCardDialog({ open, onOpenChange }: AddCardDialogProps) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Add Payment Method</DialogTitle>
         </DialogHeader>
@@ -86,7 +86,9 @@ export function AddCardDialog({ open, onOpenChange }: AddCardDialogProps) {
               type="text"
               placeholder="Enter card number"
               value={cardNumber}
-              onChange={(e) => setCardNumber(handleNumericInput(e.target.value))}
+              onChange={(e) =>
+                setCardNumber(handleNumericInput(e.target.value))
+              }
             />
           </div>
 
@@ -104,7 +106,7 @@ export function AddCardDialog({ open, onOpenChange }: AddCardDialogProps) {
 
           {/* Expiry Month and Year */}
           <div className="flex gap-4">
-            <div className="space-y-2 flex-1">
+            <div className="flex-1 space-y-2">
               <Label htmlFor="expiry-month">Expiry Month (MM)</Label>
               <Input
                 id="expiry-month"
@@ -112,10 +114,12 @@ export function AddCardDialog({ open, onOpenChange }: AddCardDialogProps) {
                 placeholder="MM"
                 maxLength={2}
                 value={expiryMonth}
-                onChange={(e) => setExpiryMonth(handleNumericInput(e.target.value))}
+                onChange={(e) =>
+                  setExpiryMonth(handleNumericInput(e.target.value))
+                }
               />
             </div>
-            <div className="space-y-2 flex-1">
+            <div className="flex-1 space-y-2">
               <Label htmlFor="expiry-year">Expiry Year (YYYY)</Label>
               <Input
                 id="expiry-year"
@@ -123,7 +127,9 @@ export function AddCardDialog({ open, onOpenChange }: AddCardDialogProps) {
                 placeholder="YYYY"
                 maxLength={4}
                 value={expiryYear}
-                onChange={(e) => setExpiryYear(handleNumericInput(e.target.value))}
+                onChange={(e) =>
+                  setExpiryYear(handleNumericInput(e.target.value))
+                }
               />
             </div>
           </div>
@@ -154,7 +160,7 @@ export function AddCardDialog({ open, onOpenChange }: AddCardDialogProps) {
 
           {/* Town, State, ZIP */}
           <div className="flex gap-4">
-            <div className="space-y-2 flex-1">
+            <div className="flex-1 space-y-2">
               <Label htmlFor="town">Town</Label>
               <Input
                 id="town"
@@ -164,7 +170,7 @@ export function AddCardDialog({ open, onOpenChange }: AddCardDialogProps) {
                 onChange={(e) => setTown(e.target.value)}
               />
             </div>
-            <div className="space-y-2 flex-1">
+            <div className="flex-1 space-y-2">
               <Label htmlFor="state">State</Label>
               <Input
                 id="state"
@@ -175,7 +181,7 @@ export function AddCardDialog({ open, onOpenChange }: AddCardDialogProps) {
                 onChange={(e) => setState(e.target.value)}
               />
             </div>
-            <div className="space-y-2 flex-1">
+            <div className="flex-1 space-y-2">
               <Label htmlFor="zip-code">ZIP Code</Label>
               <Input
                 id="zip-code"
@@ -200,4 +206,3 @@ export function AddCardDialog({ open, onOpenChange }: AddCardDialogProps) {
     </Dialog>
   );
 }
-

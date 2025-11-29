@@ -1,9 +1,4 @@
-import {
-  Tabs,
-  TabsList,
-  TabsTrigger,
-  TabsContent,
-} from "~/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "~/components/ui/tabs";
 import { Label } from "~/components/ui/label";
 import { Input } from "~/components/ui/input";
 import { Checkbox } from "~/components/ui/checkbox";
@@ -28,7 +23,7 @@ export default function LoginPage({ actionData }: Route.ComponentProps) {
         {/* Header */}
         <div>
           <h1 className="text-4xl font-semibold text-green-600">HuddleUp</h1>
-          <p className="text-muted-foreground mt-4">
+          <p className="mt-4 text-muted-foreground">
             Welcome back! Login to get started.
           </p>
         </div>
@@ -39,8 +34,8 @@ export default function LoginPage({ actionData }: Route.ComponentProps) {
             <TabsTrigger value="login" className="rounded-xl">
               Log in
             </TabsTrigger>
-            <TabsTrigger 
-              value="signup" 
+            <TabsTrigger
+              value="signup"
               className="rounded-xl"
               onClick={(e) => {
                 e.preventDefault();
@@ -52,102 +47,96 @@ export default function LoginPage({ actionData }: Route.ComponentProps) {
           </TabsList>
 
           <TabsContent value="login" className="pt-6">
-            <Form
-              method="post"
-              action="/login"
-              className="space-y-6"
-              replace
-            >
+            <Form method="post" action="/login" className="space-y-6" replace>
+              {loginError !== null && (
+                <div className="flex items-center gap-2 rounded-md border border-red-300 bg-red-50 p-3 text-sm text-red-700">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    className="size-4"
+                  >
+                    <circle cx="12" cy="12" r="10" />
+                    <path d="M15 9l-6 6M9 9l6 6" />
+                  </svg>
+                  <span>{loginError !== null ? loginError : ""}</span>
+                </div>
+              )}
 
-            {loginError !== null && (
-              <div className="flex items-center gap-2 rounded-md border border-red-300 bg-red-50 p-3 text-sm text-red-700">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  className="size-4"
-                >
-                  <circle cx="12" cy="12" r="10" />
-                  <path d="M15 9l-6 6M9 9l6 6" />
-                </svg>
-                <span>{loginError !== null ? loginError : ""}</span>
+              {/* Username */}
+              <div className="space-y-2">
+                <Label htmlFor="username">Username</Label>
+                <Input
+                  id="username"
+                  name="username"
+                  placeholder="Enter your username"
+                />
+                {formErrors !== null && "username" in formErrors && (
+                  <p className="text-sm text-red-600">{formErrors.username}</p>
+                )}
               </div>
-            )}
-            
-            {/* Username */}
-            <div className="space-y-2">
-              <Label htmlFor="username">Username</Label>
-              <Input
-                id="username"
-                name="username"
-                placeholder="Enter your username"
-              />
-              {formErrors !== null && "username" in formErrors && (
-                <p className="text-sm text-red-600">{formErrors.username}</p>
-              )}
-            </div>
 
-            {/* Password */}
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                name="password"
-                type="password"
-                placeholder="Enter your password"
-              />
-              {formErrors != null && "password" in formErrors && (
-                <p className="text-sm text-red-600">{formErrors.password}</p>
-              )}
-            </div>
+              {/* Password */}
+              <div className="space-y-2">
+                <Label htmlFor="password">Password</Label>
+                <Input
+                  id="password"
+                  name="password"
+                  type="password"
+                  placeholder="Enter your password"
+                />
+                {formErrors != null && "password" in formErrors && (
+                  <p className="text-sm text-red-600">{formErrors.password}</p>
+                )}
+              </div>
 
-            {/* static for now, can be removed if backend api for forget 
+              {/* static for now, can be removed if backend api for forget 
                 password is not added or can go in future scope.
               */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <Checkbox id="stay-signed" />
-                <Label htmlFor="stay-signed" className="text-sm">
-                  Keep me signed in
-                </Label>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <Checkbox id="stay-signed" />
+                  <Label htmlFor="stay-signed" className="text-sm">
+                    Keep me signed in
+                  </Label>
+                </div>
+                <button
+                  type="button"
+                  className="text-sm text-muted-foreground hover:text-primary"
+                >
+                  Forgot password?
+                </button>
               </div>
-              <button
-              type="button"
-              className="text-sm text-muted-foreground hover:text-primary"
-              >
-                Forgot password?
-              </button>
-            </div>
 
-            {/* Submit button */}
-            <Button 
-              type="submit" 
-              className="w-full h-11 text-base bg-green-600"
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? (
-                <>
-                  <span>
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth={2}
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      className="size-5 animate-spin"
-                    >
-                      <path d="M21 12a9 9 0 1 1-6.219-8.56" />
-                    </svg>
-                  </span>
-                  <span>Logging in...</span>
-                </>
-              ) : (
-                <span>Login</span>
-              )}
-            </Button>
+              {/* Submit button */}
+              <Button
+                type="submit"
+                className="h-11 w-full bg-green-600 text-base"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? (
+                  <>
+                    <span>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth={2}
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="size-5 animate-spin"
+                      >
+                        <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+                      </svg>
+                    </span>
+                    <span>Logging in...</span>
+                  </>
+                ) : (
+                  <span>Login</span>
+                )}
+              </Button>
             </Form>
           </TabsContent>
         </Tabs>
