@@ -80,7 +80,7 @@ public class TurfRepository {
    *
    * @param turfId the ID of the turf
    * @return the turf's data
-   * @throws SQLException if no such turf is found
+   * @throws TurfException if no such turf is found
    */
   public TurfData getTurf(int turfId) throws TurfException {
     String getTurfQuery = "{CALL get_turf(?)}";
@@ -101,6 +101,7 @@ public class TurfRepository {
           int id = rs.getInt("turf_id");
           String turfName = rs.getString("turf_name");
           String turfDescription = rs.getString("turf_description");
+          String sportName = rs.getString("sport_name");
           BigDecimal floorWidth = rs.getBigDecimal("floor_width");
           BigDecimal floorLength = rs.getBigDecimal("floor_length");
           String floorMaterial = rs.getString("floor_material");
@@ -115,6 +116,7 @@ public class TurfRepository {
                   id,
                   turfName,
                   turfDescription,
+                  sportName,
                   floorWidth,
                   floorLength,
                   floorMaterial,

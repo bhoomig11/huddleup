@@ -9,6 +9,7 @@ public record TurfData(
     int turfId,
     String turfName,
     String turfDescription,
+    String sportName,
     BigDecimal floorWidth,
     BigDecimal floorLength,
     String floorMaterial,
