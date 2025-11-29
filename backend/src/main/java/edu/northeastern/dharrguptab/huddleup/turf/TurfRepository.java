@@ -9,6 +9,7 @@ import edu.northeastern.dharrguptab.huddleup.turf.dto.TurfReview;
 import edu.northeastern.dharrguptab.huddleup.turf.dto.TurfSummary;
 import edu.northeastern.dharrguptab.huddleup.turf.exceptions.TurfErrorCode;
 import edu.northeastern.dharrguptab.huddleup.turf.exceptions.TurfException;
+import java.math.BigDecimal;
 import java.sql.*;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -45,18 +46,24 @@ public class TurfRepository {
           int turfId = rs.getInt("turf_id");
           String turfName = rs.getString("turf_name");
           String imageUrl = rs.getString("image_url");
+          String sportName = rs.getString("sport_name");
+          BigDecimal hourlyRate = rs.getBigDecimal("hourly_rate");
           String streetLine1 = rs.getString("addr_street_1");
           String streetLine2 = rs.getString("addr_street_2");
           String town = rs.getString("addr_town");
           String state = rs.getString("addr_state");
           String zipcode = rs.getString("addr_zip_code");
-          float turfRating = rs.getFloat("avg_rating");
+          BigDecimal turfRating = rs.getBigDecimal("avg_rating");
+          int numberOfRatings = rs.getInt("number_of_ratings");
           turfs.add(
               new TurfSummary(
                   turfId,
                   turfName,
                   imageUrl,
+                  sportName,
+                  hourlyRate,
                   turfRating,
+                  numberOfRatings,
                   new Address(streetLine1, streetLine2, town, state, zipcode)));
         }
       }
@@ -94,13 +101,14 @@ public class TurfRepository {
           int id = rs.getInt("turf_id");
           String turfName = rs.getString("turf_name");
           String turfDescription = rs.getString("turf_description");
-          float floorWidth = rs.getFloat("floor_width");
-          float floorLength = rs.getFloat("floor_length");
+          BigDecimal floorWidth = rs.getBigDecimal("floor_width");
+          BigDecimal floorLength = rs.getBigDecimal("floor_length");
           String floorMaterial = rs.getString("floor_material");
-          float hourlyRate = rs.getFloat("hourly_rate");
+          BigDecimal hourlyRate = rs.getBigDecimal("hourly_rate");
           Time opensAtTime = rs.getTime("opens_at_utc");
           Time closesAtTime = rs.getTime("closes_at_utc");
-          float averageRating = rs.getFloat("avg_rating");
+          BigDecimal averageRating = rs.getBigDecimal("avg_rating");
+          int numberOfRatings = rs.getInt("number_of_ratings");
 
           TurfData turfData =
               new TurfData(
@@ -111,10 +119,11 @@ public class TurfRepository {
                   floorLength,
                   floorMaterial,
                   hourlyRate,
+                  averageRating,
+                  numberOfRatings,
                   opensAtTime,
                   closesAtTime,
-                  address,
-                  averageRating);
+                  address);
 
           return turfData;
         }

@@ -23,5 +23,10 @@ export default defineConfig([
     rules: { "react/react-in-jsx-scope": "off" },
   },
   eslintConfigPrettier,
-  globalIgnores([".react-router/", "build/**/*", "node_modules/"]),
+  globalIgnores([
+    ".react-router/",
+    "build/**/*",
+    "node_modules/",
+    "app/components/",
+  ]),
 ]);
