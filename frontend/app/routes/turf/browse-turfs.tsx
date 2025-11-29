@@ -23,6 +23,7 @@ import { findTurfs } from "~/api/turf";
 import { data } from "react-router";
 import type { TurfSummary } from "~/types/turf";
 import type { Route } from "./+types/browse-turfs";
+import { HuddleUpLogo } from "~/components/huddleup-logo";
 
 export async function clientLoader() {
   const response = await findTurfs();
@@ -41,8 +42,8 @@ export default function BrowseTurfsPage({
       <div className="h-20 w-full border-b border-stone-300/80 bg-stone-100 py-4">
         <header className="mx-auto grid max-w-7xl grid-cols-[1fr_48rem_1fr]">
           <div className="self-center justify-self-start">
-            <span className="bg-green-700 px-4 py-2 text-3xl font-bold tracking-wide text-white">
-              HuddleUp
+            <span className="text-green-700">
+              <HuddleUpLogo />
             </span>
           </div>
           <div className="flex h-12 w-3xl flex-row gap-4">
