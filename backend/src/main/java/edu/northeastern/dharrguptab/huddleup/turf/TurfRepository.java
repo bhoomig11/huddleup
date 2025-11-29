@@ -80,7 +80,7 @@ public class TurfRepository {
    *
    * @param turfId the ID of the turf
    * @return the turf's data
-   * @throws SQLException if no such turf is found
+   * @throws TurfException if no such turf is found
    */
   public TurfData getTurf(int turfId) throws TurfException {
     String getTurfQuery = "{CALL get_turf(?)}";
@@ -101,12 +101,14 @@ public class TurfRepository {
           int id = rs.getInt("turf_id");
           String turfName = rs.getString("turf_name");
           String turfDescription = rs.getString("turf_description");
+          String sportName = rs.getString("sport_name");
           BigDecimal floorWidth = rs.getBigDecimal("floor_width");
           BigDecimal floorLength = rs.getBigDecimal("floor_length");
           String floorMaterial = rs.getString("floor_material");
           BigDecimal hourlyRate = rs.getBigDecimal("hourly_rate");
-          Time opensAtTime = rs.getTime("opens_at_utc");
-          Time closesAtTime = rs.getTime("closes_at_utc");
+          Time opensAtLocalTime = rs.getTime("opens_at_local");
+          Time closesAtLocalTime = rs.getTime("closes_at_local");
+          String ianaTimezone = rs.getString("iana_timezone");
           BigDecimal averageRating = rs.getBigDecimal("avg_rating");
           int numberOfRatings = rs.getInt("number_of_ratings");
 
@@ -115,14 +117,16 @@ public class TurfRepository {
                   id,
                   turfName,
                   turfDescription,
+                  sportName,
                   floorWidth,
                   floorLength,
                   floorMaterial,
                   hourlyRate,
                   averageRating,
                   numberOfRatings,
-                  opensAtTime,
-                  closesAtTime,
+                  opensAtLocalTime,
+                  closesAtLocalTime,
+                  ianaTimezone,
                   address);
 
           return turfData;
