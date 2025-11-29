@@ -64,8 +64,9 @@ DELIMITER ;
  *   - floor_width - floor width of the selected turf
  *   - floor_length length of the floor of the selected turf
  *   - hourly_rate - the hourly rate for the selected turf
- *   - opens_at_utc opening time of the selected turf
- *   - closes_at_utc - closing time of the selected turf
+ *   - opens_at_local - the local opening time of the selected turf
+ *   - closes_at_local - the local closing time of the selected turf
+ *   - iana_timezone - the IANA timezone ID of the select turf
  *   - addr_street_1 - primary street address line of the selected turf
  *   - addr_street_2 - secondary street address line of the selected turf
  *   - addr_town - town of the selected turf
@@ -96,8 +97,9 @@ BEGIN
             t.floor_length,
             t.floor_material,
             t.hourly_rate,
-            t.opens_at_utc,
-            t.closes_at_utc,
+            t.opens_at_local,
+            t.closes_at_local,
+            t.iana_timezone,
             t.addr_street_1,
             t.addr_street_2,
             t.addr_town,

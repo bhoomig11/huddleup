@@ -106,8 +106,9 @@ public class TurfRepository {
           BigDecimal floorLength = rs.getBigDecimal("floor_length");
           String floorMaterial = rs.getString("floor_material");
           BigDecimal hourlyRate = rs.getBigDecimal("hourly_rate");
-          Time opensAtTime = rs.getTime("opens_at_utc");
-          Time closesAtTime = rs.getTime("closes_at_utc");
+          Time opensAtLocalTime = rs.getTime("opens_at_local");
+          Time closesAtLocalTime = rs.getTime("closes_at_local");
+          String ianaTimezone = rs.getString("iana_timezone");
           BigDecimal averageRating = rs.getBigDecimal("avg_rating");
           int numberOfRatings = rs.getInt("number_of_ratings");
 
@@ -123,8 +124,9 @@ public class TurfRepository {
                   hourlyRate,
                   averageRating,
                   numberOfRatings,
-                  opensAtTime,
-                  closesAtTime,
+                  opensAtLocalTime,
+                  closesAtLocalTime,
+                  ianaTimezone,
                   address);
 
           return turfData;

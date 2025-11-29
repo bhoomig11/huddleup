@@ -16,6 +16,7 @@ public record TurfData(
     BigDecimal hourlyRate,
     BigDecimal averageRating,
     int numberOfRatings,
-    Time opensAtDate,
-    Time closesAtDate,
+    Time opensAtLocalTime,
+    Time closesAtLocalTime,
+    String ianaTimezone,
     Address address) {}
