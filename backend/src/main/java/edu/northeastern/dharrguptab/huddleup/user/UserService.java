@@ -7,13 +7,7 @@ import edu.northeastern.dharrguptab.huddleup.auth.exception.InvalidCredentialsEx
 import edu.northeastern.dharrguptab.huddleup.auth.exception.UnauthenticatedException;
 import edu.northeastern.dharrguptab.huddleup.auth.exception.UnauthorizedException;
 import edu.northeastern.dharrguptab.huddleup.auth.jwt.JwtService;
-import edu.northeastern.dharrguptab.huddleup.user.dto.AnnouncementDetail;
-import edu.northeastern.dharrguptab.huddleup.user.dto.AnnouncementSummary;
-import edu.northeastern.dharrguptab.huddleup.user.dto.BookingSummary;
-import edu.northeastern.dharrguptab.huddleup.user.dto.ComplaintRequest;
-import edu.northeastern.dharrguptab.huddleup.user.dto.NewCardDetail;
-import edu.northeastern.dharrguptab.huddleup.user.dto.UserProfile;
-import edu.northeastern.dharrguptab.huddleup.user.dto.UserProfileUpdate;
+import edu.northeastern.dharrguptab.huddleup.user.dto.*;
 import java.util.List;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -226,7 +220,19 @@ public class UserService {
     userRepository.addCardDetail(username, newCardDetail);
   }
 
-  public List<NewCardDetail> getAllCardDetails(String username) {}
+  public List<CardDetail> getAllCardDetails(String username) {
+    String authenticatedUsername = getAuthenticatedUsername();
+    boolean isAuthenticated = authenticatedUsername != null;
+    if (!isAuthenticated) {
+      throw new UnauthenticatedException();
+    }
+    boolean isAuthorized = username.equals(authenticatedUsername);
+    if (!isAuthorized) {
+      throw new UnauthorizedException();
+    }
+
+    return userRepository.getAllCardDetails(username);
+  }
 
   /**
    * Delete a card detail for a user.
