@@ -2,13 +2,28 @@ import {
   type RouteConfig,
   index,
   layout,
+  prefix,
   route,
 } from "@react-router/dev/routes";
 
 export default [
   index("routes/home.tsx"),
   route("login", "routes/login.tsx"),
-  route("browse", "routes/turf/browse-turfs.tsx"),
+
+  // turf routes
+  ...prefix("turf", [
+    route("browse", "routes/turf/browse-turfs.tsx"),
+    route(":turfId", "routes/turf/turf-detail.tsx"),
+    layout("routes/turf/book/layout.tsx", [
+      route(":turfId/book", "routes/turf/book/index.tsx"),
+      route(":turfId/book/step-1", "routes/turf/book/step-1.tsx"),
+      route(":turfId/book/step-2", "routes/turf/book/step-2.tsx"),
+      route(":turfId/book/step-3", "routes/turf/book/step-3.tsx"),
+      route(":turfId/book/confirmation", "routes/turf/book/confirmation.tsx"),
+      route(":turfId/book/conflict", "routes/turf/book/conflict.tsx"),
+    ]),
+  ]),
+
   route("signup", "routes/signup.tsx"),
   layout("routes/layout.tsx", [
     // add protected routes here
