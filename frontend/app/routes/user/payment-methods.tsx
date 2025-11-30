@@ -10,6 +10,7 @@ import { maskCardNumber } from "~/routes/user/utils";
 import { data, redirect } from "react-router";
 import type { CardDetail } from "~/types/card";
 import type { Route } from "./+types/payment-methods";
+import { Ghost } from "lucide-react";
 
 export async function clientLoader({ params }: Route.ClientLoaderArgs) {
   const username = params.username;
@@ -22,10 +23,9 @@ export async function clientLoader({ params }: Route.ClientLoaderArgs) {
   if (!response.ok) {
     // Let backend errors come through
     const errorData = await response.json().catch(() => ({}));
-    throw data(
-      errorData.message || "Error fetching card details",
-      { status: response.status }
-    );
+    throw data(errorData.message || "Error fetching card details", {
+      status: response.status,
+    });
   }
   const cards = (await response.json()) as Array<CardDetail>;
   return cards;
@@ -37,7 +37,9 @@ export default function PaymentMethodsPage({
   const { username } = useParams<{ username: string }>();
   const revalidator = useRevalidator();
   const [isAddCardDialogOpen, setIsAddCardDialogOpen] = useState(false);
-  const [viewCardDialogOpen, setViewCardDialogOpen] = useState<number | null>(null);
+  const [viewCardDialogOpen, setViewCardDialogOpen] = useState<number | null>(
+    null
+  );
   const [deletingCardId, setDeletingCardId] = useState<number | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
 
@@ -85,13 +87,13 @@ export default function PaymentMethodsPage({
   };
 
   return (
-    <main className="bg-slate-50 min-h-screen">
-      <div className="flex flex-row w-full max-w-7xl mx-auto">
+    <main className="min-h-screen bg-slate-50">
+      <div className="mx-auto flex w-full max-w-7xl flex-row">
         {/* ---------------- LEFT PANEL ---------------- */}
         <ProfileSidebar />
 
         {/* ---------------- RIGHT PANEL ---------------- */}
-        <div className="basis-3/4 min-h-screen p-10">
+        <div className="min-h-screen basis-3/4 p-10">
           <div className="space-y-6">
             <h2 className="text-xl font-bold text-stone-600">Saved Cards</h2>
 
@@ -110,7 +112,7 @@ export default function PaymentMethodsPage({
             )}
 
             {cards.length === 0 ? (
-              <p className="text-gray-500">No saved cards found.</p>
+              <p className="font-semibold text-stone-500">No saved cards found.</p>
             ) : (
               cards.map((card, index) => {
                 const expiry = formatExpiryDate(card.expiryDate);
@@ -130,7 +132,8 @@ export default function PaymentMethodsPage({
                       <div className="flex justify-end gap-2">
                         <Button
                           size="sm"
-                          variant="outline"
+                          // variant="default"
+                          className="rounded bg-green-700 text-white hover:bg-green-600 active:bg-green-700"
                           onClick={() => setViewCardDialogOpen(index)}
                           disabled={isDeleting}
                         >
@@ -138,7 +141,7 @@ export default function PaymentMethodsPage({
                         </Button>
                         <Button
                           size="sm"
-                          className="bg-black text-white hover:bg-red-600 active:bg-red-700"
+                          className="rounded bg-black text-white hover:bg-red-600 active:bg-red-700"
                           onClick={() => handleDeleteCard(card.cardId)}
                           disabled={isDeleting}
                         >
@@ -152,8 +155,8 @@ export default function PaymentMethodsPage({
             )}
 
             <div className="flex justify-end">
-              <Button 
-                className="bg-green-700"
+              <Button
+                className="rounded bg-green-700 text-white hover:bg-green-600 active:bg-green-700"
                 onClick={() => setIsAddCardDialogOpen(true)}
               >
                 Add Payment Method
@@ -196,4 +199,3 @@ export default function PaymentMethodsPage({
     </main>
   );
 }
-

@@ -68,8 +68,8 @@ export default function UserProfilePage() {
                   />
                   {!isEditingUsername ? (
                     <Button
-                      variant="outline"
-                      className="text-stone-600"
+                      variant="ghost"
+                      className="rounded font-semibold text-stone-600 text-green-700"
                       onClick={() => setIsEditingUsername(true)}
                     >
                       Edit
@@ -99,8 +99,8 @@ export default function UserProfilePage() {
                   />
                   {!isEditingEmail ? (
                     <Button
-                      className="text-stone-600"
-                      variant="outline"
+                      variant="ghost"
+                      className="rounded font-semibold text-stone-600 text-green-700"
                       onClick={() => setIsEditingEmail(true)}
                     >
                       Edit
@@ -132,8 +132,8 @@ export default function UserProfilePage() {
                     onChange={(e) => handleChange("password", e.target.value)}
                   />
                   <Button
-                    variant="outline"
-                    className="text-stone-600"
+                    variant="ghost"
+                    className="rounded font-semibold text-stone-600 text-green-700"
                     onClick={() => setIsPasswordDialogOpen(true)}
                   >
                     Edit
@@ -267,13 +267,13 @@ export default function UserProfilePage() {
 
             <div className="flex justify-between pt-4">
               <Button
-                className="bg-black text-white hover:bg-red-600 active:bg-red-700"
+                className="rounded bg-black text-white hover:bg-red-600 active:bg-red-700"
               >
                 Delete
               </Button>
               <Button 
                 disabled={!isChanged}
-                className="bg-green-700"
+                className="rounded bg-green-700 text-white hover:bg-green-600 active:bg-green-700"
               >
                 Save
               </Button>

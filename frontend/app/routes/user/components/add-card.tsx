@@ -49,6 +49,11 @@ export function AddCardDialog({
     return value.replace(/\D/g, "");
   };
 
+  // Helper function to allow only English alphabets (letters)
+  const handleAlphabeticInput = (value: string) => {
+    return value.replace(/[^A-Za-z]/g, "").toUpperCase();
+  };
+
   // Check if all required fields are filled
   const isFormValid =
     cardNumber.trim() !== "" &&
@@ -257,7 +262,7 @@ export function AddCardDialog({
                 value={state}
                 className={getInputClass(state)}
                 disabled={isSubmitting}
-                onChange={(e) => setState(e.target.value)}
+                onChange={(e) => setState(handleAlphabeticInput(e.target.value))}
               />
             </div>
             <div className="flex-1 space-y-2">

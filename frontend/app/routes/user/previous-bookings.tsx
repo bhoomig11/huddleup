@@ -98,7 +98,7 @@ export default function PreviousBookingsPage({
                       <div className="flex flex-col gap-2">
                         <Button
                           size="sm"
-                          className="bg-green-700"
+                          className="rounded bg-green-700 text-white hover:bg-green-600 active:bg-green-700"
                           onClick={() => {
                             // TODO: reroute to the turf's page where booking was made to add a review
                           }}
@@ -107,7 +107,7 @@ export default function PreviousBookingsPage({
                         </Button>
                         <Button
                           size="sm"
-                          className="bg-green-700"
+                          className="rounded bg-green-700 text-white hover:bg-green-600 active:bg-green-700"
                           onClick={() =>
                             setOpenComplaintDialog(booking.bookingId)
                           }

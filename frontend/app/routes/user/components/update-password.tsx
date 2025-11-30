@@ -49,13 +49,17 @@ export function UpdatePasswordDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md bg-stone-100">
+      <DialogContent className="bg-stone-100 sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="font-semibold text-stone-700">Update Password</DialogTitle>
+          <DialogTitle className="font-semibold text-stone-600">
+            Update Password
+          </DialogTitle>
         </DialogHeader>
         <div className="space-y-4 py-4">
           <div className="space-y-2">
-            <Label htmlFor="current-password" className="text-stone-700">Current Password</Label>
+            <Label htmlFor="current-password" className="text-stone-600">
+              Current Password
+            </Label>
             <Input
               id="current-password"
               type="password"
@@ -66,7 +70,9 @@ export function UpdatePasswordDialog({
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="new-password" className="text-stone-700">New Password</Label>
+            <Label htmlFor="new-password" className="text-stone-600">
+              New Password
+            </Label>
             <Input
               id="new-password"
               type="password"
@@ -77,7 +83,9 @@ export function UpdatePasswordDialog({
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="confirm-password" className="text-stone-700">Confirm New Password</Label>
+            <Label htmlFor="confirm-password" className="text-stone-700">
+              Confirm New Password
+            </Label>
             <Input
               id="confirm-password"
               type="password"
@@ -89,11 +97,13 @@ export function UpdatePasswordDialog({
           </div>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={handleCancel}>
+          <Button variant="outline" className="rounded" onClick={handleCancel}>
             Cancel
           </Button>
-          <Button 
-            onClick={handleSave} disabled={!isFormValid}
+          <Button
+            className="rounded bg-green-700 text-white hover:bg-green-600 active:bg-green-700"
+            onClick={handleSave}
+            disabled={!isFormValid}
           >
             Save
           </Button>
@@ -102,4 +112,3 @@ export function UpdatePasswordDialog({
     </Dialog>
   );
 }
-
