@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
@@ -10,13 +10,21 @@ import {
   DialogTitle,
 } from "~/components/ui/dialog";
 import { getInputClass } from "~/routes/user/utils";
+import { addCardDetail } from "~/api/user";
 
 interface AddCardDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  username: string;
+  onCardAdded?: () => void;
 }
 
-export function AddCardDialog({ open, onOpenChange }: AddCardDialogProps) {
+export function AddCardDialog({
+  open,
+  onOpenChange,
+  username,
+  onCardAdded,
+}: AddCardDialogProps) {
   const [cardNumber, setCardNumber] = useState("");
   const [nameOnCard, setNameOnCard] = useState("");
   const [expiryMonth, setExpiryMonth] = useState("");
@@ -26,6 +34,15 @@ export function AddCardDialog({ open, onOpenChange }: AddCardDialogProps) {
   const [town, setTown] = useState("");
   const [state, setState] = useState("");
   const [zipCode, setZipCode] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Clear error when dialog opens/closes
+  useEffect(() => {
+    if (!open) {
+      setError(null);
+    }
+  }, [open]);
 
   // Helper function to allow only numeric input
   const handleNumericInput = (value: string) => {
@@ -43,8 +60,7 @@ export function AddCardDialog({ open, onOpenChange }: AddCardDialogProps) {
     state.trim() !== "" &&
     zipCode.trim() !== "";
 
-  const handleCancel = () => {
-    // Reset form
+  const resetForm = () => {
     setCardNumber("");
     setNameOnCard("");
     setExpiryMonth("");
@@ -54,22 +70,57 @@ export function AddCardDialog({ open, onOpenChange }: AddCardDialogProps) {
     setTown("");
     setState("");
     setZipCode("");
+    setError(null);
+  };
+
+  const handleCancel = () => {
+    resetForm();
     onOpenChange(false);
   };
 
-  const handleSave = () => {
-    // TODO: Add API call to add card for the user
-    // Reset form after save
-    setCardNumber("");
-    setNameOnCard("");
-    setExpiryMonth("");
-    setExpiryYear("");
-    setAddressLine1("");
-    setAddressLine2("");
-    setTown("");
-    setState("");
-    setZipCode("");
-    onOpenChange(false);
+  const handleSave = async () => {
+    if (!isFormValid) {
+      return;
+    }
+
+    setIsSubmitting(true);
+    setError(null);
+
+    try {
+      const response = await addCardDetail(
+        username,
+        cardNumber,
+        nameOnCard,
+        expiryMonth,
+        expiryYear,
+        {
+          streetLine1: addressLine1,
+          streetLine2: addressLine2,
+          town,
+          state,
+          zipcode: zipCode,
+        }
+      );
+
+      if (!response.ok) {
+        // Let backend errors come through
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          errorData.message || `Failed to add card: ${response.statusText}`
+        );
+      }
+
+      // Success - reset form, close dialog, and refresh cards
+      resetForm();
+      onOpenChange(false);
+      if (onCardAdded) {
+        onCardAdded();
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to add card");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -79,6 +130,12 @@ export function AddCardDialog({ open, onOpenChange }: AddCardDialogProps) {
           <DialogTitle className="font-semibold text-stone-600">Add Payment Method</DialogTitle>
         </DialogHeader>
         <div className="space-y-4 py-4">
+          {error && (
+            <div className="rounded-md bg-red-50 p-3 text-sm text-red-800">
+              {error}
+            </div>
+          )}
+
           {/* Card Number */}
           <div className="space-y-2">
             <Label htmlFor="card-number" className="text-stone-600">Card Number</Label>
@@ -88,6 +145,7 @@ export function AddCardDialog({ open, onOpenChange }: AddCardDialogProps) {
               placeholder="Enter card number"
               value={cardNumber}
               className={getInputClass(cardNumber)}
+              disabled={isSubmitting}
               onChange={(e) =>
                 setCardNumber(handleNumericInput(e.target.value))
               }
@@ -103,6 +161,7 @@ export function AddCardDialog({ open, onOpenChange }: AddCardDialogProps) {
               placeholder="Enter name on card"
               value={nameOnCard}
               className={getInputClass(nameOnCard)}
+              disabled={isSubmitting}
               onChange={(e) => setNameOnCard(e.target.value)}
             />
           </div>
@@ -118,6 +177,7 @@ export function AddCardDialog({ open, onOpenChange }: AddCardDialogProps) {
                 maxLength={2}
                 value={expiryMonth}
                 className={getInputClass(expiryMonth)}
+                disabled={isSubmitting}
                 onChange={(e) =>
                   setExpiryMonth(handleNumericInput(e.target.value))
                 }
@@ -132,11 +192,17 @@ export function AddCardDialog({ open, onOpenChange }: AddCardDialogProps) {
                 maxLength={4}
                 value={expiryYear}
                 className={getInputClass(expiryYear)}
+                disabled={isSubmitting}
                 onChange={(e) =>
                   setExpiryYear(handleNumericInput(e.target.value))
                 }
               />
             </div>
+          </div>
+
+          {/* Billing Address Header */}
+          <div className="pt-2">
+            <h3 className="text-lg font-semibold text-stone-600">Billing Address</h3>
           </div>
 
           {/* Address Line 1 */}
@@ -148,6 +214,7 @@ export function AddCardDialog({ open, onOpenChange }: AddCardDialogProps) {
               placeholder="Enter address line 1"
               value={addressLine1}
               className={getInputClass(addressLine1)}
+              disabled={isSubmitting}
               onChange={(e) => setAddressLine1(e.target.value)}
             />
           </div>
@@ -161,6 +228,7 @@ export function AddCardDialog({ open, onOpenChange }: AddCardDialogProps) {
               placeholder="Enter address line 2 (optional)"
               value={addressLine2}
               className={getInputClass(addressLine2)}
+              disabled={isSubmitting}
               onChange={(e) => setAddressLine2(e.target.value)}
             />
           </div>
@@ -175,6 +243,7 @@ export function AddCardDialog({ open, onOpenChange }: AddCardDialogProps) {
                 placeholder="Enter town"
                 value={town}
                 className={getInputClass(town)}
+                disabled={isSubmitting}
                 onChange={(e) => setTown(e.target.value)}
               />
             </div>
@@ -187,6 +256,7 @@ export function AddCardDialog({ open, onOpenChange }: AddCardDialogProps) {
                 maxLength={2}
                 value={state}
                 className={getInputClass(state)}
+                disabled={isSubmitting}
                 onChange={(e) => setState(e.target.value)}
               />
             </div>
@@ -199,17 +269,27 @@ export function AddCardDialog({ open, onOpenChange }: AddCardDialogProps) {
                 maxLength={5}
                 value={zipCode}
                 className={getInputClass(zipCode)}
+                disabled={isSubmitting}
                 onChange={(e) => setZipCode(handleNumericInput(e.target.value))}
               />
             </div>
           </div>
         </div>
         <DialogFooter>
-          <Button variant="outline" className="text-stone-600" onClick={handleCancel}>
+          <Button
+            variant="outline"
+            className="text-stone-600"
+            onClick={handleCancel}
+            disabled={isSubmitting}
+          >
             Cancel
           </Button>
-          <Button onClick={handleSave} className="bg-green-700" disabled={!isFormValid}>
-            Save
+          <Button
+            onClick={handleSave}
+            className="bg-green-700"
+            disabled={!isFormValid || isSubmitting}
+          >
+            {isSubmitting ? "Saving..." : "Save"}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -73,3 +73,59 @@ export async function markComplaintAsResolved(
   return response;
 }
 
+export async function getAllCardDetails(username: string) {
+  const token = getAuthToken();
+  if (!token) {
+    throw new Error("Authentication token is required");
+  }
+
+  const headers: HeadersInit = {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${token}`,
+  };
+
+  const response = await fetch(withBase(`/api/user/${username}/cards`), {
+    method: "GET",
+    headers,
+  });
+  return response;
+}
+
+export async function addCardDetail(
+  username: string,
+  cardNumber: string,
+  nameOnCard: string,
+  expiryMonth: string,
+  expiryYear: string,
+  billingAddress: {
+    streetLine1: string;
+    streetLine2: string;
+    town: string;
+    state: string;
+    zipcode: string;
+  }
+) {
+  const token = getAuthToken();
+  if (!token) {
+    throw new Error("Authentication token is required");
+  }
+
+  const headers: HeadersInit = {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${token}`,
+  };
+
+  const response = await fetch(withBase(`/api/user/${username}/cards`), {
+    method: "POST",
+    headers,
+    body: JSON.stringify({
+      cardNumber,
+      nameOnCard,
+      expiryMonth,
+      expiryYear,
+      billingAddress,
+    }),
+  });
+  return response;
+}
+
