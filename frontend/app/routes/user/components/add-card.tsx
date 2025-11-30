@@ -90,7 +90,7 @@ export function AddCardDialog({
         expiryYear,
         {
           streetLine1: addressLine1,
-          streetLine2: addressLine2,
+          streetLine2: addressLine2.trim() !== "" ? addressLine2 : "",
           town,
           state,
           zipcode: zipCode,
@@ -98,11 +98,11 @@ export function AddCardDialog({
       );
 
       if (!response.ok) {
-        // Let backend errors come through
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(
+        setError(
           errorData.message || `Failed to add card: ${response.statusText}`
         );
+        return;
       }
 
       // Success - reset form, close dialog, and refresh cards

@@ -170,7 +170,7 @@ export function ViewCardDialog({ open, onOpenChange, cardData }: ViewCardDialogP
         <DialogFooter>
           <Button
             variant="outline"
-            className="text-stone-600"
+            className="rounded text-stone-600"
             onClick={handleClose}
           >
             Close
