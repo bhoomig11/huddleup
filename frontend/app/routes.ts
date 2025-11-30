@@ -12,6 +12,8 @@ export default [
   route("signup", "routes/signup.tsx"),
   layout("routes/layout.tsx", [
     // add protected routes here
-    route("user/profile", "routes/user-profile.tsx"),
+    route("user/:username/profile", "routes/user/profile.tsx"),
+    route("user/:username/booking", "routes/user/previous-bookings.tsx"),
+    route("user/:username/cards", "routes/user/payment-methods.tsx"),
   ]),
 ] satisfies RouteConfig;
