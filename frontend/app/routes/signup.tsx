@@ -7,7 +7,7 @@ import type { Route } from "./+types/signup";
 import { setAuthToken } from "~/utils/auth";
 import { signupUser } from "~/api/auth";
 import { Button } from "~/components/ui/button";
-import { getInputClass } from "~/routes/user/utils";
+// import { getInputClass } from "~/routes/user/utils";
 import { HuddleUpLogo } from "~/components/huddleup-logo";
 
 export default function SignupPage({ actionData }: Route.ComponentProps) {
