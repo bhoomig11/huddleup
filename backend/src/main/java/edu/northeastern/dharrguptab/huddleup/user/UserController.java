@@ -150,8 +150,7 @@ public class UserController {
   }
 
   @PatchMapping("/{username}/booking/{booking_id}/complaint/resolve")
-  public void markComplaintAsResolved(
-      @PathVariable String username, @PathVariable int booking_id) {
+  public void markComplaintAsResolved(@PathVariable String username, @PathVariable int booking_id) {
     userService.markComplaintAsResolved(username, booking_id);
   }
 
