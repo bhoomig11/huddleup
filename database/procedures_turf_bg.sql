@@ -250,7 +250,7 @@ DELIMITER ;
  */
 DROP PROCEDURE IF EXISTS get_all_user_card_details;
 DELIMITER $$
-CREATE PROCEDURE get_all_user_card_details(IN p_username INT)
+CREATE PROCEDURE get_all_user_card_details(IN p_username VARCHAR(64))
 BEGIN
     IF (p_username IS NULL OR CHAR_LENGTH(p_username) = 0) THEN 
         SIGNAL SQLSTATE '45001' 

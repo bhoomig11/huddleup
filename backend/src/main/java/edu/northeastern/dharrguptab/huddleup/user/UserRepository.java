@@ -397,7 +397,7 @@ public class UserRepository {
   }
 
   public List<CardDetail> getAllCardDetails(String username) throws UserException {
-    String getAllCardDetailsQuery = "{CALL get_all_user_card_detail(?)}";
+    String getAllCardDetailsQuery = "{CALL get_all_user_card_details(?)}";
     List<CardDetail> allNewCardDetails = new ArrayList<>();
     try (Connection connection = dataSource.getConnection();
         CallableStatement cs = connection.prepareCall(getAllCardDetailsQuery)) {
