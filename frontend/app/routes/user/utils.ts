@@ -16,3 +16,23 @@ export const maskCardNumber = (cardNumber: string): string => {
   return `**** **** **** ${cardNumber.slice(-4)}`;
 };
 
+/**
+ * Filters input to allow only English alphabets and converts to uppercase.
+ * Used for fields like state codes.
+ * @param value The input value
+ * @returns Filtered value with only alphabetic characters in uppercase
+ */
+export const handleAlphabeticInput = (value: string): string => {
+  return value.replace(/[^A-Za-z]/g, "").toUpperCase();
+};
+
+/**
+ * Filters input to allow only numeric characters.
+ * Used for fields like card numbers, expiry dates, and ZIP codes.
+ * @param value The input value
+ * @returns Filtered value with only numeric characters
+ */
+export const handleNumericInput = (value: string): string => {
+  return value.replace(/\D/g, "");
+};
+
