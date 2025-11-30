@@ -149,6 +149,12 @@ public class UserController {
     userService.fileComplaint(username, booking_id, complaintRequest);
   }
 
+  @PatchMapping("/{username}/booking/{booking_id}/complaint/resolve")
+  public void markComplaintAsResolved(
+      @PathVariable String username, @PathVariable int booking_id) {
+    userService.markComplaintAsResolved(username, booking_id);
+  }
+
   @DeleteMapping("/{username}/review/{turf_id}")
   public void deleteUserReview(@PathVariable String username, @PathVariable int turf_id) {
     userService.deleteUserReview(username, turf_id);

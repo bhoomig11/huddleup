@@ -710,6 +710,37 @@ public class UserRepository {
   }
 
   /**
+   * Mark a complaint as resolved for a user's booking.
+   *
+   * @param username the username of the user
+   * @param bookingId the booking ID for which the complaint is being resolved
+   * @throws UserException if the complaint cannot be marked as resolved
+   */
+  public void markComplaintAsResolved(String username, int bookingId) throws UserException {
+    String markComplaintQuery = "{CALL mark_complaint_as_resolved(?, ?)}";
+    try (Connection connection = dataSource.getConnection();
+        CallableStatement cs = connection.prepareCall(markComplaintQuery)) {
+      cs.setString("p_username", username);
+      cs.setInt("p_booking_id", bookingId);
+      cs.executeUpdate();
+    } catch (SQLException e) {
+      DatabaseExceptionCategory databaseExceptionCategory =
+          DatabaseExceptionCategory.fromSQLState(e.getSQLState());
+
+      switch (databaseExceptionCategory) {
+        case VALIDATION_ERROR:
+          throw new UserException(e, UserErrorCode.INVALID_USER_FIELD);
+        case RESOURCE_NOT_FOUND:
+          throw new UserException(e, UserErrorCode.BOOKING_NOT_FOUND);
+        default:
+          throw new UserException(e, AppErrorCode.UNKNOWN);
+      }
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  /**
    * Delete a review for a user's turf.
    *
    * @param username the username of the user

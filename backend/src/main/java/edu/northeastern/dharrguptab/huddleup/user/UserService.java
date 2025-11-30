@@ -413,6 +413,28 @@ public class UserService {
   }
 
   /**
+   * Mark a complaint as resolved for a user's booking.
+   *
+   * @param username the username of the user
+   * @param bookingId the booking ID for which the complaint is being resolved
+   */
+  public void markComplaintAsResolved(String username, int bookingId) {
+    String authenticatedUsername = getAuthenticatedUsername();
+
+    boolean isAuthenticated = authenticatedUsername != null;
+    if (!isAuthenticated) {
+      throw new UnauthenticatedException();
+    }
+
+    boolean isAuthorized = username.equals(authenticatedUsername);
+    if (!isAuthorized) {
+      throw new UnauthorizedException();
+    }
+
+    userRepository.markComplaintAsResolved(username, bookingId);
+  }
+
+  /**
    * Delete a review for a user's turf.
    *
    * @param username the username of the user
