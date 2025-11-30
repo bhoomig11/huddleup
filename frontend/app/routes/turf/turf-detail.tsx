@@ -1,11 +1,16 @@
-import { fetchTurfDetails, fetchTurfImages } from "~/api/turf";
+import {
+  fetchTurfDetails,
+  fetchTurfImages,
+  fetchTurfReviews,
+} from "~/api/turf";
 import type { Route } from "./+types/turf-detail";
 import { data } from "react-router";
 import { Link } from "react-router";
 import type { TurfDetails } from "~/types/turf";
-import { ChevronLeft, MapPin, Clock, Ruler } from "lucide-react";
+import { MapPin, Clock, Ruler } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import TurfImageCarousel from "~/routes/turf/components/turf-image-carousel";
+import { HuddleUpLogo } from "~/components/huddleup-logo";
 
 export async function clientLoader({ params }: Route.ClientLoaderArgs) {
   const turfId = Number.parseInt(params.turfId);
@@ -15,9 +20,10 @@ export async function clientLoader({ params }: Route.ClientLoaderArgs) {
     throw data(invalidTurfIdMessage, { status: 400 });
   }
 
-  const [detailsResponse, imagesResponse] = await Promise.all([
+  const [detailsResponse, imagesResponse, reviewsResponse] = await Promise.all([
     fetchTurfDetails(turfId),
     fetchTurfImages(turfId),
+    fetchTurfReviews(turfId),
   ]);
 
   if (!detailsResponse.ok) {
@@ -30,10 +36,20 @@ export async function clientLoader({ params }: Route.ClientLoaderArgs) {
     throw data("Error fetching turf images", { status: imagesResponse.status });
   }
 
-  const details = (await detailsResponse.json()) as Omit<TurfDetails, "images">;
-  const images = (await imagesResponse.json()) as TurfDetails["images"];
+  if (!reviewsResponse.ok) {
+    throw data("Error fetching turf reviews", {
+      status: reviewsResponse.status,
+    });
+  }
 
-  return { ...details, images } as TurfDetails;
+  const details = (await detailsResponse.json()) as Omit<
+    TurfDetails,
+    "images" | "reviews"
+  >;
+  const images = (await imagesResponse.json()) as TurfDetails["images"];
+  const reviews = (await reviewsResponse.json()) as TurfDetails["reviews"];
+
+  return { ...details, images, reviews } as TurfDetails;
 }
 
 function formatTurfOperationTime(time24Hr: string): string {
@@ -55,7 +71,7 @@ export default function TurfDetailPage({
     turfDetails.address.streetLine1,
     turfDetails.address.streetLine2,
     turfDetails.address.town,
-    turfDetails.address.zipcode,
+    [turfDetails.address.state, turfDetails.address.zipcode].join(" "),
   ];
 
   return (
@@ -64,19 +80,16 @@ export default function TurfDetailPage({
       <div className="h-20 w-full border-b border-stone-300/80 bg-stone-100 py-4">
         <header className="mx-auto flex max-w-7xl items-center justify-between px-4">
           <div className="flex items-center gap-4">
-            <button className="flex h-10 w-10 items-center justify-center rounded-lg hover:bg-stone-200 active:bg-stone-300">
-              <ChevronLeft className="size-6 text-stone-700" />
-            </button>
-            <span className="bg-green-700 px-4 py-2 text-3xl font-bold tracking-wide text-white">
-              HuddleUp
+            <span className="text-green-700">
+              <HuddleUpLogo />
             </span>
           </div>
           <div className="flex-1"></div>
         </header>
       </div>
 
-      <main className="flex w-full flex-col items-center">
-        <div className="w-full max-w-4xl">
+      <main className="flex w-full flex-col items-center py-8">
+        <div className="w-full max-w-4xl overflow-hidden rounded-2xl">
           {/* Hero Image Section (carousel) */}
           <TurfImageCarousel
             turfId={turfDetails.turfId}
@@ -229,6 +242,53 @@ export default function TurfDetailPage({
                   </p>
                 </div>
               </div>
+            </div>
+
+            {/* Reviews */}
+            <div className="mb-8">
+              <h2 className="text-xl font-bold text-stone-700">Reviews</h2>
+              {turfDetails.reviews && turfDetails.reviews.length > 0 ? (
+                <div className="mt-4 space-y-4">
+                  {turfDetails.reviews.map((r, i) => (
+                    <div
+                      key={i}
+                      className="rounded-lg border border-stone-200 p-4"
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="text-sm font-semibold text-stone-700">
+                          {r.username}
+                        </div>
+                        <div className="flex items-center gap-1 text-yellow-400">
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 24 24"
+                            fill="currentColor"
+                            className="size-4"
+                          >
+                            <path
+                              fillRule="evenodd"
+                              d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.006 5.404.434c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.434 2.082-5.005Z"
+                              clipRule="evenodd"
+                            />
+                          </svg>
+                          <span className="text-sm font-medium text-stone-700">
+                            {r.rating.toFixed(1)}
+                          </span>
+                        </div>
+                      </div>
+                      {r.review && (
+                        <p className="mt-2 text-sm text-stone-600">
+                          {r.review}
+                        </p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="mt-3 text-sm text-stone-600">
+                  No reviews yet. Be the first to review!
+                </p>
+              )}
             </div>
 
             {/* CTA Buttons */}

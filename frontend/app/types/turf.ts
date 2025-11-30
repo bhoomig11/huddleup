@@ -15,6 +15,13 @@ export type TurfDetails = {
   closesAtLocalTime: string;
   address: Address;
   images: Array<string>;
+  reviews: Array<TurfReview>;
+};
+
+export type TurfReview = {
+  username: string;
+  rating: number;
+  review: string | null;
 };
 
 export type TurfSummary = Pick<

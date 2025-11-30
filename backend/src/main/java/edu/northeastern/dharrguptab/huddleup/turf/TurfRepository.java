@@ -237,7 +237,7 @@ public class TurfRepository {
 
   /** Get all the reviews for a turf. */
   public List<TurfReview> getAllTurfReviews(int turfId) throws TurfException {
-    String getTurfReviewsQuery = "{CALL get_turf_reviews(?)}";
+    String getTurfReviewsQuery = "{CALL get_all_turf_reviews(?)}";
     List<TurfReview> turfReviews = new ArrayList<>();
     try (Connection connection = dataSource.getConnection();
         CallableStatement cs = connection.prepareCall(getTurfReviewsQuery)) {
