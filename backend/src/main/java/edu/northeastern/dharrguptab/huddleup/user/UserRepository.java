@@ -184,11 +184,21 @@ public class UserRepository {
       cs.setString("p_first_name", userProfileUpdate.firstName());
       cs.setString("p_last_name", userProfileUpdate.lastName());
       cs.setDate("p_birth_date", Date.valueOf(userProfileUpdate.birthDate()));
-      cs.setString("p_addr_street_1", userProfileUpdate.address().streetLine1());
-      cs.setString("p_addr_street_2", userProfileUpdate.address().streetLine2());
-      cs.setString("p_addr_town", userProfileUpdate.address().town());
-      cs.setString("p_addr_state", userProfileUpdate.address().state());
-      cs.setString("p_addr_zip_code", userProfileUpdate.address().zipcode());
+      
+      // Handle null address
+      if (userProfileUpdate.address() == null) {
+        cs.setString("p_addr_street_1", null);
+        cs.setString("p_addr_street_2", null);
+        cs.setString("p_addr_town", null);
+        cs.setString("p_addr_state", null);
+        cs.setString("p_addr_zip_code", null);
+      } else {
+        cs.setString("p_addr_street_1", userProfileUpdate.address().streetLine1());
+        cs.setString("p_addr_street_2", userProfileUpdate.address().streetLine2());
+        cs.setString("p_addr_town", userProfileUpdate.address().town());
+        cs.setString("p_addr_state", userProfileUpdate.address().state());
+        cs.setString("p_addr_zip_code", userProfileUpdate.address().zipcode());
+      }
       cs.executeUpdate();
     } catch (SQLException e) {
       if (DatabaseExceptionCategory.RESOURCE_NOT_FOUND.matchesSQLState(e.getSQLState())) {
