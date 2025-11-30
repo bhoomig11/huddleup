@@ -14,6 +14,7 @@ export type TurfDetails = {
   opensAtLocalTime: string;
   closesAtLocalTime: string;
   address: Address;
+  images: Array<string>;
 };
 
 export type TurfSummary = Pick<

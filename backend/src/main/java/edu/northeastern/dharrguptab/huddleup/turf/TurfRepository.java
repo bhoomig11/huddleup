@@ -267,4 +267,36 @@ public class TurfRepository {
       throw new RuntimeException(e);
     }
   }
+
+  /**
+   * Get all the images for a turf.
+   *
+   * @param turfId the turf ID
+   * @return a list of image URLs for the turf
+   * @throws TurfException if no such turf exists
+   */
+  public List<String> getAllTurfImages(int turfId) throws TurfException {
+    String getTurfImagesQuery = "{CALL get_turf_images(?)}";
+    List<String> turfImages = new ArrayList<>();
+    try (Connection connection = dataSource.getConnection();
+        CallableStatement cs = connection.prepareCall(getTurfImagesQuery)) {
+      cs.setInt("p_turf_id", turfId);
+      try (ResultSet rs = cs.executeQuery()) {
+        while (rs.next()) {
+          int index = rs.getInt("image_index");
+          String imageUrl = rs.getString("image_url");
+          turfImages.add(index, imageUrl);
+        }
+      }
+      return turfImages;
+    } catch (SQLException e) {
+      if (DatabaseExceptionCategory.RESOURCE_NOT_FOUND.matchesSQLState(e.getSQLState())) {
+        throw new TurfException(e, TurfErrorCode.INVALID_TURF_ID);
+      } else {
+        throw new TurfException(e, AppErrorCode.UNKNOWN);
+      }
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+  }
 }

@@ -38,7 +38,7 @@ public class SecurityConfig {
                         "/api/employee/login",
                         "/api/employee/signup")
                     .permitAll()
-                    .requestMatchers(HttpMethod.GET, "/api/turf", "/api/turf/{turf_id}")
+                    .requestMatchers(HttpMethod.GET, "/api/turf/**")
                     .permitAll()
                     .requestMatchers("/api/user/**")
                     .hasRole("USER")

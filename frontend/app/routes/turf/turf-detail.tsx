@@ -1,10 +1,11 @@
-import { fetchTurfDetails } from "~/api/turf";
+import { fetchTurfDetails, fetchTurfImages } from "~/api/turf";
 import type { Route } from "./+types/turf-detail";
 import { data } from "react-router";
 import { Link } from "react-router";
 import type { TurfDetails } from "~/types/turf";
 import { ChevronLeft, MapPin, Clock, Ruler } from "lucide-react";
 import { Button } from "~/components/ui/button";
+import TurfImageCarousel from "~/routes/turf/components/turf-image-carousel";
 
 export async function clientLoader({ params }: Route.ClientLoaderArgs) {
   const turfId = Number.parseInt(params.turfId);
@@ -13,12 +14,26 @@ export async function clientLoader({ params }: Route.ClientLoaderArgs) {
       "Invalid turf ID! Expected a number, received: " + params.turfId;
     throw data(invalidTurfIdMessage, { status: 400 });
   }
-  const response = await fetchTurfDetails(turfId);
-  if (!response.ok) {
-    throw data("Error fetching turfs", { status: response.status }); // TODO: Handle this better!
+
+  const [detailsResponse, imagesResponse] = await Promise.all([
+    fetchTurfDetails(turfId),
+    fetchTurfImages(turfId),
+  ]);
+
+  if (!detailsResponse.ok) {
+    throw data("Error fetching turf details", {
+      status: detailsResponse.status,
+    });
   }
-  const turfs = (await response.json()) as TurfDetails;
-  return turfs;
+
+  if (!imagesResponse.ok) {
+    throw data("Error fetching turf images", { status: imagesResponse.status });
+  }
+
+  const details = (await detailsResponse.json()) as Omit<TurfDetails, "images">;
+  const images = (await imagesResponse.json()) as TurfDetails["images"];
+
+  return { ...details, images } as TurfDetails;
 }
 
 function formatTurfOperationTime(time24Hr: string): string {
@@ -62,20 +77,20 @@ export default function TurfDetailPage({
 
       <main className="flex w-full flex-col items-center">
         <div className="w-full max-w-4xl">
-          {/* Hero Image Section */}
-          <div className="relative h-96 w-full overflow-hidden bg-stone-300">
-            <img
-              src={
-                "https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=1200&h=600&fit=crop"
-              }
-              alt={turfDetails.turfName}
-              className="h-full w-full object-cover"
-            />
-            <div className="absolute right-0 bottom-0 left-0 bg-linear-to-t from-black/60 to-transparent p-6">
-              <h1 className="text-4xl font-bold text-white">
-                {turfDetails.turfName}
-              </h1>
-            </div>
+          {/* Hero Image Section (carousel) */}
+          <TurfImageCarousel
+            turfId={turfDetails.turfId}
+            images={
+              (turfDetails as unknown as { images?: string[] }).images ?? []
+            }
+            initialImage={
+              "https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=1200&h=600&fit=crop"
+            }
+          />
+          <div className="-mt-20 mb-10 px-6">
+            <h1 className="text-4xl font-bold text-white drop-shadow-lg">
+              {turfDetails.turfName}
+            </h1>
           </div>
 
           {/* Content Section */}

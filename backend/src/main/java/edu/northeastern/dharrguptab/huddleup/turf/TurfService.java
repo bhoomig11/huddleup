@@ -89,6 +89,12 @@ public class TurfService {
     return turfReviews;
   }
 
+  /** Get all images for a turf */
+  public List<String> getTurfImages(int turfId) {
+    List<String> turfImages = turfRepository.getAllTurfImages(turfId);
+    return turfImages;
+  }
+
   /**
    * Retrieve the authenticated username from the security context, if present.
    *

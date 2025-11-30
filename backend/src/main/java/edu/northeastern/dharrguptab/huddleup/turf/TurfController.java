@@ -62,4 +62,10 @@ public class TurfController {
   public List<TurfReview> getTurfReviews(@PathVariable int turf_id) {
     return turfService.getTurfReviews(turf_id);
   }
+
+  /** Endpoint for getting all the images for a turf */
+  @GetMapping("/{turf_id}/image")
+  public List<String> getTurfImages(@PathVariable int turf_id) {
+    return turfService.getTurfImages(turf_id);
+  }
 }
