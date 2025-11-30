@@ -5,7 +5,7 @@ import { Card, CardContent } from "~/components/ui/card";
 import { AddCardDialog } from "~/routes/user/components/add-card";
 import { ViewCardDialog } from "~/routes/user/components/view-card";
 import { ProfileSidebar } from "~/routes/user/components/profile-sidebar";
-import { getAllCardDetails } from "~/api/user";
+import { getAllCardDetails, deleteCardDetail } from "~/api/user";
 import { maskCardNumber } from "~/routes/user/utils";
 import { data, redirect } from "react-router";
 import type { CardDetail } from "~/types/card";
@@ -38,10 +38,42 @@ export default function PaymentMethodsPage({
   const revalidator = useRevalidator();
   const [isAddCardDialogOpen, setIsAddCardDialogOpen] = useState(false);
   const [viewCardDialogOpen, setViewCardDialogOpen] = useState<number | null>(null);
+  const [deletingCardId, setDeletingCardId] = useState<number | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const handleCardAdded = () => {
     // Refresh the cards list after adding a new card
     revalidator.revalidate();
+  };
+
+  const handleDeleteCard = async (cardId: number) => {
+    if (!username) {
+      return;
+    }
+
+    setDeletingCardId(cardId);
+    setDeleteError(null);
+
+    try {
+      const response = await deleteCardDetail(username, cardId);
+
+      if (!response.ok) {
+        // Let backend errors come through
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          errorData.message || `Failed to delete card: ${response.statusText}`
+        );
+      }
+
+      // Success - refresh the cards list
+      revalidator.revalidate();
+    } catch (err) {
+      setDeleteError(
+        err instanceof Error ? err.message : "Failed to delete card"
+      );
+    } finally {
+      setDeletingCardId(null);
+    }
   };
 
   // Helper function to format expiry date from ISO string to MM/YYYY
@@ -63,13 +95,28 @@ export default function PaymentMethodsPage({
           <div className="space-y-6">
             <h2 className="text-xl font-bold text-stone-600">Saved Cards</h2>
 
+            {deleteError && (
+              <div className="rounded-md bg-red-50 p-3 text-sm text-red-800">
+                {deleteError}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="ml-2 h-auto p-0 text-red-800 hover:text-red-900"
+                  onClick={() => setDeleteError(null)}
+                >
+                  ×
+                </Button>
+              </div>
+            )}
+
             {cards.length === 0 ? (
               <p className="text-gray-500">No saved cards found.</p>
             ) : (
               cards.map((card, index) => {
                 const expiry = formatExpiryDate(card.expiryDate);
+                const isDeleting = deletingCardId === card.cardId;
                 return (
-                  <Card key={index} className="p-4">
+                  <Card key={card.cardId} className="p-4">
                     <CardContent className="space-y-1">
                       <p className="font-medium text-gray-500">
                         Name on Card: {card.nameOnCard}
@@ -85,14 +132,17 @@ export default function PaymentMethodsPage({
                           size="sm"
                           variant="outline"
                           onClick={() => setViewCardDialogOpen(index)}
+                          disabled={isDeleting}
                         >
                           View Card
                         </Button>
                         <Button
                           size="sm"
                           className="bg-black text-white hover:bg-red-600 active:bg-red-700"
+                          onClick={() => handleDeleteCard(card.cardId)}
+                          disabled={isDeleting}
                         >
-                          Delete
+                          {isDeleting ? "Deleting..." : "Delete"}
                         </Button>
                       </div>
                     </CardContent>
@@ -126,7 +176,7 @@ export default function PaymentMethodsPage({
         const expiry = formatExpiryDate(card.expiryDate);
         return (
           <ViewCardDialog
-            key={index}
+            key={card.cardId}
             open={viewCardDialogOpen === index}
             onOpenChange={(open) => setViewCardDialogOpen(open ? index : null)}
             cardData={{

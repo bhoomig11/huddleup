@@ -129,3 +129,21 @@ export async function addCardDetail(
   return response;
 }
 
+export async function deleteCardDetail(username: string, cardId: number) {
+  const token = getAuthToken();
+  if (!token) {
+    throw new Error("Authentication token is required");
+  }
+
+  const headers: HeadersInit = {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${token}`,
+  };
+
+  const response = await fetch(withBase(`/api/user/${username}/cards/${cardId}`), {
+    method: "DELETE",
+    headers,
+  });
+  return response;
+}
+
