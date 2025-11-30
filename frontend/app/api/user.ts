@@ -189,3 +189,74 @@ export async function updateUsername(
   return response;
 }
 
+export async function updateEmail(
+  username: string,
+  newEmail: string
+) {
+  const token = getAuthToken();
+  if (!token) {
+    throw new Error("Authentication token is required");
+  }
+
+  const headers: HeadersInit = {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${token}`,
+  };
+
+  const response = await fetch(withBase(`/api/user/${username}/email`), {
+    method: "PUT",
+    headers,
+    body: JSON.stringify({
+      newEmail,
+    }),
+  });
+  return response;
+}
+
+export async function updateUserProfile(
+  username: string,
+  profileUpdate: {
+    firstName: string;
+    lastName: string | null;
+    birthDate: string | null;
+    address: {
+      streetLine1: string;
+      streetLine2: string | null;
+      town: string;
+      state: string;
+      zipcode: string;
+    } | null;
+  }
+) {
+  const token = getAuthToken();
+  if (!token) {
+    throw new Error("Authentication token is required");
+  }
+
+  const headers: HeadersInit = {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${token}`,
+  };
+
+  // Convert to backend format
+  const requestBody = {
+    firstName: profileUpdate.firstName,
+    lastName: profileUpdate.lastName || null,
+    birthDate: profileUpdate.birthDate || null,
+    address: profileUpdate.address ? {
+      streetLine1: profileUpdate.address.streetLine1,
+      streetLine2: profileUpdate.address.streetLine2 || null,
+      town: profileUpdate.address.town,
+      state: profileUpdate.address.state,
+      zipcode: profileUpdate.address.zipcode,
+    } : null,
+  };
+
+  const response = await fetch(withBase(`/api/user/${username}/profile`), {
+    method: "PUT",
+    headers,
+    body: JSON.stringify(requestBody),
+  });
+  return response;
+}
+
