@@ -404,6 +404,7 @@ public class UserRepository {
       cs.setString("p_username", username);
       try (ResultSet rs = cs.executeQuery()) {
         while (rs.next()) {
+          int cardId = rs.getInt("card_id");
           String cardNumber = rs.getString("card_number");
           String name = rs.getString("name_on_card");
           Date expiryDate = rs.getDate("expiry_date");
@@ -414,6 +415,7 @@ public class UserRepository {
           String zipCode = rs.getString("addr_zip_code");
           allNewCardDetails.add(
               new CardDetail(
+                  cardId,
                   cardNumber,
                   name,
                   expiryDate,
