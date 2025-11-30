@@ -613,6 +613,7 @@ export default function UserProfilePage({
       <UpdatePasswordDialog
         open={isPasswordDialogOpen}
         onOpenChange={setIsPasswordDialogOpen}
+        username={username!}
       />
     </main>
   );
