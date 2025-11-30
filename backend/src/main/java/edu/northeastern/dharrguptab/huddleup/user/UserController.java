@@ -71,9 +71,9 @@ public class UserController {
   }
 
   @PutMapping("/{username}/username")
-  public void updateUsername(
+  public AuthResponse updateUsername(
       @PathVariable String username, @RequestBody UsernameUpdate usernameUpdate) {
-    userService.updateUsername(username, usernameUpdate.newUsername());
+    return userService.updateUsername(username, usernameUpdate.newUsername());
   }
 
   @PutMapping("/{username}/password")

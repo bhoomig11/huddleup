@@ -1,5 +1,6 @@
 package edu.northeastern.dharrguptab.huddleup.user;
 
+import edu.northeastern.dharrguptab.huddleup.auth.dto.AuthResponse;
 import edu.northeastern.dharrguptab.huddleup.auth.dto.UserCredentials;
 import edu.northeastern.dharrguptab.huddleup.auth.dto.UserLoginCredentials;
 import edu.northeastern.dharrguptab.huddleup.auth.dto.UserSignupCredentials;
@@ -116,7 +117,7 @@ public class UserService {
    * @param currentUsername the current username of the user
    * @param newUsername the new username of the user
    */
-  public void updateUsername(String currentUsername, String newUsername) {
+  public AuthResponse updateUsername(String currentUsername, String newUsername) {
     String authenticatedUsername = getAuthenticatedUsername();
 
     boolean isAuthenticated = authenticatedUsername != null;
@@ -130,6 +131,8 @@ public class UserService {
     }
 
     userRepository.updateUsername(currentUsername, newUsername);
+    String token = jwtService.generateToken(newUsername);
+    return new AuthResponse(token);
   }
 
   /**
