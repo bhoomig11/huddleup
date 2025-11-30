@@ -237,6 +237,24 @@ export async function updatePassword(
   return response;
 }
 
+export async function deleteUser(username: string) {
+  const token = getAuthToken();
+  if (!token) {
+    throw new Error("Authentication token is required");
+  }
+
+  const headers: HeadersInit = {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${token}`,
+  };
+
+  const response = await fetch(withBase(`/api/user/${username}`), {
+    method: "DELETE",
+    headers,
+  });
+  return response;
+}
+
 export async function updateUserProfile(
   username: string,
   profileUpdate: {

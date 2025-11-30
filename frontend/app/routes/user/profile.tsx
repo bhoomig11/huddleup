@@ -33,8 +33,20 @@ import {
   updateUsername,
   updateEmail,
   updateUserProfile,
+  deleteUser,
 } from "~/api/user";
-import { setAuthToken } from "~/utils/auth";
+import { setAuthToken, removeAuthToken } from "~/utils/auth";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "~/components/ui/alert-dialog";
 import type { UserProfile } from "~/types/user";
 import type { Route } from "./+types/profile";
 
@@ -110,6 +122,9 @@ export default function UserProfilePage({
   const [emailError, setEmailError] = useState<string | null>(null);
   const [isSavingProfile, setIsSavingProfile] = useState(false);
   const [profileError, setProfileError] = useState<string | null>(null);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
@@ -253,10 +268,41 @@ export default function UserProfilePage({
     }
   };
 
+  const handleDeleteUser = async () => {
+    if (!username) {
+      return;
+    }
+
+    setIsDeleting(true);
+    setDeleteError(null);
+
+    try {
+      const response = await deleteUser(username);
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        setDeleteError(
+          errorData.message || "Failed to delete account"
+        );
+        return;
+      }
+
+      // Success - remove token and redirect to login
+      removeAuthToken();
+      navigate("/login");
+    } catch (error) {
+      setDeleteError(
+        error instanceof Error ? error.message : "Failed to delete account"
+      );
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   return (
     <main className="min-h-screen bg-slate-50">
       <div className="mx-auto flex w-full max-w-7xl flex-row">
-        {/* ---------------- LEFT PANEL ---------------- */}
+        {/* LEFT PANEL */}
         <ProfileSidebar />
 
         {/* ---------------- RIGHT PANEL ---------------- */}
@@ -591,12 +637,41 @@ export default function UserProfilePage({
               </div>
             )}
             <div className="flex justify-between pt-4">
-              <Button
-                type="button"
-                className="rounded bg-black text-white hover:bg-red-600 active:bg-red-700"
-              >
-                Delete
-              </Button>
+              <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    type="button"
+                    className="rounded bg-black text-white hover:bg-red-600 active:bg-red-700"
+                  >
+                    Delete
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent className="bg-stone-100">
+                  <AlertDialogHeader>
+                    <AlertDialogTitle className="text-stone-800">
+                      Are you absolutely sure you want to delete this account?
+                    </AlertDialogTitle>
+                    <AlertDialogDescription className="text-stone-600">
+                      Note: this action cannot be undone
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  {deleteError && (
+                    <div className="rounded-md bg-red-50 p-3 text-sm text-red-800">
+                      {deleteError}
+                    </div>
+                  )}
+                  <AlertDialogFooter>
+                    <AlertDialogCancel disabled={isDeleting}>No</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={handleDeleteUser}
+                      disabled={isDeleting}
+                      className="bg-red-600 text-white hover:bg-red-700"
+                    >
+                      {isDeleting ? "Deleting..." : "Yes"}
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
               <Button
                 type="submit"
                 disabled={!isDirty || isSavingProfile}
