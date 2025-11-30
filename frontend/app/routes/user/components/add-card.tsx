@@ -9,7 +9,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "~/components/ui/dialog";
-import { getInputClass } from "~/routes/user/utils";
+import { getInputClass, handleAlphabeticInput, handleNumericInput } from "~/routes/user/utils";
 import { addCardDetail } from "~/api/user";
 
 interface AddCardDialogProps {
@@ -43,16 +43,6 @@ export function AddCardDialog({
       setError(null);
     }
   }, [open]);
-
-  // Helper function to allow only numeric input
-  const handleNumericInput = (value: string) => {
-    return value.replace(/\D/g, "");
-  };
-
-  // Helper function to allow only English alphabets (letters)
-  const handleAlphabeticInput = (value: string) => {
-    return value.replace(/[^A-Za-z]/g, "").toUpperCase();
-  };
 
   // Check if all required fields are filled
   const isFormValid =
