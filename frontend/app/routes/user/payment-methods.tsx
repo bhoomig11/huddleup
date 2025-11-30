@@ -16,7 +16,7 @@ export default function PaymentMethodsPage() {
         {/* ---------------- RIGHT PANEL ---------------- */}
         <div className="basis-3/4 min-h-screen p-10">
           <div className="space-y-6">
-            <h2 className="text-xl font-semibold">Saved Cards</h2>
+            <h2 className="text-xl font-bold text-stone-600">Saved Cards</h2>
 
             {[1, 2].map((card) => (
               <Card key={card} className="p-4">
@@ -37,7 +37,10 @@ export default function PaymentMethodsPage() {
             ))}
 
             <div className="flex justify-end">
-              <Button onClick={() => setIsAddCardDialogOpen(true)}>
+              <Button 
+                className="bg-green-700"
+                onClick={() => setIsAddCardDialogOpen(true)}
+              >
                 Add Payment Method
               </Button>
             </div>

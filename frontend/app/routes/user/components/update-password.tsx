@@ -51,11 +51,11 @@ export function UpdatePasswordDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md bg-stone-100">
         <DialogHeader>
-          <DialogTitle>Update Password</DialogTitle>
+          <DialogTitle className="font-semibold text-stone-700">Update Password</DialogTitle>
         </DialogHeader>
         <div className="space-y-4 py-4">
           <div className="space-y-2">
-            <Label htmlFor="current-password">Current Password</Label>
+            <Label htmlFor="current-password" className="text-stone-700">Current Password</Label>
             <Input
               id="current-password"
               type="password"
@@ -66,7 +66,7 @@ export function UpdatePasswordDialog({
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="new-password">New Password</Label>
+            <Label htmlFor="new-password" className="text-stone-700">New Password</Label>
             <Input
               id="new-password"
               type="password"
@@ -77,7 +77,7 @@ export function UpdatePasswordDialog({
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="confirm-password">Confirm New Password</Label>
+            <Label htmlFor="confirm-password" className="text-stone-700">Confirm New Password</Label>
             <Input
               id="confirm-password"
               type="password"
@@ -92,7 +92,9 @@ export function UpdatePasswordDialog({
           <Button variant="outline" onClick={handleCancel}>
             Cancel
           </Button>
-          <Button onClick={handleSave} disabled={!isFormValid}>
+          <Button 
+            onClick={handleSave} disabled={!isFormValid}
+          >
             Save
           </Button>
         </DialogFooter>

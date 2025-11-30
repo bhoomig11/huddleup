@@ -25,7 +25,7 @@ export function ProfileSidebar() {
           alt="profile"
           className="w-24 h-24 rounded-full shadow-sm justify-center"
         />
-        <span className="mt-3 font-medium">@{username}</span>
+        <span className="mt-3 font-medium text-stone-500">@{username}</span>
       </div>
 
       <Separator className="mb-6" />
@@ -35,7 +35,7 @@ export function ProfileSidebar() {
         <Link
           to={`/user/${username}/profile`}
           className={cn(
-            "text-left px-2 py-1 rounded hover:bg-green-100",
+            "text-left px-2 py-1 rounded text-stone-500 hover:bg-green-100",
             activeTab === "details" && "font-semibold bg-green-100"
           )}
         >
@@ -45,7 +45,7 @@ export function ProfileSidebar() {
         <Link
           to={`/user/${username}/cards`}
           className={cn(
-            "text-left px-2 py-1 rounded hover:bg-green-100",
+            "text-left px-2 py-1 rounded text-stone-500 hover:bg-green-100",
             activeTab === "payment" && "font-semibold bg-green-100"
           )}
         >
@@ -55,7 +55,7 @@ export function ProfileSidebar() {
         <Link
           to={`/user/${username}/booking`}
           className={cn(
-            "text-left px-2 py-1 rounded hover:bg-green-100",
+            "text-left px-2 py-1 rounded text-stone-500 hover:bg-green-100",
             activeTab === "bookings" && "font-semibold bg-green-100"
           )}
         >

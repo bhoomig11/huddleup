@@ -146,7 +146,7 @@ export function FileComplaintDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md bg-stone-100">
         <DialogHeader>
-          <DialogTitle>
+          <DialogTitle className="font-semibold text-stone-600">
             {hasComplaint ? "Complaint Details" : "File a Complaint"}
           </DialogTitle>
         </DialogHeader>
@@ -159,7 +159,7 @@ export function FileComplaintDialog({
 
           {/* Subject */}
           <div className="space-y-2">
-            <Label htmlFor="complaint-subject">Subject</Label>
+            <Label htmlFor="complaint-subject" className="text-stone-600">Subject</Label>
             <Input
               id="complaint-subject"
               type="text"
@@ -174,7 +174,7 @@ export function FileComplaintDialog({
 
           {/* Description */}
           <div className="space-y-2">
-            <Label htmlFor="complaint-description">Description</Label>
+            <Label htmlFor="complaint-description" className="text-stone-600">Description</Label>
             <Textarea
               id="complaint-description"
               placeholder="Enter complaint description"
@@ -198,7 +198,7 @@ export function FileComplaintDialog({
               />
               <Label
                 htmlFor="mark-resolved"
-                className="text-sm font-normal"
+                className="text-sm font-normal text-stone-600"
                 aria-disabled={isResolving}
               >
                 {isResolving ? "Marking as resolved..." : "Mark as resolved"}
@@ -206,7 +206,7 @@ export function FileComplaintDialog({
             </div>
           )}
           <div className="flex gap-2">
-            <Button variant="outline" onClick={handleCancel}>
+            <Button variant="outline" onClick={handleCancel} className="text-stone-600">
               {hasComplaint ? "Close" : "Cancel"}
             </Button>
             {!hasComplaint && (

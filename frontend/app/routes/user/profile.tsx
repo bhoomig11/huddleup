@@ -58,7 +58,7 @@ export default function UserProfilePage() {
 
               {/* Username */}
               <div>
-                <Label className="block text-sm font-medium mb-1">Username</Label>
+                <Label className="block text-sm text-stone-600 font-medium mb-1">Username</Label>
                 <div className="flex gap-2">
                   <Input
                     value={form.username}
@@ -69,6 +69,7 @@ export default function UserProfilePage() {
                   {!isEditingUsername ? (
                     <Button
                       variant="outline"
+                      className="text-stone-600"
                       onClick={() => setIsEditingUsername(true)}
                     >
                       Edit
@@ -76,7 +77,7 @@ export default function UserProfilePage() {
                   ) : (
                     <Button
                       onClick={() => {
-                        // TODO: Add save functionality
+                        // TODO: Add save functionality - API call to update username
                         setIsEditingUsername(false);
                       }}
                     >
@@ -88,7 +89,7 @@ export default function UserProfilePage() {
 
               {/* Email */}
               <div>
-                <Label className="block text-sm font-medium mb-1">Email</Label>
+                <Label className="block text-sm text-stone-600 font-medium mb-1">Email</Label>
                 <div className="flex gap-2">
                   <Input
                     value={form.email}
@@ -98,6 +99,7 @@ export default function UserProfilePage() {
                   />
                   {!isEditingEmail ? (
                     <Button
+                      className="text-stone-600"
                       variant="outline"
                       onClick={() => setIsEditingEmail(true)}
                     >
@@ -105,8 +107,9 @@ export default function UserProfilePage() {
                     </Button>
                   ) : (
                     <Button
+                      
                       onClick={() => {
-                        // TODO: Add save functionality
+                        // TODO: Add save functionality - API call to update username
                         setIsEditingEmail(false);
                       }}
                     >
@@ -118,7 +121,7 @@ export default function UserProfilePage() {
 
               {/* Password */}
               <div>
-                <Label className="block text-sm font-medium mb-1">Password</Label>
+                <Label className="block text-sm text-stone-600 font-medium mb-1">Password</Label>
                 <div className="flex gap-2">
                   <Input
                     type="password"
@@ -130,6 +133,7 @@ export default function UserProfilePage() {
                   />
                   <Button
                     variant="outline"
+                    className="text-stone-600"
                     onClick={() => setIsPasswordDialogOpen(true)}
                   >
                     Edit
@@ -140,7 +144,7 @@ export default function UserProfilePage() {
               <Separator />
 
               {/* Other fields */}
-              <Label className="block text-sm font-medium mb-1">First Name</Label>
+              <Label className="block text-sm text-stone-600 font-medium mb-1">First Name</Label>
               <Input
                 placeholder="First Name"
                 value={form.first_name}
@@ -148,7 +152,7 @@ export default function UserProfilePage() {
                 onChange={(e) => handleChange("first_name", e.target.value)}
               />
 
-              <Label className="block text-sm font-medium mb-1">Last Name</Label>
+              <Label className="block text-sm text-stone-600 font-medium mb-1">Last Name</Label>
               <Input
                 placeholder="Last Name"
                 value={form.last_name}
@@ -156,7 +160,7 @@ export default function UserProfilePage() {
                 onChange={(e) => handleChange("last_name", e.target.value)}
               />
               
-              <Label className="block text-sm font-medium mb-1">Birth Date</Label>
+              <Label className="block text-sm text-stone-600 font-medium mb-1">Birth Date</Label>
               <Popover>
                 <PopoverTrigger asChild className="bg-slate-50">
                   <Button
@@ -196,7 +200,7 @@ export default function UserProfilePage() {
                 </PopoverContent>
               </Popover>
               
-              <Label className="block text-sm font-medium mb-1">Address Line 1</Label>
+              <Label className="block text-sm text-stone-600 font-medium mb-1">Address Line 1</Label>
               <Input
                 placeholder="Address Line 1"
                 value={form.addr_street_1}
@@ -204,7 +208,7 @@ export default function UserProfilePage() {
                 onChange={(e) => handleChange("addr_street_1", e.target.value)}
               />
 
-              <Label className="block text-sm font-medium mb-1">Address Line 2</Label>
+              <Label className="block text-sm text-stone-600 font-medium mb-1">Address Line 2</Label>
               <Input
                 placeholder="Address Line 2"
                 value={form.addr_street_2}
@@ -212,14 +216,9 @@ export default function UserProfilePage() {
                 onChange={(e) => handleChange("addr_street_2", e.target.value)}
               />
 
-              {/* <div className="flex gap-45">
-                <Label className="block text-sm font-medium">Town</Label>
-                <Label className="block text-sm font-medium">State</Label>
-                <Label className="block text-sm font-medium">Zipcode</Label>
-              </div> */}
               <div className="flex gap-4">
                 <div>
-                  <Label className="block text-sm font-medium mb-1">Town</Label>
+                  <Label className="block text-sm text-stone-600 font-medium mb-1">Town</Label>
                   <Input
                     placeholder="Town"
                     value={form.addr_town}
@@ -228,7 +227,7 @@ export default function UserProfilePage() {
                   />
                 </div>
                 <div>
-                  <Label className="block text-sm font-medium mb-1">State</Label>
+                  <Label className="block text-sm text-stone-600 font-medium mb-1">State</Label>
                   <Input
                     placeholder="State"
                     maxLength={2}
@@ -238,7 +237,7 @@ export default function UserProfilePage() {
                   />
                 </div>
                 <div>
-                  <Label className="block text-sm font-medium mb-1">Zipcode</Label>
+                  <Label className="block text-sm text-stone-600 font-medium mb-1">Zipcode</Label>
                   <Input
                     placeholder="ZIP"
                     maxLength={5}
@@ -272,7 +271,12 @@ export default function UserProfilePage() {
               >
                 Delete
               </Button>
-              <Button disabled={!isChanged}>Save</Button>
+              <Button 
+                disabled={!isChanged}
+                className="bg-green-700"
+              >
+                Save
+              </Button>
             </div>
           </div>
         </div>

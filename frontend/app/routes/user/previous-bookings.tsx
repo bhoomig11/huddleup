@@ -66,7 +66,7 @@ export default function PreviousBookingsPage({
         {/* Right Panel */}
         <div className="min-h-screen basis-3/4 p-10">
           <div className="space-y-6">
-            <h2 className="text-xl font-semibold">Previous Bookings</h2>
+            <h2 className="text-xl font-bold text-stone-600">Previous Bookings</h2>
 
             {bookings.map((booking) => {
               const dateTime = formatDateTime(booking.startTimeUtc);
@@ -76,28 +76,29 @@ export default function PreviousBookingsPage({
                   <CardContent>
                     <div className="flex items-start justify-between">
                       <div>
-                        <p className="font-medium text-gray-500">
+                        <p className="font-medium text-stone-500">
                           Booking ID: {booking.bookingId}
                         </p>
-                        <p className="text-gray-500">
+                        <p className="text-stone-500">
                           Turf Name: {booking.turfName}
                         </p>
-                        <p className="text-gray-500">
+                        <p className="text-stone-500">
                           Date: {dateTime.date} | {dateTime.time}
                         </p>
-                        <p className="text-gray-500">
+                        <p className="text-stone-500">
                           Duration: {booking.durationMins} minutes
                         </p>
-                        <p className="text-gray-500">
+                        <p className="text-stone-500">
                           Card Number: {booking.maskedCardNumber}
                         </p>
-                        <p className="text-gray-500">
+                        <p className="text-stone-500">
                           Amount Paid: ${booking.amount.toFixed(2)}
                         </p>
                       </div>
                       <div className="flex flex-col gap-2">
                         <Button
                           size="sm"
+                          className="bg-green-700"
                           onClick={() => {
                             // TODO: reroute to the turf's page where booking was made to add a review
                           }}
@@ -106,6 +107,7 @@ export default function PreviousBookingsPage({
                         </Button>
                         <Button
                           size="sm"
+                          className="bg-green-700"
                           onClick={() =>
                             setOpenComplaintDialog(booking.bookingId)
                           }

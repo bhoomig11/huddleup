@@ -76,12 +76,12 @@ export function AddCardDialog({ open, onOpenChange }: AddCardDialogProps) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[90vh] overflow-y-auto bg-stone-100 sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Add Payment Method</DialogTitle>
+          <DialogTitle className="font-semibold text-stone-600">Add Payment Method</DialogTitle>
         </DialogHeader>
         <div className="space-y-4 py-4">
           {/* Card Number */}
           <div className="space-y-2">
-            <Label htmlFor="card-number">Card Number</Label>
+            <Label htmlFor="card-number" className="text-stone-600">Card Number</Label>
             <Input
               id="card-number"
               type="text"
@@ -96,7 +96,7 @@ export function AddCardDialog({ open, onOpenChange }: AddCardDialogProps) {
 
           {/* Name on Card */}
           <div className="space-y-2">
-            <Label htmlFor="name-on-card">Name on Card</Label>
+            <Label htmlFor="name-on-card" className="text-stone-600">Name on Card</Label>
             <Input
               id="name-on-card"
               type="text"
@@ -110,7 +110,7 @@ export function AddCardDialog({ open, onOpenChange }: AddCardDialogProps) {
           {/* Expiry Month and Year */}
           <div className="flex gap-4">
             <div className="flex-1 space-y-2">
-              <Label htmlFor="expiry-month">Expiry Month (MM)</Label>
+              <Label htmlFor="expiry-month" className="text-stone-600">Expiry Month (MM)</Label>
               <Input
                 id="expiry-month"
                 type="text"
@@ -124,7 +124,7 @@ export function AddCardDialog({ open, onOpenChange }: AddCardDialogProps) {
               />
             </div>
             <div className="flex-1 space-y-2">
-              <Label htmlFor="expiry-year">Expiry Year (YYYY)</Label>
+              <Label htmlFor="expiry-year" className="text-stone-600">Expiry Year (YYYY)</Label>
               <Input
                 id="expiry-year"
                 type="text"
@@ -141,7 +141,7 @@ export function AddCardDialog({ open, onOpenChange }: AddCardDialogProps) {
 
           {/* Address Line 1 */}
           <div className="space-y-2">
-            <Label htmlFor="address-line-1">Address Line 1</Label>
+            <Label htmlFor="address-line-1" className="text-stone-600">Address Line 1</Label>
             <Input
               id="address-line-1"
               type="text"
@@ -154,7 +154,7 @@ export function AddCardDialog({ open, onOpenChange }: AddCardDialogProps) {
 
           {/* Address Line 2 */}
           <div className="space-y-2">
-            <Label htmlFor="address-line-2">Address Line 2</Label>
+            <Label htmlFor="address-line-2" className="text-stone-600">Address Line 2</Label>
             <Input
               id="address-line-2"
               type="text"
@@ -168,7 +168,7 @@ export function AddCardDialog({ open, onOpenChange }: AddCardDialogProps) {
           {/* Town, State, ZIP */}
           <div className="flex gap-4">
             <div className="flex-1 space-y-2">
-              <Label htmlFor="town">Town</Label>
+              <Label htmlFor="town" className="text-stone-600">Town</Label>
               <Input
                 id="town"
                 type="text"
@@ -179,7 +179,7 @@ export function AddCardDialog({ open, onOpenChange }: AddCardDialogProps) {
               />
             </div>
             <div className="flex-1 space-y-2">
-              <Label htmlFor="state">State</Label>
+              <Label htmlFor="state" className="text-stone-600">State</Label>
               <Input
                 id="state"
                 type="text"
@@ -191,7 +191,7 @@ export function AddCardDialog({ open, onOpenChange }: AddCardDialogProps) {
               />
             </div>
             <div className="flex-1 space-y-2">
-              <Label htmlFor="zip-code">ZIP Code</Label>
+              <Label htmlFor="zip-code" className="text-stone-600">ZIP Code</Label>
               <Input
                 id="zip-code"
                 type="text"
@@ -205,10 +205,10 @@ export function AddCardDialog({ open, onOpenChange }: AddCardDialogProps) {
           </div>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={handleCancel}>
+          <Button variant="outline" className="text-stone-600" onClick={handleCancel}>
             Cancel
           </Button>
-          <Button onClick={handleSave} disabled={!isFormValid}>
+          <Button onClick={handleSave} className="bg-green-700" disabled={!isFormValid}>
             Save
           </Button>
         </DialogFooter>
