@@ -59,8 +59,8 @@ BEGIN
         t.turf_name
     FROM booking AS b
     INNER JOIN turf AS t
-    ON booking.turf_id = turf.turf_id
-    WHERE username = p_username;
+    ON b.turf_id = t.turf_id
+    WHERE b.username = p_username;
 END $$
 DELIMITER ;
 
@@ -132,8 +132,8 @@ BEGIN
         t.turf_name
     FROM booking AS b
     INNER JOIN turf AS t
-    ON booking.turf_id = turf.turf_id
-    WHERE booking_id = p_booking_id AND username = p_username;
+    ON b.turf_id = t.turf_id
+    WHERE b.booking_id = p_booking_id AND b.username = p_username;
 END $$
 DELIMITER ;
 
@@ -278,7 +278,7 @@ BEGIN
     UPDATE booking
     SET complaint_subject = p_c_subject,
         complaint_description = p_c_description,
-        complaint_filed_date = UTC_TIMESTAMP()
+        complaint_filed_at_utc = UTC_TIMESTAMP()
     WHERE booking_id = p_booking_id;
 END $$
 DELIMITER ;
@@ -374,7 +374,6 @@ BEGIN
         AND username = p_username;
 END $$
 DELIMITER ;
- 
 
 /**
  * Procedure: delete_user_review
