@@ -17,13 +17,13 @@ export function ProfileSidebar() {
   const activeTab = getActiveTab();
 
   return (
-    <div className="basis-1/4 min-h-screen border-r bg-slate-50 p-6">
+    <div className="min-h-screen basis-1/4 border-r bg-slate-50 p-6">
       {/* User Pic */}
-      <div className="flex flex-col items-center mb-10 border-green-700">
+      <div className="mb-10 flex flex-col items-center border-green-700">
         <img
           src={userImage}
           alt="profile"
-          className="w-24 h-24 rounded-full shadow-sm justify-center"
+          className="h-24 w-24 justify-center rounded-full shadow-sm"
         />
         <span className="mt-3 font-medium text-stone-500">@{username}</span>
       </div>
@@ -35,8 +35,8 @@ export function ProfileSidebar() {
         <Link
           to={`/user/${username}/profile`}
           className={cn(
-            "text-left px-2 py-1 rounded text-stone-500 hover:bg-green-100",
-            activeTab === "details" && "font-semibold bg-green-100"
+            "rounded px-2 py-1 text-left text-stone-500 hover:bg-green-100",
+            activeTab === "details" && "bg-green-100 font-semibold"
           )}
         >
           Account Details
@@ -45,8 +45,8 @@ export function ProfileSidebar() {
         <Link
           to={`/user/${username}/cards`}
           className={cn(
-            "text-left px-2 py-1 rounded text-stone-500 hover:bg-green-100",
-            activeTab === "payment" && "font-semibold bg-green-100"
+            "rounded px-2 py-1 text-left text-stone-500 hover:bg-green-100",
+            activeTab === "payment" && "bg-green-100 font-semibold"
           )}
         >
           Payment Methods
@@ -55,8 +55,8 @@ export function ProfileSidebar() {
         <Link
           to={`/user/${username}/booking`}
           className={cn(
-            "text-left px-2 py-1 rounded text-stone-500 hover:bg-green-100",
-            activeTab === "bookings" && "font-semibold bg-green-100"
+            "rounded px-2 py-1 text-left text-stone-500 hover:bg-green-100",
+            activeTab === "bookings" && "bg-green-100 font-semibold"
           )}
         >
           Previous Bookings
@@ -65,4 +65,3 @@ export function ProfileSidebar() {
     </div>
   );
 }
-

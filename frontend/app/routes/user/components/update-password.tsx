@@ -81,9 +81,7 @@ export function UpdatePasswordDialog({
 
       if (!verifyResponse.ok) {
         const errorData = await verifyResponse.json().catch(() => ({}));
-        setError(
-          errorData.message || "Current password is incorrect"
-        );
+        setError(errorData.message || "Current password is incorrect");
         return;
       }
 
@@ -92,9 +90,7 @@ export function UpdatePasswordDialog({
 
       if (!updateResponse.ok) {
         const errorData = await updateResponse.json().catch(() => ({}));
-        setError(
-          errorData.message || "Failed to update password"
-        );
+        setError(errorData.message || "Failed to update password");
         return;
       }
 
@@ -167,9 +163,7 @@ export function UpdatePasswordDialog({
               onChange={(e) => setConfirmPassword(e.target.value)}
             />
             {!passwordsMatch && confirmPassword.trim() !== "" && (
-              <p className="text-sm text-red-600">
-                Passwords do not match
-              </p>
+              <p className="text-sm text-red-600">Passwords do not match</p>
             )}
           </div>
         </div>

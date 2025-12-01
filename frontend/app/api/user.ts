@@ -140,10 +140,13 @@ export async function deleteCardDetail(username: string, cardId: number) {
     Authorization: `Bearer ${token}`,
   };
 
-  const response = await fetch(withBase(`/api/user/${username}/cards/${cardId}`), {
-    method: "DELETE",
-    headers,
-  });
+  const response = await fetch(
+    withBase(`/api/user/${username}/cards/${cardId}`),
+    {
+      method: "DELETE",
+      headers,
+    }
+  );
   return response;
 }
 
@@ -165,10 +168,7 @@ export async function getUserProfile(username: string) {
   return response;
 }
 
-export async function updateUsername(
-  username: string,
-  newUsername: string
-) {
+export async function updateUsername(username: string, newUsername: string) {
   const token = getAuthToken();
   if (!token) {
     throw new Error("Authentication token is required");
@@ -189,10 +189,7 @@ export async function updateUsername(
   return response;
 }
 
-export async function updateEmail(
-  username: string,
-  newEmail: string
-) {
+export async function updateEmail(username: string, newEmail: string) {
   const token = getAuthToken();
   if (!token) {
     throw new Error("Authentication token is required");
@@ -213,10 +210,7 @@ export async function updateEmail(
   return response;
 }
 
-export async function updatePassword(
-  username: string,
-  newPassword: string
-) {
+export async function updatePassword(username: string, newPassword: string) {
   const token = getAuthToken();
   if (!token) {
     throw new Error("Authentication token is required");
@@ -285,13 +279,15 @@ export async function updateUserProfile(
     firstName: profileUpdate.firstName,
     lastName: profileUpdate.lastName || null,
     birthDate: profileUpdate.birthDate || null,
-    address: profileUpdate.address ? {
-      streetLine1: profileUpdate.address.streetLine1,
-      streetLine2: profileUpdate.address.streetLine2 || null,
-      town: profileUpdate.address.town,
-      state: profileUpdate.address.state,
-      zipcode: profileUpdate.address.zipcode,
-    } : null,
+    address: profileUpdate.address
+      ? {
+          streetLine1: profileUpdate.address.streetLine1,
+          streetLine2: profileUpdate.address.streetLine2 || null,
+          town: profileUpdate.address.town,
+          state: profileUpdate.address.state,
+          zipcode: profileUpdate.address.zipcode,
+        }
+      : null,
   };
 
   const response = await fetch(withBase(`/api/user/${username}/profile`), {
@@ -301,4 +297,3 @@ export async function updateUserProfile(
   });
   return response;
 }
-

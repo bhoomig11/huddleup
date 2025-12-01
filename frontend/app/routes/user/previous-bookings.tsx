@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { format } from "date-fns";
-import { redirect, useParams, useRevalidator } from "react-router";
+import { Link, redirect, useParams, useRevalidator } from "react-router";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";
 import { ProfileSidebar } from "~/routes/user/components/profile-sidebar";
@@ -60,13 +60,15 @@ export default function PreviousBookingsPage({
   return (
     <main className="min-h-screen bg-slate-50">
       <div className="mx-auto flex w-full max-w-7xl flex-row">
-        {/* Left Panel */}
+        {/* LEFT PANEL */}
         <ProfileSidebar />
 
-        {/* Right Panel */}
+        {/* RIGHT PANEL */}
         <div className="min-h-screen basis-3/4 p-10">
           <div className="space-y-6">
-            <h2 className="text-xl font-bold text-stone-600">Previous Bookings</h2>
+            <h2 className="text-xl font-bold text-stone-600">
+              Previous Bookings
+            </h2>
 
             {bookings.map((booking) => {
               const dateTime = formatDateTime(booking.startTimeUtc);
@@ -105,6 +107,12 @@ export default function PreviousBookingsPage({
                         >
                           Add a review
                         </Button>
+                        {/* <Link
+                          to={`/turf/${turfId}`}
+                          className="rounded bg-green-700 text-white hover:bg-green-600 active:bg-green-700"
+                        >
+                          Add a review
+                        </Link> */}
                         <Button
                           size="sm"
                           className="rounded bg-green-700 text-white hover:bg-green-600 active:bg-green-700"
@@ -126,7 +134,7 @@ export default function PreviousBookingsPage({
         </div>
       </div>
 
-      {/* File Complaint Dialogs */}
+      {/* File Complaint Dialog */}
       {bookings.map((booking) => {
         const complaint = hasComplaint(booking)
           ? {

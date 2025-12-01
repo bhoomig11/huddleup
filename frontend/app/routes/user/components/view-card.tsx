@@ -26,7 +26,11 @@ interface ViewCardDialogProps {
   };
 }
 
-export function ViewCardDialog({ open, onOpenChange, cardData }: ViewCardDialogProps) {
+export function ViewCardDialog({
+  open,
+  onOpenChange,
+  cardData,
+}: ViewCardDialogProps) {
   const handleClose = () => {
     onOpenChange(false);
   };
@@ -35,7 +39,9 @@ export function ViewCardDialog({ open, onOpenChange, cardData }: ViewCardDialogP
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[90vh] overflow-y-auto bg-stone-100 sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="font-semibold text-stone-600">Card Details</DialogTitle>
+          <DialogTitle className="font-semibold text-stone-600">
+            Card Details
+          </DialogTitle>
         </DialogHeader>
         <div className="space-y-4 py-4">
           {/* Card Number */}
@@ -96,7 +102,9 @@ export function ViewCardDialog({ open, onOpenChange, cardData }: ViewCardDialogP
 
           {/* Billing Address Header */}
           <div className="pt-2">
-            <h3 className="text-lg font-semibold text-stone-600">Billing Address</h3>
+            <h3 className="text-lg font-semibold text-stone-600">
+              Billing Address
+            </h3>
           </div>
 
           {/* Address Line 1 */}
@@ -180,4 +188,3 @@ export function ViewCardDialog({ open, onOpenChange, cardData }: ViewCardDialogP
     </Dialog>
   );
 }
-

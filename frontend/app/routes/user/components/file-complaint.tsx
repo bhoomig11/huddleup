@@ -57,10 +57,12 @@ export function FileComplaintDialog({
     setError(null);
   }, [existingComplaint, open]);
 
-  const hasComplaint = existingComplaint !== null && existingComplaint !== undefined;
+  const hasComplaint =
+    existingComplaint !== null && existingComplaint !== undefined;
 
   // Check if form is valid (only when adding new complaint)
-  const isFormValid = !hasComplaint && subject.trim() !== "" && description.trim() !== "";
+  const isFormValid =
+    !hasComplaint && subject.trim() !== "" && description.trim() !== "";
 
   const handleCancel = () => {
     // Reset form if no existing complaint
@@ -82,12 +84,18 @@ export function FileComplaintDialog({
     setError(null);
 
     try {
-      const response = await fileComplaint(username, bookingId, subject, description);
+      const response = await fileComplaint(
+        username,
+        bookingId,
+        subject,
+        description
+      );
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         throw new Error(
-          errorData.message || `Failed to file complaint: ${response.statusText}`
+          errorData.message ||
+            `Failed to file complaint: ${response.statusText}`
         );
       }
 
@@ -144,7 +152,7 @@ export function FileComplaintDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md bg-stone-100">
+      <DialogContent className="bg-stone-100 sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="font-semibold text-stone-600">
             {hasComplaint ? "Complaint Details" : "File a Complaint"}
@@ -159,7 +167,9 @@ export function FileComplaintDialog({
 
           {/* Subject */}
           <div className="space-y-2">
-            <Label htmlFor="complaint-subject" className="text-stone-600">Subject</Label>
+            <Label htmlFor="complaint-subject" className="text-stone-600">
+              Subject
+            </Label>
             <Input
               id="complaint-subject"
               type="text"
@@ -174,7 +184,9 @@ export function FileComplaintDialog({
 
           {/* Description */}
           <div className="space-y-2">
-            <Label htmlFor="complaint-description" className="text-stone-600">Description</Label>
+            <Label htmlFor="complaint-description" className="text-stone-600">
+              Description
+            </Label>
             <Textarea
               id="complaint-description"
               placeholder="Enter complaint description"
@@ -187,7 +199,9 @@ export function FileComplaintDialog({
             />
           </div>
         </div>
-        <DialogFooter className={hasComplaint ? "justify-between" : "justify-end"}>
+        <DialogFooter
+          className={hasComplaint ? "justify-between" : "justify-end"}
+        >
           {hasComplaint && (
             <div className="flex items-center space-x-2">
               <Checkbox
@@ -206,7 +220,11 @@ export function FileComplaintDialog({
             </div>
           )}
           <div className="flex gap-2">
-            <Button variant="outline" onClick={handleCancel} className="text-stone-600">
+            <Button
+              variant="outline"
+              onClick={handleCancel}
+              className="text-stone-600"
+            >
               {hasComplaint ? "Close" : "Cancel"}
             </Button>
             {!hasComplaint && (
@@ -223,4 +241,3 @@ export function FileComplaintDialog({
     </Dialog>
   );
 }
-

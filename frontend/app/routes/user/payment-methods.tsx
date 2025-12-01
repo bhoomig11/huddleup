@@ -6,11 +6,10 @@ import { AddCardDialog } from "~/routes/user/components/add-card";
 import { ViewCardDialog } from "~/routes/user/components/view-card";
 import { ProfileSidebar } from "~/routes/user/components/profile-sidebar";
 import { getAllCardDetails, deleteCardDetail } from "~/api/user";
-import { maskCardNumber } from "~/routes/user/utils";
+import { maskCardNumber, formatExpiryDate } from "~/routes/user/utils";
 import { data, redirect } from "react-router";
 import type { CardDetail } from "~/types/card";
 import type { Route } from "./+types/payment-methods";
-import { Ghost } from "lucide-react";
 
 export async function clientLoader({ params }: Route.ClientLoaderArgs) {
   const username = params.username;
@@ -21,7 +20,6 @@ export async function clientLoader({ params }: Route.ClientLoaderArgs) {
 
   const response = await getAllCardDetails(username);
   if (!response.ok) {
-    // Let backend errors come through
     const errorData = await response.json().catch(() => ({}));
     throw data(errorData.message || "Error fetching card details", {
       status: response.status,
@@ -60,7 +58,6 @@ export default function PaymentMethodsPage({
       const response = await deleteCardDetail(username, cardId);
 
       if (!response.ok) {
-        // Let backend errors come through
         const errorData = await response.json().catch(() => ({}));
         throw new Error(
           errorData.message || `Failed to delete card: ${response.statusText}`
@@ -77,22 +74,13 @@ export default function PaymentMethodsPage({
       setDeletingCardId(null);
     }
   };
-
-  // Helper function to format expiry date from ISO string to MM/YYYY
-  const formatExpiryDate = (expiryDate: string) => {
-    const date = new Date(expiryDate);
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const year = String(date.getFullYear());
-    return { month, year };
-  };
-
   return (
     <main className="min-h-screen bg-slate-50">
       <div className="mx-auto flex w-full max-w-7xl flex-row">
-        {/* ---------------- LEFT PANEL ---------------- */}
+        {/* LEFT PANEL */}
         <ProfileSidebar />
 
-        {/* ---------------- RIGHT PANEL ---------------- */}
+        {/* RIGHT PANEL */}
         <div className="min-h-screen basis-3/4 p-10">
           <div className="space-y-6">
             <h2 className="text-xl font-bold text-stone-600">Saved Cards</h2>
@@ -174,7 +162,7 @@ export default function PaymentMethodsPage({
         onCardAdded={handleCardAdded}
       />
 
-      {/* View Card Dialogs */}
+      {/* View Card Dialog */}
       {cards.map((card, index) => {
         const expiry = formatExpiryDate(card.expiryDate);
         return (

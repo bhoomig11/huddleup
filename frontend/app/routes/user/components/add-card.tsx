@@ -9,7 +9,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from "~/components/ui/dialog";
-import { getInputClass, handleAlphabeticInput, handleNumericInput } from "~/routes/user/utils";
+import {
+  getInputClass,
+  handleAlphabeticInput,
+  handleNumericInput,
+} from "~/routes/user/utils";
 import { addCardDetail } from "~/api/user";
 
 interface AddCardDialogProps {
@@ -122,7 +126,9 @@ export function AddCardDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[90vh] overflow-y-auto bg-stone-100 sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="font-semibold text-stone-600">Add Payment Method</DialogTitle>
+          <DialogTitle className="font-semibold text-stone-600">
+            Add Payment Method
+          </DialogTitle>
         </DialogHeader>
         <div className="space-y-4 py-4">
           {error && (
@@ -133,7 +139,9 @@ export function AddCardDialog({
 
           {/* Card Number */}
           <div className="space-y-2">
-            <Label htmlFor="card-number" className="text-stone-600">Card Number</Label>
+            <Label htmlFor="card-number" className="text-stone-600">
+              Card Number
+            </Label>
             <Input
               id="card-number"
               type="text"
@@ -149,7 +157,9 @@ export function AddCardDialog({
 
           {/* Name on Card */}
           <div className="space-y-2">
-            <Label htmlFor="name-on-card" className="text-stone-600">Name on Card</Label>
+            <Label htmlFor="name-on-card" className="text-stone-600">
+              Name on Card
+            </Label>
             <Input
               id="name-on-card"
               type="text"
@@ -164,7 +174,9 @@ export function AddCardDialog({
           {/* Expiry Month and Year */}
           <div className="flex gap-4">
             <div className="flex-1 space-y-2">
-              <Label htmlFor="expiry-month" className="text-stone-600">Expiry Month (MM)</Label>
+              <Label htmlFor="expiry-month" className="text-stone-600">
+                Expiry Month (MM)
+              </Label>
               <Input
                 id="expiry-month"
                 type="text"
@@ -179,7 +191,9 @@ export function AddCardDialog({
               />
             </div>
             <div className="flex-1 space-y-2">
-              <Label htmlFor="expiry-year" className="text-stone-600">Expiry Year (YYYY)</Label>
+              <Label htmlFor="expiry-year" className="text-stone-600">
+                Expiry Year (YYYY)
+              </Label>
               <Input
                 id="expiry-year"
                 type="text"
@@ -197,12 +211,16 @@ export function AddCardDialog({
 
           {/* Billing Address Header */}
           <div className="pt-2">
-            <h3 className="text-lg font-semibold text-stone-600">Billing Address</h3>
+            <h3 className="text-lg font-semibold text-stone-600">
+              Billing Address
+            </h3>
           </div>
 
           {/* Address Line 1 */}
           <div className="space-y-2">
-            <Label htmlFor="address-line-1" className="text-stone-600">Address Line 1</Label>
+            <Label htmlFor="address-line-1" className="text-stone-600">
+              Address Line 1
+            </Label>
             <Input
               id="address-line-1"
               type="text"
@@ -216,7 +234,9 @@ export function AddCardDialog({
 
           {/* Address Line 2 */}
           <div className="space-y-2">
-            <Label htmlFor="address-line-2" className="text-stone-600">Address Line 2</Label>
+            <Label htmlFor="address-line-2" className="text-stone-600">
+              Address Line 2
+            </Label>
             <Input
               id="address-line-2"
               type="text"
@@ -231,7 +251,9 @@ export function AddCardDialog({
           {/* Town, State, ZIP */}
           <div className="flex gap-4">
             <div className="flex-1 space-y-2">
-              <Label htmlFor="town" className="text-stone-600">Town</Label>
+              <Label htmlFor="town" className="text-stone-600">
+                Town
+              </Label>
               <Input
                 id="town"
                 type="text"
@@ -243,7 +265,9 @@ export function AddCardDialog({
               />
             </div>
             <div className="flex-1 space-y-2">
-              <Label htmlFor="state" className="text-stone-600">State</Label>
+              <Label htmlFor="state" className="text-stone-600">
+                State
+              </Label>
               <Input
                 id="state"
                 type="text"
@@ -252,11 +276,15 @@ export function AddCardDialog({
                 value={state}
                 className={getInputClass(state)}
                 disabled={isSubmitting}
-                onChange={(e) => setState(handleAlphabeticInput(e.target.value))}
+                onChange={(e) =>
+                  setState(handleAlphabeticInput(e.target.value))
+                }
               />
             </div>
             <div className="flex-1 space-y-2">
-              <Label htmlFor="zip-code" className="text-stone-600">ZIP Code</Label>
+              <Label htmlFor="zip-code" className="text-stone-600">
+                ZIP Code
+              </Label>
               <Input
                 id="zip-code"
                 type="text"

@@ -305,9 +305,9 @@ export default function UserProfilePage({
         {/* LEFT PANEL */}
         <ProfileSidebar />
 
-        {/* ---------------- RIGHT PANEL ---------------- */}
+        {/* RIGHT PANEL */}
         <div className="min-h-screen basis-3/4 p-10">
-          {/* ----------- USER DETAILS PANEL ----------- */}
+          {/* USER DETAILS PANEL */}
           <form
             className="max-w-xl space-y-6"
             onSubmit={form.handleSubmit(handleSaveProfile as (data: ProfileFormValues) => Promise<void>)}
