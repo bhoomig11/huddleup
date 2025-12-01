@@ -100,7 +100,9 @@ export default function PaymentMethodsPage({
             )}
 
             {cards.length === 0 ? (
-              <p className="text-xl  font-semibold text-stone-500">No saved cards found</p>
+              <p className="text-xl font-semibold text-stone-500">
+                No saved cards found
+              </p>
             ) : (
               cards.map((card, index) => {
                 const expiry = formatExpiryDate(card.expiryDate);

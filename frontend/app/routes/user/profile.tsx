@@ -281,9 +281,7 @@ export default function UserProfilePage({
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        setDeleteError(
-          errorData.message || "Failed to delete account"
-        );
+        setDeleteError(errorData.message || "Failed to delete account");
         return;
       }
 
@@ -310,7 +308,9 @@ export default function UserProfilePage({
           {/* USER DETAILS PANEL */}
           <form
             className="max-w-xl space-y-6"
-            onSubmit={form.handleSubmit(handleSaveProfile as (data: ProfileFormValues) => Promise<void>)}
+            onSubmit={form.handleSubmit(
+              handleSaveProfile as (data: ProfileFormValues) => Promise<void>
+            )}
           >
             {/* Username */}
             <div>
@@ -637,7 +637,10 @@ export default function UserProfilePage({
               </div>
             )}
             <div className="flex justify-between pt-4">
-              <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+              <AlertDialog
+                open={isDeleteDialogOpen}
+                onOpenChange={setIsDeleteDialogOpen}
+              >
                 <AlertDialogTrigger asChild>
                   <Button
                     type="button"
@@ -661,7 +664,9 @@ export default function UserProfilePage({
                     </div>
                   )}
                   <AlertDialogFooter>
-                    <AlertDialogCancel disabled={isDeleting}>No</AlertDialogCancel>
+                    <AlertDialogCancel disabled={isDeleting}>
+                      No
+                    </AlertDialogCancel>
                     <AlertDialogAction
                       onClick={handleDeleteUser}
                       disabled={isDeleting}
