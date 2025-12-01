@@ -3,7 +3,6 @@ import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Textarea } from "~/components/ui/textarea";
 import { Label } from "~/components/ui/label";
-import { Checkbox } from "~/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -111,10 +110,9 @@ export function FileComplaintDialog({
     }
   };
 
-  const handleMarkResolved = async (checked: boolean) => {
-    if (!checked) {
-      // If unchecking, just update local state
-      setIsResolved(false);
+  const handleMarkResolved = async () => {
+    if (isResolved) {
+      // Already resolved, don't do anything
       return;
     }
 
@@ -126,10 +124,11 @@ export function FileComplaintDialog({
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(
+        setError(
           errorData.message ||
             `Failed to mark complaint as resolved: ${response.statusText}`
         );
+        return;
       }
 
       // Success - update local state and refresh bookings
@@ -143,8 +142,6 @@ export function FileComplaintDialog({
           ? err.message
           : "Failed to mark complaint as resolved"
       );
-      // Revert checkbox state on error
-      setIsResolved(false);
     } finally {
       setIsResolving(false);
     }
@@ -202,28 +199,22 @@ export function FileComplaintDialog({
         <DialogFooter
           className={hasComplaint ? "justify-between" : "justify-end"}
         >
-          {hasComplaint && (
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="mark-resolved"
-                checked={isResolved}
-                disabled={isResolving}
-                onCheckedChange={handleMarkResolved}
-              />
-              <Label
-                htmlFor="mark-resolved"
-                className="text-sm font-normal text-stone-600"
-                aria-disabled={isResolving}
-              >
-                {isResolving ? "Marking as resolved..." : "Mark as resolved"}
-              </Label>
-            </div>
+          {hasComplaint && !isResolved && (
+            <Button
+              onClick={handleMarkResolved}
+              disabled={isResolving}
+              variant="outline"
+              className="rounded bg-green-700 text-white hover:bg-green-600 active:bg-green-700"
+            >
+              {isResolving ? "Marking as resolved..." : "Mark as resolved"}
+            </Button>
           )}
           <div className="flex gap-2">
             <Button
               variant="outline"
               onClick={handleCancel}
-              className="text-stone-600"
+              className="rounded text-stone-600"
+              disabled={isResolving}
             >
               {hasComplaint ? "Close" : "Cancel"}
             </Button>
