@@ -247,7 +247,7 @@ public class TurfRepository {
           String review = rs.getString("review");
           int rating = rs.getInt("rating");
           String username = rs.getString("username");
-          turfReviews.add(new TurfReview(review, rating, username));
+          turfReviews.add(new TurfReview(username, rating, review));
         }
       }
       return turfReviews;
