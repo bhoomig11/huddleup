@@ -184,11 +184,21 @@ public class UserRepository {
       cs.setString("p_first_name", userProfileUpdate.firstName());
       cs.setString("p_last_name", userProfileUpdate.lastName());
       cs.setDate("p_birth_date", Date.valueOf(userProfileUpdate.birthDate()));
-      cs.setString("p_addr_street_1", userProfileUpdate.address().streetLine1());
-      cs.setString("p_addr_street_2", userProfileUpdate.address().streetLine2());
-      cs.setString("p_addr_town", userProfileUpdate.address().town());
-      cs.setString("p_addr_state", userProfileUpdate.address().state());
-      cs.setString("p_addr_zip_code", userProfileUpdate.address().zipcode());
+      
+      // Handle null address
+      if (userProfileUpdate.address() == null) {
+        cs.setString("p_addr_street_1", null);
+        cs.setString("p_addr_street_2", null);
+        cs.setString("p_addr_town", null);
+        cs.setString("p_addr_state", null);
+        cs.setString("p_addr_zip_code", null);
+      } else {
+        cs.setString("p_addr_street_1", userProfileUpdate.address().streetLine1());
+        cs.setString("p_addr_street_2", userProfileUpdate.address().streetLine2());
+        cs.setString("p_addr_town", userProfileUpdate.address().town());
+        cs.setString("p_addr_state", userProfileUpdate.address().state());
+        cs.setString("p_addr_zip_code", userProfileUpdate.address().zipcode());
+      }
       cs.executeUpdate();
     } catch (SQLException e) {
       if (DatabaseExceptionCategory.RESOURCE_NOT_FOUND.matchesSQLState(e.getSQLState())) {
@@ -397,13 +407,14 @@ public class UserRepository {
   }
 
   public List<CardDetail> getAllCardDetails(String username) throws UserException {
-    String getAllCardDetailsQuery = "{CALL get_all_user_card_detail(?)}";
+    String getAllCardDetailsQuery = "{CALL get_all_user_card_details(?)}";
     List<CardDetail> allNewCardDetails = new ArrayList<>();
     try (Connection connection = dataSource.getConnection();
         CallableStatement cs = connection.prepareCall(getAllCardDetailsQuery)) {
       cs.setString("p_username", username);
       try (ResultSet rs = cs.executeQuery()) {
         while (rs.next()) {
+          int cardId = rs.getInt("card_id");
           String cardNumber = rs.getString("card_number");
           String name = rs.getString("name_on_card");
           Date expiryDate = rs.getDate("expiry_date");
@@ -414,6 +425,7 @@ public class UserRepository {
           String zipCode = rs.getString("addr_zip_code");
           allNewCardDetails.add(
               new CardDetail(
+                  cardId,
                   cardNumber,
                   name,
                   expiryDate,
@@ -691,6 +703,37 @@ public class UserRepository {
       cs.setInt("p_booking_id", bookingId);
       cs.setString("p_c_subject", complaintRequest.subject());
       cs.setString("p_c_description", complaintRequest.description());
+      cs.executeUpdate();
+    } catch (SQLException e) {
+      DatabaseExceptionCategory databaseExceptionCategory =
+          DatabaseExceptionCategory.fromSQLState(e.getSQLState());
+
+      switch (databaseExceptionCategory) {
+        case VALIDATION_ERROR:
+          throw new UserException(e, UserErrorCode.INVALID_USER_FIELD);
+        case RESOURCE_NOT_FOUND:
+          throw new UserException(e, UserErrorCode.BOOKING_NOT_FOUND);
+        default:
+          throw new UserException(e, AppErrorCode.UNKNOWN);
+      }
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  /**
+   * Mark a complaint as resolved for a user's booking.
+   *
+   * @param username the username of the user
+   * @param bookingId the booking ID for which the complaint is being resolved
+   * @throws UserException if the complaint cannot be marked as resolved
+   */
+  public void markComplaintAsResolved(String username, int bookingId) throws UserException {
+    String markComplaintQuery = "{CALL mark_complaint_as_resolved(?, ?)}";
+    try (Connection connection = dataSource.getConnection();
+        CallableStatement cs = connection.prepareCall(markComplaintQuery)) {
+      cs.setString("p_username", username);
+      cs.setInt("p_booking_id", bookingId);
       cs.executeUpdate();
     } catch (SQLException e) {
       DatabaseExceptionCategory databaseExceptionCategory =

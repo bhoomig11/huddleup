@@ -7,6 +7,8 @@ import type { Route } from "./+types/signup";
 import { setAuthToken } from "~/utils/auth";
 import { signupUser } from "~/api/auth";
 import { Button } from "~/components/ui/button";
+import { getInputClass } from "~/routes/user/utils";
+import { HuddleUpLogo } from "~/components/huddleup-logo";
 
 export default function SignupPage({ actionData }: Route.ComponentProps) {
   const navigation = useNavigation();
@@ -27,7 +29,9 @@ export default function SignupPage({ actionData }: Route.ComponentProps) {
       <section className="w-full max-w-md space-y-6">
         {/* Header */}
         <div>
-          <h1 className="text-4xl font-semibold text-green-600">HuddleUp</h1>
+          <span className="text-green-700">
+            <HuddleUpLogo />
+          </span>
           <p className="mt-4 text-muted-foreground">
             Create an account to get started.
           </p>
@@ -35,7 +39,7 @@ export default function SignupPage({ actionData }: Route.ComponentProps) {
 
         {/* Tabs - Login or signup */}
         <Tabs value="signup" className="w-full">
-          <TabsList className="grid grid-cols-2 rounded-xl bg-muted">
+          <TabsList className="grid grid-cols-2 rounded-xl bg-stone-200">
             <TabsTrigger
               value="login"
               className="rounded-xl"
@@ -76,6 +80,7 @@ export default function SignupPage({ actionData }: Route.ComponentProps) {
                   id="firstName"
                   name="firstName"
                   placeholder="Enter your first name"
+                  className={getInputClass("")}
                 />
                 {formErrors !== null && "firstName" in formErrors && (
                   <p className="text-sm text-red-600">{formErrors.firstName}</p>
@@ -89,6 +94,7 @@ export default function SignupPage({ actionData }: Route.ComponentProps) {
                   id="lastName"
                   name="lastName"
                   placeholder="Enter your last name"
+                  className={getInputClass("")}
                 />
                 {formErrors !== null && "lastName" in formErrors && (
                   <p className="text-sm text-red-600">{formErrors.lastName}</p>
@@ -102,6 +108,7 @@ export default function SignupPage({ actionData }: Route.ComponentProps) {
                   id="username"
                   name="username"
                   placeholder="Enter your username"
+                  className={getInputClass("")}
                 />
                 {formErrors !== null && "username" in formErrors && (
                   <p className="text-sm text-red-600">{formErrors.username}</p>
@@ -116,6 +123,7 @@ export default function SignupPage({ actionData }: Route.ComponentProps) {
                   name="email"
                   type="email"
                   placeholder="Enter your email"
+                  className={getInputClass("")}
                 />
                 {formErrors !== null && "email" in formErrors && (
                   <p className="text-sm text-red-600">{formErrors.email}</p>
@@ -130,6 +138,7 @@ export default function SignupPage({ actionData }: Route.ComponentProps) {
                   name="password"
                   type="password"
                   placeholder="Enter your password"
+                  className={getInputClass("")}
                 />
                 {formErrors !== null && "password" in formErrors && (
                   <p className="text-sm text-red-600">{formErrors.password}</p>
@@ -139,7 +148,7 @@ export default function SignupPage({ actionData }: Route.ComponentProps) {
               {/* Submit button */}
               <Button
                 type="submit"
-                className="h-11 w-full bg-green-600 text-base"
+                className="h-11 w-full bg-green-700 text-base"
                 disabled={isSubmitting}
               >
                 {isSubmitting ? (

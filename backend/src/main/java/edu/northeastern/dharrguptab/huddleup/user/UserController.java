@@ -71,9 +71,9 @@ public class UserController {
   }
 
   @PutMapping("/{username}/username")
-  public void updateUsername(
+  public AuthResponse updateUsername(
       @PathVariable String username, @RequestBody UsernameUpdate usernameUpdate) {
-    userService.updateUsername(username, usernameUpdate.newUsername());
+    return userService.updateUsername(username, usernameUpdate.newUsername());
   }
 
   @PutMapping("/{username}/password")
@@ -147,6 +147,11 @@ public class UserController {
       @PathVariable int booking_id,
       @RequestBody ComplaintRequest complaintRequest) {
     userService.fileComplaint(username, booking_id, complaintRequest);
+  }
+
+  @PatchMapping("/{username}/booking/{booking_id}/complaint/resolve")
+  public void markComplaintAsResolved(@PathVariable String username, @PathVariable int booking_id) {
+    userService.markComplaintAsResolved(username, booking_id);
   }
 
   @DeleteMapping("/{username}/review/{turf_id}")

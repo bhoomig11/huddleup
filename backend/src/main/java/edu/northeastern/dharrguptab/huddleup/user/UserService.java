@@ -1,5 +1,6 @@
 package edu.northeastern.dharrguptab.huddleup.user;
 
+import edu.northeastern.dharrguptab.huddleup.auth.dto.AuthResponse;
 import edu.northeastern.dharrguptab.huddleup.auth.dto.UserCredentials;
 import edu.northeastern.dharrguptab.huddleup.auth.dto.UserLoginCredentials;
 import edu.northeastern.dharrguptab.huddleup.auth.dto.UserSignupCredentials;
@@ -116,7 +117,7 @@ public class UserService {
    * @param currentUsername the current username of the user
    * @param newUsername the new username of the user
    */
-  public void updateUsername(String currentUsername, String newUsername) {
+  public AuthResponse updateUsername(String currentUsername, String newUsername) {
     String authenticatedUsername = getAuthenticatedUsername();
 
     boolean isAuthenticated = authenticatedUsername != null;
@@ -130,6 +131,8 @@ public class UserService {
     }
 
     userRepository.updateUsername(currentUsername, newUsername);
+    String token = jwtService.generateToken(newUsername);
+    return new AuthResponse(token);
   }
 
   /**
@@ -410,6 +413,28 @@ public class UserService {
     }
 
     userRepository.fileComplaint(username, bookingId, complaintRequest);
+  }
+
+  /**
+   * Mark a complaint as resolved for a user's booking.
+   *
+   * @param username the username of the user
+   * @param bookingId the booking ID for which the complaint is being resolved
+   */
+  public void markComplaintAsResolved(String username, int bookingId) {
+    String authenticatedUsername = getAuthenticatedUsername();
+
+    boolean isAuthenticated = authenticatedUsername != null;
+    if (!isAuthenticated) {
+      throw new UnauthenticatedException();
+    }
+
+    boolean isAuthorized = username.equals(authenticatedUsername);
+    if (!isAuthorized) {
+      throw new UnauthorizedException();
+    }
+
+    userRepository.markComplaintAsResolved(username, bookingId);
   }
 
   /**
