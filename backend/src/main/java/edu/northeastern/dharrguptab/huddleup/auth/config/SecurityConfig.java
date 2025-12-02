@@ -40,7 +40,7 @@ public class SecurityConfig {
                     .permitAll()
                     .requestMatchers(HttpMethod.GET, "/api/turf/**")
                     .permitAll()
-                    .requestMatchers("/api/user/**")
+                    .requestMatchers("/api/user/**", "/api/turf/**")
                     .hasRole("USER")
                     .requestMatchers("/api/employee/**")
                     .hasRole("EMPLOYEE")
