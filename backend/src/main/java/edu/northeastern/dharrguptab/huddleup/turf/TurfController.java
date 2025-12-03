@@ -6,9 +6,11 @@ import edu.northeastern.dharrguptab.huddleup.turf.dto.TurfData;
 import edu.northeastern.dharrguptab.huddleup.turf.dto.TurfReview;
 import edu.northeastern.dharrguptab.huddleup.turf.dto.TurfSummary;
 import java.util.List;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -47,7 +49,7 @@ public class TurfController {
   }
 
   /**
-   * Endpoint for adding a review for a turf.
+   * Endpoint for adding a review for a turf by the authenticated user.
    *
    * @param turf_id the ID of the turf being reviewed
    * @param reviewRequest the review details
@@ -61,6 +63,27 @@ public class TurfController {
   @GetMapping("/{turf_id}/review")
   public List<TurfReview> getTurfReviews(@PathVariable int turf_id) {
     return turfService.getTurfReviews(turf_id);
+  }
+
+  /**
+   * Endpoint for deleting the authenticated user's review for a turf.
+   *
+   * @param turf_id the ID of the turf
+   */
+  @DeleteMapping("/{turf_id}/review")
+  public void deleteReview(@PathVariable int turf_id) {
+    turfService.deleteReview(turf_id);
+  }
+
+  /**
+   * Endpoint for updating the authenticated user's review for a turf.
+   *
+   * @param turf_id the ID of the turf being reviewed
+   * @param reviewRequest the review details
+   */
+  @PutMapping("/{turf_id}/review")
+  public void updateReview(@PathVariable int turf_id, @RequestBody ReviewRequest reviewRequest) {
+    turfService.updateReview(turf_id, reviewRequest);
   }
 
   /** Endpoint for getting all the images for a turf */

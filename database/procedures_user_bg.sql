@@ -489,3 +489,71 @@ BEGIN
 END $$
 DELIMITER ;
 
+/**
+ * Procedure: update_user_review
+ * ----------------------------------
+ * Update review left by the user.
+ *
+ *
+ * Input Parameters
+ * ----------------
+ *   - p_username - the username of the user
+ *   - p_turf_id - the ID of the turf
+ *   - p_rating - the rating value; expects a number between 1 and 5 (inclusive)
+ *   - p_review - the review message left by the user
+ *
+ *
+ * Errors
+ * ------
+ *   - Signals SQLSTATE '45001' if the username is NULL or empty.
+ *   - Signals SQLSTATE '45001' if the turf id is NULL or empty.
+ *   - Signals SQLSTATE '45001' if the rating is not valid.
+ *   - Signals SQLSTATE '45002' if no such user or turf found.
+ *   - Signals SQLSTATE '45002' if the user has not reviewed this turf before.
+ */
+DROP PROCEDURE IF EXISTS update_user_review;
+DELIMITER $$
+CREATE PROCEDURE update_user_review(
+    IN p_username VARCHAR(64),
+    IN p_turf_id INT,
+    IN p_rating INT,
+    IN p_review VARCHAR(255)
+)
+BEGIN
+     -- check for valid username
+    IF (p_username IS NULL OR CHAR_LENGTH(p_username) = 0) THEN
+        SIGNAL SQLSTATE '45001' SET MESSAGE_TEXT = 'Username cannot be empty';
+    ELSEIF NOT EXISTS (SELECT username FROM app_user WHERE username = p_username) THEN
+        SIGNAL SQLSTATE '45002' SET MESSAGE_TEXT = 'No such user exists';
+    END IF;
+
+    -- check for valid turf
+    IF (p_turf_id IS NULL) THEN
+        SIGNAL SQLSTATE '45001' SET MESSAGE_TEXT = 'Turf ID cannot be empty';
+    ELSEIF NOT EXISTS (SELECT turf_id FROM turf WHERE turf_id = p_turf_id) THEN
+        SIGNAL SQLSTATE '45002' SET MESSAGE_TEXT = 'No such turf found';
+    END IF;
+
+    -- check if rating is NOT NULL and within the range
+    IF (p_rating IS NULL OR p_rating < 1 OR p_rating > 5) THEN
+        SIGNAL SQLSTATE '45001' SET MESSAGE_TEXT = 'Rating must be between 1 and 5';
+    END IF;
+
+    -- check if the user has reviewed this turf before
+    IF NOT EXISTS (
+        SELECT rating FROM review 
+        WHERE turf_id = p_turf_id AND username = p_username
+    ) THEN
+        SIGNAL SQLSTATE '45002' 
+        SET MESSAGE_TEXT = 'User has not reviewed this turf before';
+    END IF;
+
+    -- update the review
+    UPDATE review
+    SET rating = p_rating,
+        review = p_review
+    WHERE turf_id = p_turf_id
+        AND username = p_username;
+END $$
+DELIMITER ;
+

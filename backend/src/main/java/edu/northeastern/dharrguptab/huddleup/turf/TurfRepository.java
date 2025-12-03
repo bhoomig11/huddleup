@@ -236,6 +236,74 @@ public class TurfRepository {
     }
   }
 
+  /**
+   * Delete a review for a turf.
+   *
+   * @param username the username of the user deleting the review
+   * @param turfId the ID of the turf
+   * @throws TurfException if the review cannot be deleted
+   */
+  public void deleteReview(String username, int turfId) throws TurfException {
+    String deleteReviewQuery = "{CALL delete_user_review(?, ?)}";
+
+    try (Connection connection = dataSource.getConnection();
+        CallableStatement cs = connection.prepareCall(deleteReviewQuery)) {
+      cs.setString("p_username", username);
+      cs.setInt("p_turf_id", turfId);
+      cs.executeUpdate();
+    } catch (SQLException e) {
+      DatabaseExceptionCategory databaseExceptionCategory =
+          DatabaseExceptionCategory.fromSQLState(e.getSQLState());
+
+      switch (databaseExceptionCategory) {
+        case VALIDATION_ERROR:
+          throw new TurfException(e, TurfErrorCode.INVALID_REVIEW_DATA);
+        case RESOURCE_NOT_FOUND:
+          throw new TurfException(e, TurfErrorCode.RESOURCE_NOT_FOUND);
+        default:
+          throw new TurfException(e, AppErrorCode.UNKNOWN);
+      }
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  /**
+   * Update a review for a turf.
+   *
+   * @param username the username of the user updating the review
+   * @param turfId the ID of the turf being reviewed
+   * @param reviewRequest the review details
+   * @throws TurfException if the review cannot be updated
+   */
+  public void updateReview(String username, int turfId, ReviewRequest reviewRequest)
+      throws TurfException {
+    String updateReviewQuery = "{CALL update_user_review(?, ?, ?, ?)}";
+
+    try (Connection connection = dataSource.getConnection();
+        CallableStatement cs = connection.prepareCall(updateReviewQuery)) {
+      cs.setString("p_username", username);
+      cs.setInt("p_turf_id", turfId);
+      cs.setInt("p_rating", reviewRequest.rating());
+      cs.setString("p_review", reviewRequest.review());
+      cs.executeUpdate();
+    } catch (SQLException e) {
+      DatabaseExceptionCategory databaseExceptionCategory =
+          DatabaseExceptionCategory.fromSQLState(e.getSQLState());
+
+      switch (databaseExceptionCategory) {
+        case VALIDATION_ERROR:
+          throw new TurfException(e, TurfErrorCode.INVALID_REVIEW_DATA);
+        case RESOURCE_NOT_FOUND:
+          throw new TurfException(e, TurfErrorCode.RESOURCE_NOT_FOUND);
+        default:
+          throw new TurfException(e, AppErrorCode.UNKNOWN);
+      }
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+  }
+
   /** Get all the reviews for a turf. */
   public List<TurfReview> getAllTurfReviews(int turfId) throws TurfException {
     String getTurfReviewsQuery = "{CALL get_all_turf_reviews(?)}";

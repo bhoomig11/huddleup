@@ -755,37 +755,6 @@ public class UserRepository {
   }
 
   /**
-   * Delete a review for a user's turf.
-   *
-   * @param username the username of the user
-   * @param turfId the ID of the turf for which the review is being deleted
-   * @throws UserException if the review cannot be deleted
-   */
-  public void deleteUserReview(String username, int turfId) throws UserException {
-    String deleteUserReviewQuery = "{CALL delete_user_review(?, ?)}";
-    try (Connection connection = dataSource.getConnection();
-        CallableStatement cs = connection.prepareCall(deleteUserReviewQuery)) {
-      cs.setString("p_username", username);
-      cs.setInt("p_turf_id", turfId);
-      cs.executeUpdate();
-    } catch (SQLException e) {
-      DatabaseExceptionCategory databaseExceptionCategory =
-          DatabaseExceptionCategory.fromSQLState(e.getSQLState());
-
-      switch (databaseExceptionCategory) {
-        case GENERIC_APP_ERROR:
-          throw new UserException(e, UserErrorCode.REVIEW_NOT_FOUND);
-        case RESOURCE_NOT_FOUND:
-          throw new UserException(e, UserErrorCode.REVIEW_NOT_FOUND);
-        default:
-          throw new UserException(e, AppErrorCode.UNKNOWN);
-      }
-    } catch (Exception e) {
-      throw new RuntimeException(e);
-    }
-  }
-
-  /**
    * Get the latest attended booking for a user at a specific turf.
    *
    * @param username the username of the user

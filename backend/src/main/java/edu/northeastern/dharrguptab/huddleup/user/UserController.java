@@ -174,9 +174,4 @@ public class UserController {
   public void markComplaintAsResolved(@PathVariable String username, @PathVariable int booking_id) {
     userService.markComplaintAsResolved(username, booking_id);
   }
-
-  @DeleteMapping("/{username}/review/{turf_id}")
-  public void deleteUserReview(@PathVariable String username, @PathVariable int turf_id) {
-    userService.deleteUserReview(username, turf_id);
-  }
 }

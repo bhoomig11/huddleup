@@ -67,7 +67,7 @@ public class TurfService {
   }
 
   /**
-   * Add a review for a turf.
+   * Add a review for a turf by the authenticated user.
    *
    * @param turfId the ID of the turf being reviewed
    * @param reviewRequest the review details
@@ -81,6 +81,39 @@ public class TurfService {
     }
 
     turfRepository.addReview(authenticatedUsername, turfId, reviewRequest);
+  }
+
+  /**
+   * Delete the authenticated user's review for a turf.
+   *
+   * @param turfId the ID of the turf
+   */
+  public void deleteReview(int turfId) {
+    String authenticatedUsername = getAuthenticatedUsername();
+
+    boolean isAuthenticated = authenticatedUsername != null;
+    if (!isAuthenticated) {
+      throw new UnauthenticatedException();
+    }
+
+    turfRepository.deleteReview(authenticatedUsername, turfId);
+  }
+
+  /**
+   * Update the authenticated user's review for a turf.
+   *
+   * @param turfId the ID of the turf being reviewed
+   * @param reviewRequest the review details
+   */
+  public void updateReview(int turfId, ReviewRequest reviewRequest) {
+    String authenticatedUsername = getAuthenticatedUsername();
+
+    boolean isAuthenticated = authenticatedUsername != null;
+    if (!isAuthenticated) {
+      throw new UnauthenticatedException();
+    }
+
+    turfRepository.updateReview(authenticatedUsername, turfId, reviewRequest);
   }
 
   /** Get all reviews for a turf */
