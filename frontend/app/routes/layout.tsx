@@ -1,5 +1,10 @@
 import { Outlet } from "react-router";
-import { getAuthToken, getAuthUsername } from "~/utils/auth";
+import {
+  getAuthToken,
+  getAuthUsername,
+  isTokenValid,
+  removeAuthToken,
+} from "~/utils/auth";
 import type { Route } from "./+types/layout";
 import { authContext } from "~/middleware/auth-middleware";
 import { AppUserProvider } from "~/providers/app-user-provider";
@@ -8,7 +13,11 @@ import { Header } from "~/components/header";
 export const clientMiddleware: Route.ClientMiddlewareFunction[] = [
   async function clientMiddleware({ context }) {
     const token = getAuthToken();
-    if (token === null) {
+    if (token === null || !isTokenValid(token)) {
+      // Clean up expired token
+      if (token !== null) {
+        removeAuthToken();
+      }
       context.set(authContext, null);
       return;
     }

@@ -3,7 +3,14 @@ import { Label } from "~/components/ui/label";
 import { Input } from "~/components/ui/input";
 import { Checkbox } from "~/components/ui/checkbox";
 
-import { data, Form, redirect, useNavigate, useNavigation } from "react-router";
+import {
+  data,
+  Form,
+  redirect,
+  useNavigate,
+  useNavigation,
+  useSearchParams,
+} from "react-router";
 import type { Route } from "./+types/login";
 import { setAuthToken } from "~/utils/auth";
 import { loginUser } from "~/api/auth";
@@ -14,7 +21,9 @@ import { HuddleUpLogo } from "~/components/huddleup-logo";
 export default function LoginPage({ actionData }: Route.ComponentProps) {
   const navigation = useNavigation();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const isSubmitting = navigation.state === "submitting";
+  const returnUrl = searchParams.get("returnUrl");
 
   const loginError = actionData?.status === 401 ? actionData.error : null;
   const formErrors = actionData?.status === 400 ? actionData.errors : null;
@@ -52,6 +61,9 @@ export default function LoginPage({ actionData }: Route.ComponentProps) {
 
           <TabsContent value="login" className="pt-6">
             <Form method="post" action="/login" className="space-y-6" replace>
+              {returnUrl && (
+                <input type="hidden" name="returnUrl" value={returnUrl} />
+              )}
               {loginError !== null && (
                 <div className="flex items-center gap-2 rounded-md border border-red-300 bg-red-50 p-3 text-sm text-red-700">
                   <svg
@@ -151,7 +163,9 @@ export default function LoginPage({ actionData }: Route.ComponentProps) {
   );
 }
 
-export async function action({ request }: Route.ActionArgs) {
+export async function clientAction({
+  request,
+}: Route.ClientActionArgs) {
   const formData = await request.formData();
   const formErrors: Record<string, string> = {};
   let hasFormErrors = false;
@@ -192,15 +206,11 @@ export async function action({ request }: Route.ActionArgs) {
   }
 
   const { token } = await result.json();
-  return data({ ok: true, status: 200 as const, token }, { status: 200 });
-}
+  setAuthToken(token);
 
-export async function clientAction({ serverAction }: Route.ClientActionArgs) {
-  const response = await serverAction();
-  if (response.status === 200) {
-    setAuthToken(response.token);
-    throw redirect("/browse");
-  } else {
-    return response;
-  }
+  const returnUrl = formData.get("returnUrl")?.toString();
+  const redirectPath = returnUrl
+    ? decodeURIComponent(returnUrl)
+    : "/turf/browse";
+  throw redirect(redirectPath);
 }

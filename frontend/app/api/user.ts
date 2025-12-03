@@ -1,10 +1,10 @@
 import { withBase } from "./base";
-import { getAuthToken } from "~/utils/auth";
+import { getAuthToken, isTokenValid } from "~/utils/auth";
 
 function getAuthenticatedHeaders(): HeadersInit {
   const token = getAuthToken();
-  if (!token) {
-    throw new Error("Authentication token is required");
+  if (!token || !isTokenValid(token)) {
+    throw new Error("Authentication token is required or has expired");
   }
 
   return {

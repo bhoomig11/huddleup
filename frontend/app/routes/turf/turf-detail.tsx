@@ -12,6 +12,7 @@ import type { Route } from "./+types/turf-detail";
 import { data, redirect } from "react-router";
 import { Link } from "react-router";
 import type { TurfDetails, TurfReview } from "~/types/turf";
+import { isAuthError, redirectToLogin } from "~/utils/auth-errors";
 import {
   Clock,
   Ruler,
@@ -30,6 +31,7 @@ import { useAppUser } from "~/providers/app-user-provider";
 export async function clientLoader({
   context,
   params,
+  request,
 }: Route.ClientLoaderArgs) {
   const turfId = Number.parseInt(params.turfId);
   if (Number.isNaN(turfId)) {
@@ -93,6 +95,10 @@ export async function clientLoader({
         canUserReview = latestBooking !== null;
       }
     } catch (error) {
+      if (isAuthError(error)) {
+        const currentPath = new URL(request.url).pathname;
+        redirectToLogin(currentPath);
+      }
       console.error("Error fetching latest booking:", error);
       canUserReview = false;
     }
@@ -115,7 +121,8 @@ export async function clientAction({
 }: Route.ClientActionArgs) {
   const auth = context.get(authContext);
   if (auth === null) {
-    throw data("Please log in to perform this action", { status: 401 });
+    const currentPath = new URL(request.url).pathname;
+    redirectToLogin(currentPath);
   }
 
   const turfId = Number.parseInt(params.turfId);
@@ -127,30 +134,52 @@ export async function clientAction({
 
   const method = request.method;
   const formData = await request.formData();
+  const currentPath = new URL(request.url).pathname;
 
   if (method === "DELETE") {
-    const response = await deleteTurfReview(turfId);
-    if (!response.ok) {
-      throw data("Error deleting review", { status: response.status });
+    try {
+      const response = await deleteTurfReview(turfId);
+      if (!response.ok) {
+        throw data("Error deleting review", { status: response.status });
+      }
+      return redirect(`/turf/${turfId}`);
+    } catch (error) {
+      if (isAuthError(error)) {
+        redirectToLogin(currentPath);
+      }
+      throw error;
     }
-    return redirect(`/turf/${turfId}`);
   }
 
   const rating = Number.parseInt(formData.get("rating")?.toString() ?? "0");
   const review = formData.get("review")?.toString() || null;
 
   if (method === "PUT") {
-    const response = await updateTurfReview(turfId, { rating, review });
-    if (!response.ok) {
-      throw data("Error updating review", { status: response.status });
+    try {
+      const response = await updateTurfReview(turfId, { rating, review });
+      if (!response.ok) {
+        throw data("Error updating review", { status: response.status });
+      }
+      return redirect(`/turf/${turfId}`);
+    } catch (error) {
+      if (isAuthError(error)) {
+        redirectToLogin(currentPath);
+      }
+      throw error;
     }
-    return redirect(`/turf/${turfId}`);
   } else {
-    const response = await addTurfReview(turfId, { rating, review });
-    if (!response.ok) {
-      throw data("Error adding review", { status: response.status });
+    try {
+      const response = await addTurfReview(turfId, { rating, review });
+      if (!response.ok) {
+        throw data("Error adding review", { status: response.status });
+      }
+      return redirect(`/turf/${turfId}`);
+    } catch (error) {
+      if (isAuthError(error)) {
+        redirectToLogin(currentPath);
+      }
+      throw error;
     }
-    return redirect(`/turf/${turfId}`);
   }
 }
 
