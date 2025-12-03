@@ -135,7 +135,7 @@ export default function BookStep3() {
           <div className="flex items-center justify-between">
             <h3 className="font-semibold text-stone-700">Booking Summary</h3>
             <Link
-              to={`/turf/${turfId}/book/step-1`}
+              to={`/turf/${turfId}/book/step-select-slot`}
               className="text-sm font-medium text-green-700 hover:text-green-600 hover:underline"
             >
               Change

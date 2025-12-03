@@ -1,6 +1,10 @@
 import type { BookingSummary } from "./booking";
 import type { Address } from "./shared";
 
+/**
+ * Turf details as returned by the API endpoint.
+ * This is the base turf information without extended data (images, features, reviews).
+ */
 export type TurfDetails = {
   turfId: number;
   turfName: string;
@@ -15,6 +19,13 @@ export type TurfDetails = {
   opensAtLocalTime: string;
   closesAtLocalTime: string;
   address: Address;
+};
+
+/**
+ * Extended turf details including images, features, and reviews.
+ * This is the combined type used on the turf detail page.
+ */
+export type TurfDetailsWithExtras = TurfDetails & {
   images: Array<string>;
   features: Array<TurfFeature>;
   userReview: TurfReview | null;

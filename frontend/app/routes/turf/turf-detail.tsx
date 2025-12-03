@@ -12,7 +12,7 @@ import type { BookingSummary } from "~/types/booking";
 import type { Route } from "./+types/turf-detail";
 import { data, redirect } from "react-router";
 import { Link } from "react-router";
-import type { TurfDetails, TurfFeature, TurfReview } from "~/types/turf";
+import type { TurfDetails, TurfDetailsWithExtras, TurfFeature, TurfReview } from "~/types/turf";
 import { isAuthError, redirectToLogin } from "~/utils/auth-errors";
 import {
   Clock,
@@ -72,16 +72,13 @@ export async function clientLoader({
     });
   }
 
-  const details = (await detailsResponse.json()) as Omit<
-    TurfDetails,
-    "images" | "reviews" | "features"
-  >;
-  const images = (await imagesResponse.json()) as TurfDetails["images"];
+  const details = (await detailsResponse.json()) as TurfDetails;
+  const images = (await imagesResponse.json()) as TurfDetailsWithExtras["images"];
   const reviews = (await reviewsResponse.json()) as Array<TurfReview>;
   const features = (await featuresResponse.json()) as Array<TurfFeature>;
 
   const auth = context.get(authContext);
-  let userReview: TurfDetails["userReview"] = null;
+  let userReview: TurfDetailsWithExtras["userReview"] = null;
   const otherReviews = reviews.filter((review) => {
     const isUserReview = review.username === auth?.username;
     if (isUserReview) {
@@ -123,7 +120,7 @@ export async function clientLoader({
     otherReviews,
     canUserReview,
     latestBooking,
-  } as TurfDetails;
+  } as TurfDetailsWithExtras;
 }
 
 export async function clientAction({

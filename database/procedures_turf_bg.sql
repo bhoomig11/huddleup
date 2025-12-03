@@ -339,7 +339,7 @@ BEGIN
     IF (p_coupon_id IS NOT NULL AND NOT EXISTS (SELECT coupon_id FROM coupon WHERE coupon_id = p_coupon_id)) THEN 
         SIGNAL SQLSTATE '45002' SET MESSAGE_TEXT = 'No such coupon exists';
     END IF;
-
+ 
     -- validate end time is after start time
     IF (p_end_time_utc <= p_start_time_utc) THEN
         SIGNAL SQLSTATE '45001' SET MESSAGE_TEXT = 'End time must be after start time';
@@ -351,7 +351,7 @@ BEGIN
     IF (v_start_minute NOT IN (0, 30) OR v_start_second != 0) THEN
         SIGNAL SQLSTATE '45001' SET MESSAGE_TEXT = 'Start time must be at a multiple of 30 minutes (e.g., 10:00, 10:30)';
     END IF;
-    
+
     -- validate end time is 1 minute before a multiple of 30 minutes (29 or 59 minutes, 0 seconds)
     SET v_end_minute = MINUTE(p_end_time_utc);
     SET v_end_second = SECOND(p_end_time_utc);
@@ -490,5 +490,165 @@ BEGIN
     INNER JOIN turf_feature AS tf ON ttf.feature_name = tf.feat_name
     WHERE ttf.turf_id = p_turf_id
     ORDER BY tf.feat_name;
+END $$
+DELIMITER ;
+
+/**
+ * Procedure: get_available_start_times
+ * ------------------------------------
+ * Get all available start times (:00, :30) for a turf on a given date.
+ * A start time is available if it doesn't fall within an existing booking.
+ *
+ * Input Parameters
+ * ----------------
+ *   - p_turf_id - the ID of the turf
+ *   - p_date - the date to check availability for (DATE format: YYYY-MM-DD)
+ *
+ * Output Columns
+ * --------------
+ *   - start_time_local - available start time in local timezone (TIME format: HH:mm:ss)
+ *
+ * Errors
+ * ------
+ *   - Signals SQLSTATE '45001' if p_turf_id or p_date is NULL
+ *   - Signals SQLSTATE '45002' if no such turf exists
+ */
+DROP PROCEDURE IF EXISTS get_available_start_times;
+DELIMITER $$
+CREATE PROCEDURE get_available_start_times(
+    IN p_turf_id INT,
+    IN p_date DATE
+)
+BEGIN
+    IF (p_turf_id IS NULL) THEN
+        SIGNAL SQLSTATE '45001'
+        SET MESSAGE_TEXT = 'Turf ID cannot be NULL or empty';
+    END IF;
+
+    IF (p_date IS NULL) THEN
+        SIGNAL SQLSTATE '45001'
+        SET MESSAGE_TEXT = 'Date cannot be NULL or empty';
+    END IF;
+    
+    IF NOT EXISTS (SELECT turf_id FROM turf WHERE turf_id = p_turf_id) THEN
+        SIGNAL SQLSTATE '45002'
+        SET MESSAGE_TEXT = 'No such turf exists';
+    END IF;
+    
+    WITH RECURSIVE start_times AS (
+        SELECT 
+            opens_at_local AS start_time_local,
+            closes_at_local,
+            iana_timezone
+        FROM turf
+        WHERE turf_id = p_turf_id
+        
+        UNION ALL
+        
+        SELECT 
+            ADDTIME(st.start_time_local, '00:30:00') AS start_time_local,
+            st.closes_at_local,
+            st.iana_timezone
+        FROM start_times AS st
+        WHERE ADDTIME(st.start_time_local, '00:30:00') < st.closes_at_local
+    )
+    SELECT st.start_time_local
+    FROM start_times st
+    WHERE NOT EXISTS (
+        SELECT 1 FROM booking b
+        WHERE b.turf_id = p_turf_id
+        AND convert_local_to_utc(p_date, st.start_time_local, st.iana_timezone) >= b.start_time_utc
+        AND convert_local_to_utc(p_date, st.start_time_local, st.iana_timezone) < b.end_time_utc
+    )
+    ORDER BY st.start_time_local;
+END $$
+DELIMITER ;
+
+/**
+ * Procedure: get_available_end_times
+ * ----------------------------------
+ * Get all available end times (:29, :59) for a turf on a given date and start time.
+ * An end time is available if the range [start_time, end_time] doesn't conflict
+ * with any existing booking.
+ *
+ * Input Parameters
+ * ----------------
+ *   - p_turf_id - the ID of the turf
+ *   - p_date - the date to check availability for (DATE format: YYYY-MM-DD)
+ *   - p_start_time - the selected start time (TIME format: HH:mm:ss, must be :00 or :30)
+ *
+ * Output Columns
+ * --------------
+ *   - end_time_local - available end time in local timezone (TIME format: HH:mm:ss)
+ *
+ * Errors
+ * ------
+ *   - Signals SQLSTATE '45001' if any input parameter is NULL
+ *   - Signals SQLSTATE '45001' if p_start_time is not at :00 or :30
+ *   - Signals SQLSTATE '45002' if no such turf exists
+ */
+DROP PROCEDURE IF EXISTS get_available_end_times;
+DELIMITER $$
+CREATE PROCEDURE get_available_end_times(
+    IN p_turf_id INT,
+    IN p_date DATE,
+    IN p_start_time TIME
+)
+BEGIN
+    DECLARE v_start_minute INT;
+    
+    IF (p_turf_id IS NULL) THEN
+        SIGNAL SQLSTATE '45001'
+        SET MESSAGE_TEXT = 'Turf ID cannot be NULL or empty';
+    END IF;
+
+    IF (p_date IS NULL) THEN
+        SIGNAL SQLSTATE '45001'
+        SET MESSAGE_TEXT = 'Date cannot be NULL or empty';
+    END IF;
+
+    IF (p_start_time IS NULL) THEN
+        SIGNAL SQLSTATE '45001'
+        SET MESSAGE_TEXT = 'Start time cannot be NULL or empty';
+    END IF;
+    
+    -- Validate start time is at :00 or :30
+    SET v_start_minute = MINUTE(p_start_time);
+    IF (v_start_minute NOT IN (0, 30) OR SECOND(p_start_time) != 0) THEN
+        SIGNAL SQLSTATE '45001'
+        SET MESSAGE_TEXT = 'Start time must be at :00 or :30 minutes';
+    END IF;
+    
+    IF NOT EXISTS (SELECT turf_id FROM turf WHERE turf_id = p_turf_id) THEN
+        SIGNAL SQLSTATE '45002'
+        SET MESSAGE_TEXT = 'No such turf exists';
+    END IF;
+    
+    WITH RECURSIVE end_times AS (
+        SELECT 
+            ADDTIME(p_start_time, '00:29:00') AS end_time_local,
+            closes_at_local,
+            iana_timezone
+        FROM turf
+        WHERE turf_id = p_turf_id
+        
+        UNION ALL
+        
+        SELECT 
+            ADDTIME(et.end_time_local, '00:30:00') AS end_time_local,
+            et.closes_at_local,
+            et.iana_timezone
+        FROM end_times AS et
+        WHERE ADDTIME(et.end_time_local, '00:30:00') <= et.closes_at_local
+    )
+    SELECT et.end_time_local
+    FROM end_times et
+    WHERE NOT EXISTS (
+        SELECT 1 FROM booking b
+        WHERE b.turf_id = p_turf_id
+        AND convert_local_to_utc(p_date, et.end_time_local, et.iana_timezone) > b.start_time_utc
+        AND convert_local_to_utc(p_date, p_start_time, et.iana_timezone) <= b.end_time_utc
+    )
+    ORDER BY et.end_time_local;
 END $$
 DELIMITER ;

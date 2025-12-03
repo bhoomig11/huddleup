@@ -6,7 +6,10 @@ import edu.northeastern.dharrguptab.huddleup.turf.dto.TurfData;
 import edu.northeastern.dharrguptab.huddleup.turf.dto.TurfFeature;
 import edu.northeastern.dharrguptab.huddleup.turf.dto.TurfReview;
 import edu.northeastern.dharrguptab.huddleup.turf.dto.TurfSummary;
+import java.time.LocalDate;
 import java.util.List;
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.format.annotation.DateTimeFormat.ISO;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -14,6 +17,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -97,5 +101,35 @@ public class TurfController {
   @GetMapping("/{turf_id}/feature")
   public List<TurfFeature> getTurfFeatures(@PathVariable int turf_id) {
     return turfService.getTurfFeatures(turf_id);
+  }
+
+  /**
+   * Endpoint for getting available start times for a turf on a given date.
+   *
+   * @param turf_id the ID of the turf
+   * @param date the date to check availability for (YYYY-MM-DD format)
+   * @return list of available start times as strings (HH:mm:ss format)
+   */
+  @GetMapping("/{turf_id}/available-start-times")
+  public List<String> getAvailableStartTimes(
+      @PathVariable int turf_id,
+      @RequestParam @DateTimeFormat(iso = ISO.DATE) LocalDate date) {
+    return turfService.getAvailableStartTimes(turf_id, date);
+  }
+
+  /**
+   * Endpoint for getting available end times for a turf on a given date and start time.
+   *
+   * @param turf_id the ID of the turf
+   * @param date the date to check availability for (YYYY-MM-DD format)
+   * @param startTime the selected start time (HH:mm:ss format)
+   * @return list of available end times as strings (HH:mm:ss format)
+   */
+  @GetMapping("/{turf_id}/available-end-times")
+  public List<String> getAvailableEndTimes(
+      @PathVariable int turf_id,
+      @RequestParam @DateTimeFormat(iso = ISO.DATE) LocalDate date,
+      @RequestParam String startTime) {
+    return turfService.getAvailableEndTimes(turf_id, date, startTime);
   }
 }

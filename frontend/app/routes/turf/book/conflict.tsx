@@ -108,12 +108,12 @@ export default function BookingConflict() {
 
         {/* Navigation */}
         <div className="flex gap-3 pt-4">
-          <Link to={`/turf/${turfId}/book/step-1`} className="flex-1">
+          <Link to={`/turf/${turfId}/book/step-select-slot`} className="flex-1">
             <Button variant="outline" className="w-full">
               Try Again
             </Button>
           </Link>
-          <Link to="/browse-turfs" className="flex-1">
+          <Link to="/turf/browse" className="flex-1">
             <Button
               variant="default"
               className="w-full bg-green-700 hover:bg-green-600"

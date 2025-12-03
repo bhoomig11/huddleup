@@ -13,6 +13,7 @@ import edu.northeastern.dharrguptab.huddleup.turf.exceptions.TurfException;
 import java.math.BigDecimal;
 import java.sql.*;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.TreeMap;
@@ -396,6 +397,89 @@ public class TurfRepository {
         throw new TurfException(e, TurfErrorCode.INVALID_TURF_ID);
       } else {
         throw new TurfException(e, AppErrorCode.UNKNOWN);
+      }
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  /**
+   * Get available start times for a turf on a given date.
+   *
+   * @param turfId the ID of the turf
+   * @param date the date to check availability for
+   * @return list of available start times as strings (HH:mm:ss format)
+   * @throws TurfException if the turf doesn't exist or if there's a database error
+   */
+  public List<String> getAvailableStartTimes(int turfId, LocalDate date) throws TurfException {
+    String getStartTimesQuery = "{CALL get_available_start_times(?, ?)}";
+    List<String> startTimes = new ArrayList<>();
+
+    try (Connection connection = dataSource.getConnection();
+        CallableStatement cs = connection.prepareCall(getStartTimesQuery)) {
+      cs.setInt("p_turf_id", turfId);
+      cs.setDate("p_date", Date.valueOf(date));
+      try (ResultSet rs = cs.executeQuery()) {
+        while (rs.next()) {
+          Time time = rs.getTime("start_time_local");
+          startTimes.add(time.toString());
+        }
+      }
+      return startTimes;
+    } catch (SQLException e) {
+      DatabaseExceptionCategory databaseExceptionCategory =
+          DatabaseExceptionCategory.fromSQLState(e.getSQLState());
+
+      switch (databaseExceptionCategory) {
+        case VALIDATION_ERROR:
+          throw new TurfException(e, TurfErrorCode.INVALID_BOOKING_DATA);
+        case RESOURCE_NOT_FOUND:
+          throw new TurfException(e, TurfErrorCode.RESOURCE_NOT_FOUND);
+        default:
+          throw new TurfException(e, AppErrorCode.UNKNOWN);
+      }
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  /**
+   * Get available end times for a turf on a given date and start time.
+   *
+   * @param turfId the ID of the turf
+   * @param date the date to check availability for
+   * @param startTime the selected start time (HH:mm:ss format)
+   * @return list of available end times as strings (HH:mm:ss format)
+   * @throws TurfException if the turf doesn't exist or if there's a database error
+   */
+  public List<String> getAvailableEndTimes(int turfId, LocalDate date, String startTime)
+      throws TurfException {
+    String getEndTimesQuery = "{CALL get_available_end_times(?, ?, ?)}";
+    List<String> endTimes = new ArrayList<>();
+
+    try (Connection connection = dataSource.getConnection();
+        CallableStatement cs = connection.prepareCall(getEndTimesQuery)) {
+      cs.setInt("p_turf_id", turfId);
+      cs.setDate("p_date", Date.valueOf(date));
+      cs.setTime("p_start_time", Time.valueOf(startTime));
+      try (ResultSet rs = cs.executeQuery()) {
+        while (rs.next()) {
+          Time time = rs.getTime("end_time_local");
+          endTimes.add(time.toString());
+        }
+      }
+      return endTimes;
+    } catch (SQLException e) {
+      DatabaseExceptionCategory databaseExceptionCategory =
+          DatabaseExceptionCategory.fromSQLState(e.getSQLState());
+
+      switch (databaseExceptionCategory) {
+        case VALIDATION_ERROR:
+          throw new TurfException(e, TurfErrorCode.INVALID_BOOKING_DATA);
+        case RESOURCE_NOT_FOUND:
+          throw new TurfException(e, TurfErrorCode.RESOURCE_NOT_FOUND);
+        default:
+          throw new TurfException(e, AppErrorCode.UNKNOWN);
       }
     } catch (Exception e) {
       throw new RuntimeException(e);

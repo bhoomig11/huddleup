@@ -43,7 +43,7 @@ export default function BookStep2() {
   };
 
   const handleBack = () => {
-    navigate(`/turf/${turfId}/book/step-1`);
+    navigate(`/turf/${turfId}/book/step-select-slot`);
   };
 
   return (

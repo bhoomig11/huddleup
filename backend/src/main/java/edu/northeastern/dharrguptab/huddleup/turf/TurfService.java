@@ -7,6 +7,7 @@ import edu.northeastern.dharrguptab.huddleup.turf.dto.TurfData;
 import edu.northeastern.dharrguptab.huddleup.turf.dto.TurfFeature;
 import edu.northeastern.dharrguptab.huddleup.turf.dto.TurfReview;
 import edu.northeastern.dharrguptab.huddleup.turf.dto.TurfSummary;
+import java.time.LocalDate;
 import java.util.List;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -137,6 +138,29 @@ public class TurfService {
   public List<TurfFeature> getTurfFeatures(int turfId) {
     List<TurfFeature> turfFeatures = turfRepository.getAllTurfFeatures(turfId);
     return turfFeatures;
+  }
+
+  /**
+   * Get available start times for a turf on a given date.
+   *
+   * @param turfId the ID of the turf
+   * @param date the date to check availability for
+   * @return list of available start times as strings (HH:mm:ss format)
+   */
+  public List<String> getAvailableStartTimes(int turfId, LocalDate date) {
+    return turfRepository.getAvailableStartTimes(turfId, date);
+  }
+
+  /**
+   * Get available end times for a turf on a given date and start time.
+   *
+   * @param turfId the ID of the turf
+   * @param date the date to check availability for
+   * @param startTime the selected start time (HH:mm:ss format)
+   * @return list of available end times as strings (HH:mm:ss format)
+   */
+  public List<String> getAvailableEndTimes(int turfId, LocalDate date, String startTime) {
+    return turfRepository.getAvailableEndTimes(turfId, date, startTime);
   }
 
   /**
