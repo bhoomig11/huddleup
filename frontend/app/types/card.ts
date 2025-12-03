@@ -7,4 +7,3 @@ export type CardDetail = {
   expiryDate: string; // ISO date string from backend
   billingAddress: Address;
 };
-

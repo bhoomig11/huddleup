@@ -6,6 +6,8 @@ import edu.northeastern.dharrguptab.huddleup.common.dto.Address;
 import edu.northeastern.dharrguptab.huddleup.common.exceptions.AppErrorCode;
 import edu.northeastern.dharrguptab.huddleup.common.exceptions.DatabaseExceptionCategory;
 import edu.northeastern.dharrguptab.huddleup.user.dto.*;
+import edu.northeastern.dharrguptab.huddleup.user.exceptions.BookingErrorCode;
+import edu.northeastern.dharrguptab.huddleup.user.exceptions.BookingException;
 import edu.northeastern.dharrguptab.huddleup.user.exceptions.UserErrorCode;
 import edu.northeastern.dharrguptab.huddleup.user.exceptions.UserException;
 import java.math.BigDecimal;
@@ -777,6 +779,80 @@ public class UserRepository {
           throw new UserException(e, UserErrorCode.REVIEW_NOT_FOUND);
         default:
           throw new UserException(e, AppErrorCode.UNKNOWN);
+      }
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  /**
+   * Get the latest attended booking for a user at a specific turf.
+   *
+   * @param username the username of the user
+   * @param turfId the ID of the turf
+   * @return the latest booking if it exists, null otherwise
+   * @throws BookingException if the user or turf does not exist or if input is invalid
+   */
+  public BookingSummary getLatestUserTurfBooking(String username, int turfId)
+      throws BookingException {
+    String getLatestBookingQuery = "{CALL get_latest_user_turf_booking(?, ?)}";
+    try (Connection connection = dataSource.getConnection();
+        CallableStatement cs = connection.prepareCall(getLatestBookingQuery)) {
+      cs.setString("p_username", username);
+      cs.setInt("p_turf_id", turfId);
+      try (ResultSet rs = cs.executeQuery()) {
+        if (rs.next()) {
+          int bookingId = rs.getInt("booking_id");
+          Instant startTimeUtc = toInstantOrNull(rs.getTimestamp("start_time_utc"));
+          int durationMins = rs.getInt("duration_mins");
+          BigDecimal amount = rs.getBigDecimal("amount");
+          String complaintSubject = rs.getString("complaint_subject");
+          String complaintDescription = rs.getString("complaint_description");
+          Instant complaintFiledAtUtc =
+              toInstantOrNull(rs.getTimestamp("complaint_filed_at_utc"));
+          Instant complaintResolvedAtUtc =
+              toInstantOrNull(rs.getTimestamp("complaint_resolved_at_utc"));
+          int resultTurfId = rs.getInt("turf_id");
+          String bookingUsername = rs.getString("username");
+          String maskedCardNumber = rs.getString("masked_card_number");
+          Integer couponId = rs.getObject("coupon_id", Integer.class);
+          String turfName = rs.getString("turf_name");
+
+          return new BookingSummary(
+              bookingId,
+              startTimeUtc,
+              durationMins,
+              amount,
+              complaintSubject,
+              complaintDescription,
+              complaintFiledAtUtc,
+              complaintResolvedAtUtc,
+              resultTurfId,
+              turfName,
+              bookingUsername,
+              maskedCardNumber,
+              couponId);
+        }
+      }
+      return null;
+    } catch (SQLException e) {
+      DatabaseExceptionCategory databaseExceptionCategory =
+          DatabaseExceptionCategory.fromSQLState(e.getSQLState());
+      String errorMessage = e.getMessage();
+
+      switch (databaseExceptionCategory) {
+        case VALIDATION_ERROR:
+          throw new BookingException(e, BookingErrorCode.INVALID_INPUT);
+        case RESOURCE_NOT_FOUND:
+          if (errorMessage != null && errorMessage.toLowerCase().contains("user")) {
+            throw new BookingException(e, BookingErrorCode.USER_NOT_FOUND);
+          } else if (errorMessage != null && errorMessage.toLowerCase().contains("turf")) {
+            throw new BookingException(e, BookingErrorCode.TURF_NOT_FOUND);
+          } else {
+            throw new BookingException(e, AppErrorCode.UNKNOWN);
+          }
+        default:
+          throw new BookingException(e, AppErrorCode.UNKNOWN);
       }
     } catch (Exception e) {
       throw new RuntimeException(e);

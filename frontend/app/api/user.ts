@@ -1,16 +1,20 @@
 import { withBase } from "./base";
 import { getAuthToken } from "~/utils/auth";
 
-export async function getAllUserBookings(username: string) {
+function getAuthenticatedHeaders(): HeadersInit {
   const token = getAuthToken();
   if (!token) {
     throw new Error("Authentication token is required");
   }
 
-  const headers: HeadersInit = {
+  return {
     "Content-Type": "application/json",
     Authorization: `Bearer ${token}`,
   };
+}
+
+export async function getAllUserBookings(username: string) {
+  const headers = getAuthenticatedHeaders();
 
   const response = await fetch(withBase(`/api/user/${username}/booking`), {
     method: "GET",
@@ -25,15 +29,7 @@ export async function fileComplaint(
   subject: string,
   description: string
 ) {
-  const token = getAuthToken();
-  if (!token) {
-    throw new Error("Authentication token is required");
-  }
-
-  const headers: HeadersInit = {
-    "Content-Type": "application/json",
-    Authorization: `Bearer ${token}`,
-  };
+  const headers = getAuthenticatedHeaders();
 
   const response = await fetch(
     withBase(`/api/user/${username}/booking/${bookingId}/complaint`),
@@ -53,15 +49,7 @@ export async function markComplaintAsResolved(
   username: string,
   bookingId: number
 ) {
-  const token = getAuthToken();
-  if (!token) {
-    throw new Error("Authentication token is required");
-  }
-
-  const headers: HeadersInit = {
-    "Content-Type": "application/json",
-    Authorization: `Bearer ${token}`,
-  };
+  const headers = getAuthenticatedHeaders();
 
   const response = await fetch(
     withBase(`/api/user/${username}/booking/${bookingId}/complaint/resolve`),
@@ -74,15 +62,7 @@ export async function markComplaintAsResolved(
 }
 
 export async function getAllCardDetails(username: string) {
-  const token = getAuthToken();
-  if (!token) {
-    throw new Error("Authentication token is required");
-  }
-
-  const headers: HeadersInit = {
-    "Content-Type": "application/json",
-    Authorization: `Bearer ${token}`,
-  };
+  const headers = getAuthenticatedHeaders();
 
   const response = await fetch(withBase(`/api/user/${username}/cards`), {
     method: "GET",
@@ -105,15 +85,7 @@ export async function addCardDetail(
     zipcode: string;
   }
 ) {
-  const token = getAuthToken();
-  if (!token) {
-    throw new Error("Authentication token is required");
-  }
-
-  const headers: HeadersInit = {
-    "Content-Type": "application/json",
-    Authorization: `Bearer ${token}`,
-  };
+  const headers = getAuthenticatedHeaders();
 
   const response = await fetch(withBase(`/api/user/${username}/cards`), {
     method: "POST",
@@ -130,15 +102,7 @@ export async function addCardDetail(
 }
 
 export async function deleteCardDetail(username: string, cardId: number) {
-  const token = getAuthToken();
-  if (!token) {
-    throw new Error("Authentication token is required");
-  }
-
-  const headers: HeadersInit = {
-    "Content-Type": "application/json",
-    Authorization: `Bearer ${token}`,
-  };
+  const headers = getAuthenticatedHeaders();
 
   const response = await fetch(
     withBase(`/api/user/${username}/cards/${cardId}`),
@@ -151,15 +115,7 @@ export async function deleteCardDetail(username: string, cardId: number) {
 }
 
 export async function getUserProfile(username: string) {
-  const token = getAuthToken();
-  if (!token) {
-    throw new Error("Authentication token is required");
-  }
-
-  const headers: HeadersInit = {
-    "Content-Type": "application/json",
-    Authorization: `Bearer ${token}`,
-  };
+  const headers = getAuthenticatedHeaders();
 
   const response = await fetch(withBase(`/api/user/${username}/profile`), {
     method: "GET",
@@ -169,15 +125,7 @@ export async function getUserProfile(username: string) {
 }
 
 export async function updateUsername(username: string, newUsername: string) {
-  const token = getAuthToken();
-  if (!token) {
-    throw new Error("Authentication token is required");
-  }
-
-  const headers: HeadersInit = {
-    "Content-Type": "application/json",
-    Authorization: `Bearer ${token}`,
-  };
+  const headers = getAuthenticatedHeaders();
 
   const response = await fetch(withBase(`/api/user/${username}/username`), {
     method: "PUT",
@@ -190,15 +138,7 @@ export async function updateUsername(username: string, newUsername: string) {
 }
 
 export async function updateEmail(username: string, newEmail: string) {
-  const token = getAuthToken();
-  if (!token) {
-    throw new Error("Authentication token is required");
-  }
-
-  const headers: HeadersInit = {
-    "Content-Type": "application/json",
-    Authorization: `Bearer ${token}`,
-  };
+  const headers = getAuthenticatedHeaders();
 
   const response = await fetch(withBase(`/api/user/${username}/email`), {
     method: "PUT",
@@ -211,15 +151,7 @@ export async function updateEmail(username: string, newEmail: string) {
 }
 
 export async function updatePassword(username: string, newPassword: string) {
-  const token = getAuthToken();
-  if (!token) {
-    throw new Error("Authentication token is required");
-  }
-
-  const headers: HeadersInit = {
-    "Content-Type": "application/json",
-    Authorization: `Bearer ${token}`,
-  };
+  const headers = getAuthenticatedHeaders();
 
   const response = await fetch(withBase(`/api/user/${username}/password`), {
     method: "PUT",
@@ -232,15 +164,7 @@ export async function updatePassword(username: string, newPassword: string) {
 }
 
 export async function deleteUser(username: string) {
-  const token = getAuthToken();
-  if (!token) {
-    throw new Error("Authentication token is required");
-  }
-
-  const headers: HeadersInit = {
-    "Content-Type": "application/json",
-    Authorization: `Bearer ${token}`,
-  };
+  const headers = getAuthenticatedHeaders();
 
   const response = await fetch(withBase(`/api/user/${username}`), {
     method: "DELETE",
@@ -264,15 +188,7 @@ export async function updateUserProfile(
     } | null;
   }
 ) {
-  const token = getAuthToken();
-  if (!token) {
-    throw new Error("Authentication token is required");
-  }
-
-  const headers: HeadersInit = {
-    "Content-Type": "application/json",
-    Authorization: `Bearer ${token}`,
-  };
+  const headers = getAuthenticatedHeaders();
 
   // Convert to backend format
   const requestBody = {
@@ -295,5 +211,21 @@ export async function updateUserProfile(
     headers,
     body: JSON.stringify(requestBody),
   });
+  return response;
+}
+
+export async function getLatestUserTurfBooking(
+  username: string,
+  turfId: number
+) {
+  const headers = getAuthenticatedHeaders();
+
+  const response = await fetch(
+    withBase(`/api/user/${username}/booking?turfId=${turfId}&latest=true`),
+    {
+      method: "GET",
+      headers,
+    }
+  );
   return response;
 }

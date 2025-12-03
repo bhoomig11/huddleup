@@ -42,8 +42,8 @@ export const handleNumericInput = (value: string): string => {
  * @returns the formatted date in MM/YYYY format
  */
 export const formatExpiryDate = (expiryDate: string) => {
-    const date = new Date(expiryDate);
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const year = String(date.getFullYear());
-    return { month, year };
-  };
+  const date = new Date(expiryDate);
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const year = String(date.getFullYear());
+  return { month, year };
+};

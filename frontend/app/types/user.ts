@@ -8,4 +8,3 @@ export type UserProfile = {
   birthDate: string | null; // ISO date string from backend
   address: Address;
 };
-

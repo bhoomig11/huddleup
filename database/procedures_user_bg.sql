@@ -138,6 +138,75 @@ END $$
 DELIMITER ;
 
 /**
+ * Procedure: get_latest_user_turf_booking
+ * ---------------------------------------
+ * Get the latest booking for a user at a specific turf that has been attended.
+ *
+ * Input Parameters
+ * ----------------
+ *   - p_username - the username of the user
+ *   - p_turf_id - the ID of the turf
+ *
+ * Output Columns
+ * --------------
+ *   - booking_id - the ID of the booking (NULL if no booking exists)
+ *   - start_time_utc - the timestamp for when the booking starts (NULL if no booking exists)
+ *   - duration_mins - the duration of the booking in minutes (NULL if no booking exists)
+ *   - amount - the amount paid to confirm the booking (NULL if no booking exists)
+ *   - turf_id - the ID of the turf that was booked (NULL if no booking exists)
+ *   - username - the username of the user who made the booking (NULL if no booking exists)
+ *
+ * Errors
+ * ------
+ *   - Signals SQLSTATE '45001' if either input parameter is NULL or empty
+ *   - Signals SQLSTATE '45002' if the corresponding user or turf does not exist
+ */
+DROP PROCEDURE IF EXISTS get_latest_user_turf_booking;
+DELIMITER $$
+CREATE PROCEDURE get_latest_user_turf_booking(IN p_username VARCHAR(64), IN p_turf_id INT)
+BEGIN 
+    IF (p_username IS NULL OR CHAR_LENGTH(p_username) = 0) THEN
+        SIGNAL SQLSTATE "45001" 
+        SET MESSAGE_TEXT = 'Username cannot be empty';
+    ELSEIF NOT EXISTS (SELECT username FROM app_user WHERE username = p_username) THEN
+        SIGNAL SQLSTATE "45002" 
+        SET MESSAGE_TEXT = "No such user exists";
+    END IF;
+
+    IF (p_turf_id IS NULL) THEN
+        SIGNAL SQLSTATE "45001" 
+        SET MESSAGE_TEXT = "Turf ID cannot be empty";
+    ELSEIF NOT EXISTS (SELECT turf_id FROM turf WHERE turf_id = p_turf_id) THEN
+        SIGNAL SQLSTATE "45002" 
+        SET MESSAGE_TEXT = "No such turf exists";
+    END IF;
+
+    SELECT 
+        b.booking_id,
+        b.start_time_utc,
+        b.duration_mins,
+        b.amount,
+        b.complaint_subject,
+        b.complaint_description,
+        b.complaint_filed_at_utc,
+        b.complaint_resolved_at_utc,
+        b.turf_id,
+        b.username,
+        b.masked_card_number,
+        b.coupon_id,
+        t.turf_name
+    FROM booking AS b
+    INNER JOIN turf AS t
+    ON b.turf_id = t.turf_id
+    WHERE b.username = p_username 
+        AND b.turf_id = p_turf_id
+        AND b.start_time_utc < UTC_TIMESTAMP()
+    ORDER BY b.start_time_utc DESC
+    LIMIT 1;
+END $$
+DELIMITER ;
+
+/**
  * Procedure: add_review
  * ---------------------
  * Add a user review for a booking.

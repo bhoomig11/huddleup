@@ -1,3 +1,4 @@
+import type { BookingSummary } from "./booking";
 import type { Address } from "./shared";
 
 export type TurfDetails = {
@@ -17,6 +18,8 @@ export type TurfDetails = {
   images: Array<string>;
   userReview: TurfReview | null;
   otherReviews: Array<TurfReview>;
+  canUserReview: boolean;
+  latestBooking: BookingSummary | null;
 };
 
 export type TurfReview = {

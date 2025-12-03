@@ -4,8 +4,11 @@ import {
   fetchTurfImages,
   fetchTurfReviews,
 } from "~/api/turf";
+import { getLatestUserTurfBooking } from "~/api/user";
+import type { BookingSummary } from "~/types/booking";
 import type { Route } from "./+types/turf-detail";
 import { data, useSubmit } from "react-router";
+import { useState } from "react";
 import { Link } from "react-router";
 import * as z from "zod";
 import type { TurfDetails, TurfReview } from "~/types/turf";
@@ -16,6 +19,8 @@ import {
   ToyBrick,
   CircleSlash,
   CircleUser,
+  Info,
+  IdCard,
 } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import TurfImageCarousel from "~/routes/turf/components/turf-image-carousel";
@@ -30,6 +35,7 @@ import {
 } from "~/components/ui/field";
 import { cn } from "~/lib/utils";
 import { authContext } from "~/middleware/auth-middleware";
+import { useAppUser } from "~/providers/app-user-provider";
 
 export async function clientLoader({
   context,
@@ -82,7 +88,35 @@ export async function clientLoader({
     return !isUserReview;
   });
 
-  return { ...details, images, userReview, otherReviews } as TurfDetails;
+  let canUserReview = false;
+  let latestBooking: BookingSummary | null = null;
+  if (auth?.username && userReview === null) {
+    try {
+      const latestBookingResponse = await getLatestUserTurfBooking(
+        auth.username,
+        turfId
+      );
+      if (latestBookingResponse.ok) {
+        const latestBookingData = (await latestBookingResponse.json()) as {
+          latestBooking: BookingSummary | null;
+        };
+        latestBooking = latestBookingData.latestBooking;
+        canUserReview = latestBooking !== null;
+      }
+    } catch (error) {
+      console.error("Error fetching latest booking:", error);
+      canUserReview = false;
+    }
+  }
+
+  return {
+    ...details,
+    images,
+    userReview,
+    otherReviews,
+    canUserReview,
+    latestBooking,
+  } as TurfDetails;
 }
 
 export async function clientAction({
@@ -124,9 +158,22 @@ function formatTurfOperationTime(time24Hr: string): string {
   return formattedTime;
 }
 
+function formatBookingDate(dateString: string): string {
+  const date = new Date(dateString);
+  const options: Intl.DateTimeFormatOptions = {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  };
+  return date.toLocaleDateString("en-US", options);
+}
+
 export default function TurfDetailPage({
   loaderData: turfDetails,
 }: Route.ComponentProps) {
+  const appUser = useAppUser();
+  const isAuthenticated = appUser.username !== null;
+  const [showReviewForm, setShowReviewForm] = useState(false);
   const addressParts = [
     turfDetails.address.streetLine1,
     turfDetails.address.streetLine2,
@@ -236,7 +283,58 @@ export default function TurfDetailPage({
             </div>
             <div>
               {turfDetails.userReview === null ? (
-                <ReviewEditor />
+                !isAuthenticated ? (
+                  <div className="flex flex-row items-center gap-2 rounded bg-stone-100 px-4 py-6">
+                    <IdCard className="size-5 text-stone-500" />
+                    <p className="text-sm font-medium text-stone-600">
+                      Please <Link className="text-green-700 hover:underline hover:underline-offset-2 hover:decoration-green-700" to="/login">log in</Link> to leave a review.
+                    </p>
+                  </div>
+                ) : turfDetails.canUserReview ? (
+                  showReviewForm ? (
+                    <ReviewEditor onCancel={() => setShowReviewForm(false)} />
+                  ) : (
+                    <div className="flex flex-col gap-4 rounded-lg border border-green-200 bg-green-50/50 p-6 shadow-sm">
+                      <div className="flex flex-col gap-2">
+                        <p className="text-base font-semibold text-stone-700">
+                          Hey there! 👋
+                        </p>
+                        <p className="text-sm text-stone-600">
+                          According to our records, you visited this turf on{" "}
+                          {turfDetails.latestBooking && (
+                            <span className="font-semibold text-green-700">
+                              {formatBookingDate(
+                                turfDetails.latestBooking.startTimeUtc
+                              )}
+                            </span>
+                          )}
+                          . We hope you had an amazing time! 🎉
+                        </p>
+                        <p className="text-sm text-stone-600">
+                          Care to share your experience with others? Your review
+                          helps fellow players discover great turfs!
+                        </p>
+                      </div>
+                      <div className="flex flex-row justify-end">
+                        <Button
+                          onClick={() => setShowReviewForm(true)}
+                          className="bg-green-700 hover:bg-green-600"
+                        >
+                          Leave a Review
+                        </Button>
+                      </div>
+                    </div>
+                  )
+                ) : (
+                  <div className="flex flex-row items-center gap-2 rounded bg-green-100 px-4 py-6">
+                    <Info className="size-5 text-green-700" />
+                    <p className="text-sm font-medium text-stone-600">
+                      You'll be able to leave a review after you've visited this
+                      turf! Book a session and come back to share your
+                      experience.
+                    </p>
+                  </div>
+                )
               ) : (
                 <ReviewCard
                   isUserReview={true}
@@ -274,16 +372,23 @@ function ReviewCard(props: { review: TurfReview; isUserReview: boolean }) {
   return (
     <div
       className={cn(
-        "rounded-lg border bg-white p-4 shadow-xs",
+        "rounded-lg border bg-white p-5 shadow-sm",
         props.isUserReview
-          ? "border-green-700 shadow-sm outline-1 outline-green-600/60"
+          ? "border-green-600/75 outline-1 outline-green-600/40"
           : "border-stone-300/60"
       )}
     >
       <div className="flex flex-col gap-4">
         <div className="flex flex-row items-center gap-2">
           <CircleUser className="size-7 text-stone-500" />
-          <p className="text-sm font-semibold text-stone-600">{username}</p>
+          <div className="flex flex-row items-baseline gap-2">
+            <p className="text-sm font-semibold text-stone-600">{username}</p>
+            {props.isUserReview && (
+              <span className="rounded-full bg-green-100 px-2 py-0.5 text-xs font-semibold text-green-600">
+                You
+              </span>
+            )}
+          </div>
           <span className="size-1 rounded-full bg-stone-700"></span>
           <div className="flex flex-row items-center gap-1">
             <span className="font-semibold text-stone-600">{rating}</span>
@@ -320,7 +425,7 @@ function ReviewCard(props: { review: TurfReview; isUserReview: boolean }) {
           {review === null ? (
             <p className="text-sm text-stone-500 italic">No message provided</p>
           ) : (
-            <p className="text-sm text-stone-700">{review}</p>
+            <p className="text-sm leading-relaxed text-stone-700">{review}</p>
           )}
         </div>
       </div>
@@ -333,7 +438,7 @@ const reviewFormSchema = z.object({
   review: z.string(),
 });
 
-function ReviewEditor() {
+function ReviewEditor({ onCancel }: { onCancel: () => void }) {
   const form = useForm<z.infer<typeof reviewFormSchema>>({
     resolver: zodResolver(reviewFormSchema),
     defaultValues: {
@@ -370,7 +475,7 @@ function ReviewEditor() {
                     <span
                       className={cn(
                         "text-2xl font-bold",
-                        fieldState.isDirty ? "text-stone-700" : "text-stone-500"
+                        fieldState.isDirty ? "text-green-700" : "text-stone-500"
                       )}
                     >
                       {form.getValues().rating}
@@ -533,16 +638,23 @@ function ReviewEditor() {
               control={form.control}
               render={({ field, fieldState }) => (
                 <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel
-                    htmlFor="review"
-                    className="font-semibold text-stone-600"
-                  >
-                    Message
-                  </FieldLabel>
+                  <div className="flex flex-row items-baseline gap-2">
+                    <FieldLabel
+                      htmlFor="review"
+                      className="font-semibold text-stone-600"
+                    >
+                      Message
+                    </FieldLabel>
+                    <span className="rounded-full bg-stone-100 px-2 py-0.5 text-xs font-semibold text-stone-500">
+                      Optional
+                    </span>
+                  </div>
                   <Textarea
                     {...field}
                     id="review"
                     aria-invalid={fieldState.invalid}
+                    placeholder="Share your experience at this turf... What did you like? Any tips for other players?"
+                    className="text-stone-600"
                   />
                   {fieldState.invalid && (
                     <FieldError errors={[fieldState.error]} />
@@ -552,8 +664,24 @@ function ReviewEditor() {
             />
           </FieldGroup>
         </div>
-        <div className="flex flex-row justify-end">
-          <Button variant="outline">Add Review</Button>
+        <div className="flex flex-row justify-end gap-3">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => {
+              form.reset();
+              onCancel();
+            }}
+          >
+            Cancel
+          </Button>
+          <Button
+            type="submit"
+            className="bg-green-700 hover:bg-green-600"
+            disabled={!form.formState.isValid}
+          >
+            Submit Review
+          </Button>
         </div>
       </form>
     </div>

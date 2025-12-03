@@ -12,7 +12,6 @@ export default [
 
   route("signup", "routes/signup.tsx"),
   layout("routes/layout.tsx", [
-    
     // user routes
     route("user/:username/profile", "routes/user/profile.tsx"),
     route("user/:username/booking", "routes/user/previous-bookings.tsx"),

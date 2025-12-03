@@ -7,6 +7,7 @@ import edu.northeastern.dharrguptab.huddleup.user.dto.AnnouncementDetail;
 import edu.northeastern.dharrguptab.huddleup.user.dto.AnnouncementSummary;
 import edu.northeastern.dharrguptab.huddleup.user.dto.BookingSummary;
 import edu.northeastern.dharrguptab.huddleup.user.dto.CardDetail;
+import edu.northeastern.dharrguptab.huddleup.user.dto.LatestBookingResponse;
 import edu.northeastern.dharrguptab.huddleup.user.dto.ComplaintRequest;
 import edu.northeastern.dharrguptab.huddleup.user.dto.EmailUpdate;
 import edu.northeastern.dharrguptab.huddleup.user.dto.NewCardDetail;
@@ -23,6 +24,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -130,8 +132,27 @@ public class UserController {
     userService.markAllAnnouncementsAsRead(username);
   }
 
+  /**
+   * Get user bookings. Returns all bookings if no query parameters are provided, or the latest
+   * booking for a specific turf if turfId and latest=true are provided.
+   *
+   * @param username the username of the user
+   * @param turfId optional turf ID to filter by
+   * @param latest if true and turfId is provided, returns only the latest booking for that turf
+   * @return List of BookingSummary if no filters, or LatestBookingResponse if latest booking is
+   *     requested
+   */
   @GetMapping("/{username}/booking")
-  public List<BookingSummary> getAllUserBookings(@PathVariable String username) {
+  public Object getUserBookings(
+      @PathVariable String username,
+      @RequestParam(required = false) Integer turfId,
+      @RequestParam(required = false, defaultValue = "false") boolean latest) {
+    // If query parameters are provided, return latest booking for that turf
+    if (turfId != null && latest) {
+      BookingSummary booking = userService.getLatestUserTurfBooking(username, turfId);
+      return new LatestBookingResponse(booking);
+    }
+    // Otherwise, return all bookings for the user
     return userService.getAllUserBookings(username);
   }
 

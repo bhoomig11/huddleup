@@ -460,6 +460,29 @@ public class UserService {
   }
 
   /**
+   * Get the latest attended booking for a user at a specific turf.
+   *
+   * @param username the username of the user
+   * @param turfId the ID of the turf
+   * @return the latest booking if it exists, null otherwise
+   */
+  public BookingSummary getLatestUserTurfBooking(String username, int turfId) {
+    String authenticatedUsername = getAuthenticatedUsername();
+
+    boolean isAuthenticated = authenticatedUsername != null;
+    if (!isAuthenticated) {
+      throw new UnauthenticatedException();
+    }
+
+    boolean isAuthorized = username.equals(authenticatedUsername);
+    if (!isAuthorized) {
+      throw new UnauthorizedException();
+    }
+
+    return userRepository.getLatestUserTurfBooking(username, turfId);
+  }
+
+  /**
    * Retrieve the authenticated username from the security context, if present.
    *
    * @return the authenticated username, or null if the request is unauthenticated
