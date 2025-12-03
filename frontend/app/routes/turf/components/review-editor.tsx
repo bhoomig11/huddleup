@@ -82,7 +82,9 @@ export function ReviewEditor({
                     </span>
                     <StarRating
                       value={Number.parseInt(field.value || "0")}
-                      onChange={(value: number) => field.onChange(value.toString())}
+                      onChange={(value: number) =>
+                        field.onChange(value.toString())
+                      }
                       fieldName="rating"
                       totalStars={5}
                     />
@@ -151,4 +153,3 @@ export function ReviewEditor({
     </div>
   );
 }
-

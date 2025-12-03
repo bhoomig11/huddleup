@@ -432,3 +432,41 @@ BEGIN
     WHERE turf_id = p_turf_id;
 END $$
 DELIMITER ;
+
+/**
+ * Procedure: get_turf_features
+ * ----------------------------
+ * Get all the features for a given turf.
+ *
+ *
+ * Input Parameters
+ * ----------------
+ *   - p_turf_id - The id (PK) for which the features are fetched
+ *
+ *
+ * Output Columns
+ * --------------
+ *   - feature_name - the name of the feature
+ *   - feature_description - the description of the feature
+ *
+ *
+ * Errors
+ * ------
+ *   - Signals SQLSTATE '45002' if no such turf exists
+ */
+DROP PROCEDURE IF EXISTS get_turf_features;
+DELIMITER $$
+CREATE PROCEDURE get_turf_features(IN p_turf_id INT)
+BEGIN
+    IF NOT EXISTS (SELECT turf_id FROM turf WHERE turf_id = p_turf_id) THEN
+        SIGNAL SQLSTATE '45002'
+        SET MESSAGE_TEXT = 'No such turf exists';
+    END IF;
+
+    SELECT tf.feat_name AS feature_name, tf.feat_description AS feature_description
+    FROM turf_to_feature AS ttf
+    INNER JOIN turf_feature AS tf ON ttf.feature_name = tf.feat_name
+    WHERE ttf.turf_id = p_turf_id
+    ORDER BY tf.feat_name;
+END $$
+DELIMITER ;

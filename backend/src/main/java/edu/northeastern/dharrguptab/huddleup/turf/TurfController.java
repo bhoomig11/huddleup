@@ -3,6 +3,7 @@ package edu.northeastern.dharrguptab.huddleup.turf;
 import edu.northeastern.dharrguptab.huddleup.turf.dto.ReviewRequest;
 import edu.northeastern.dharrguptab.huddleup.turf.dto.TurfBookingRequest;
 import edu.northeastern.dharrguptab.huddleup.turf.dto.TurfData;
+import edu.northeastern.dharrguptab.huddleup.turf.dto.TurfFeature;
 import edu.northeastern.dharrguptab.huddleup.turf.dto.TurfReview;
 import edu.northeastern.dharrguptab.huddleup.turf.dto.TurfSummary;
 import java.util.List;
@@ -90,5 +91,11 @@ public class TurfController {
   @GetMapping("/{turf_id}/image")
   public List<String> getTurfImages(@PathVariable int turf_id) {
     return turfService.getTurfImages(turf_id);
+  }
+
+  /** Endpoint for getting all the features for a turf */
+  @GetMapping("/{turf_id}/feature")
+  public List<TurfFeature> getTurfFeatures(@PathVariable int turf_id) {
+    return turfService.getTurfFeatures(turf_id);
   }
 }

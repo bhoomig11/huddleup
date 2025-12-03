@@ -22,9 +22,7 @@ export function StarDisplay({
           <span
             key={currentRating}
             className={
-              currentRating > rating
-                ? "text-stone-400/50"
-                : "text-yellow-400"
+              currentRating > rating ? "text-stone-400/50" : "text-yellow-400"
             }
           >
             <svg
@@ -45,4 +43,3 @@ export function StarDisplay({
     </span>
   );
 }
-

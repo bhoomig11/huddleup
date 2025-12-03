@@ -71,3 +71,8 @@ export async function deleteTurfReview(turfId: number) {
   });
   return response;
 }
+
+export async function fetchTurfFeatures(turfId: number) {
+  const response = await fetch(withBase(`/api/turf/${turfId}/feature`));
+  return response;
+}

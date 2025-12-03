@@ -16,6 +16,7 @@ export type TurfDetails = {
   closesAtLocalTime: string;
   address: Address;
   images: Array<string>;
+  features: Array<TurfFeature>;
   userReview: TurfReview | null;
   otherReviews: Array<TurfReview>;
   canUserReview: boolean;
@@ -38,3 +39,8 @@ export type TurfSummary = Pick<
   | "numberOfRatings"
   | "address"
 > & { imageUrl: string };
+
+export type TurfFeature = {
+  featureName: string;
+  featureDescription: string | null;
+};

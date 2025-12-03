@@ -1,7 +1,12 @@
 package edu.northeastern.dharrguptab.huddleup.turf;
 
 import edu.northeastern.dharrguptab.huddleup.auth.exception.UnauthenticatedException;
-import edu.northeastern.dharrguptab.huddleup.turf.dto.*;
+import edu.northeastern.dharrguptab.huddleup.turf.dto.ReviewRequest;
+import edu.northeastern.dharrguptab.huddleup.turf.dto.TurfBookingRequest;
+import edu.northeastern.dharrguptab.huddleup.turf.dto.TurfData;
+import edu.northeastern.dharrguptab.huddleup.turf.dto.TurfFeature;
+import edu.northeastern.dharrguptab.huddleup.turf.dto.TurfReview;
+import edu.northeastern.dharrguptab.huddleup.turf.dto.TurfSummary;
 import java.util.List;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -126,6 +131,12 @@ public class TurfService {
   public List<String> getTurfImages(int turfId) {
     List<String> turfImages = turfRepository.getAllTurfImages(turfId);
     return turfImages;
+  }
+
+  /** Get all features for a turf */
+  public List<TurfFeature> getTurfFeatures(int turfId) {
+    List<TurfFeature> turfFeatures = turfRepository.getAllTurfFeatures(turfId);
+    return turfFeatures;
   }
 
   /**

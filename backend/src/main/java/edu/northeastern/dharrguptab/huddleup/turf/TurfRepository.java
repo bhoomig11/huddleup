@@ -5,6 +5,7 @@ import edu.northeastern.dharrguptab.huddleup.common.exceptions.AppErrorCode;
 import edu.northeastern.dharrguptab.huddleup.common.exceptions.DatabaseExceptionCategory;
 import edu.northeastern.dharrguptab.huddleup.turf.dto.ReviewRequest;
 import edu.northeastern.dharrguptab.huddleup.turf.dto.TurfData;
+import edu.northeastern.dharrguptab.huddleup.turf.dto.TurfFeature;
 import edu.northeastern.dharrguptab.huddleup.turf.dto.TurfReview;
 import edu.northeastern.dharrguptab.huddleup.turf.dto.TurfSummary;
 import edu.northeastern.dharrguptab.huddleup.turf.exceptions.TurfErrorCode;
@@ -358,6 +359,38 @@ public class TurfRepository {
         }
       }
       return new ArrayList<>(imageMap.values());
+    } catch (SQLException e) {
+      if (DatabaseExceptionCategory.RESOURCE_NOT_FOUND.matchesSQLState(e.getSQLState())) {
+        throw new TurfException(e, TurfErrorCode.INVALID_TURF_ID);
+      } else {
+        throw new TurfException(e, AppErrorCode.UNKNOWN);
+      }
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  /**
+   * Get all the features for a turf.
+   *
+   * @param turfId the turf ID
+   * @return a list of features for the turf
+   * @throws TurfException if no such turf exists
+   */
+  public List<TurfFeature> getAllTurfFeatures(int turfId) throws TurfException {
+    String getTurfFeaturesQuery = "{CALL get_turf_features(?)}";
+    List<TurfFeature> features = new ArrayList<>();
+    try (Connection connection = dataSource.getConnection();
+        CallableStatement cs = connection.prepareCall(getTurfFeaturesQuery)) {
+      cs.setInt("p_turf_id", turfId);
+      try (ResultSet rs = cs.executeQuery()) {
+        while (rs.next()) {
+          String featureName = rs.getString("feature_name");
+          String featureDescription = rs.getString("feature_description");
+          features.add(new TurfFeature(featureName, featureDescription));
+        }
+      }
+      return features;
     } catch (SQLException e) {
       if (DatabaseExceptionCategory.RESOURCE_NOT_FOUND.matchesSQLState(e.getSQLState())) {
         throw new TurfException(e, TurfErrorCode.INVALID_TURF_ID);

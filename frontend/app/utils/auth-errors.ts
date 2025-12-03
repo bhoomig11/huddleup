@@ -21,4 +21,3 @@ export function redirectToLogin(currentPath: string): never {
   const returnUrl = encodeURIComponent(currentPath);
   throw redirect(`/login?returnUrl=${returnUrl}`);
 }
-

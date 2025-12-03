@@ -33,11 +33,17 @@ export function ReviewCard(props: ReviewCardProps) {
   const isAdding = props.isUserReview && searchParams.get("add") === "review";
 
   const handleEdit = () => {
-    setSearchParams({ edit: "review" }, { preventScrollReset: true, replace: true });
+    setSearchParams(
+      { edit: "review" },
+      { preventScrollReset: true, replace: true }
+    );
   };
 
   const handleAdd = () => {
-    setSearchParams({ add: "review" }, { preventScrollReset: true, replace: true });
+    setSearchParams(
+      { add: "review" },
+      { preventScrollReset: true, replace: true }
+    );
   };
 
   const handleCancel = () => {
@@ -89,8 +95,8 @@ export function ReviewCard(props: ReviewCardProps) {
             . We hope you had an amazing time! 🎉
           </p>
           <p className="text-sm text-stone-600">
-            Care to share your experience with others? Your review
-            helps fellow players discover great turfs!
+            Care to share your experience with others? Your review helps fellow
+            players discover great turfs!
           </p>
         </div>
         <div className="flex flex-row justify-end">
@@ -147,7 +153,7 @@ export function ReviewCard(props: ReviewCardProps) {
                 size="sm"
                 onClick={handleEdit}
                 aria-label="Edit review"
-                className="h-8 group"
+                className="group h-8"
               >
                 <Pencil className="size-4 text-stone-600 group-hover:text-stone-700" />
               </Button>
@@ -157,7 +163,7 @@ export function ReviewCard(props: ReviewCardProps) {
                   variant="ghost"
                   size="sm"
                   aria-label="Delete review"
-                  className="h-8 group"
+                  className="group h-8"
                 >
                   <Trash2 className="size-4 text-red-600 group-hover:text-red-700" />
                 </Button>
@@ -176,4 +182,3 @@ export function ReviewCard(props: ReviewCardProps) {
     </div>
   );
 }
-

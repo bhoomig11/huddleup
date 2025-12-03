@@ -2,6 +2,7 @@ import {
   addTurfReview,
   deleteTurfReview,
   fetchTurfDetails,
+  fetchTurfFeatures,
   fetchTurfImages,
   fetchTurfReviews,
   updateTurfReview,
@@ -11,7 +12,7 @@ import type { BookingSummary } from "~/types/booking";
 import type { Route } from "./+types/turf-detail";
 import { data, redirect } from "react-router";
 import { Link } from "react-router";
-import type { TurfDetails, TurfReview } from "~/types/turf";
+import type { TurfDetails, TurfFeature, TurfReview } from "~/types/turf";
 import { isAuthError, redirectToLogin } from "~/utils/auth-errors";
 import {
   Clock,
@@ -25,6 +26,7 @@ import {
 import { Button } from "~/components/ui/button";
 import TurfImageCarousel from "~/routes/turf/components/turf-image-carousel";
 import { ReviewCard } from "~/routes/turf/components/review-card";
+import { TurfFeatureGrid } from "~/routes/turf/components/turf-feature-grid";
 import { authContext } from "~/middleware/auth-middleware";
 import { useAppUser } from "~/providers/app-user-provider";
 
@@ -40,11 +42,13 @@ export async function clientLoader({
     throw data(invalidTurfIdMessage, { status: 400 });
   }
 
-  const [detailsResponse, imagesResponse, reviewsResponse] = await Promise.all([
-    fetchTurfDetails(turfId),
-    fetchTurfImages(turfId),
-    fetchTurfReviews(turfId),
-  ]);
+  const [detailsResponse, imagesResponse, reviewsResponse, featuresResponse] =
+    await Promise.all([
+      fetchTurfDetails(turfId),
+      fetchTurfImages(turfId),
+      fetchTurfReviews(turfId),
+      fetchTurfFeatures(turfId),
+    ]);
 
   if (!detailsResponse.ok) {
     throw data("Error fetching turf details", {
@@ -62,12 +66,19 @@ export async function clientLoader({
     });
   }
 
+  if (!featuresResponse.ok) {
+    throw data("Error fetching turf features", {
+      status: featuresResponse.status,
+    });
+  }
+
   const details = (await detailsResponse.json()) as Omit<
     TurfDetails,
-    "images" | "reviews"
+    "images" | "reviews" | "features"
   >;
   const images = (await imagesResponse.json()) as TurfDetails["images"];
   const reviews = (await reviewsResponse.json()) as Array<TurfReview>;
+  const features = (await featuresResponse.json()) as Array<TurfFeature>;
 
   const auth = context.get(authContext);
   let userReview: TurfDetails["userReview"] = null;
@@ -107,6 +118,7 @@ export async function clientLoader({
   return {
     ...details,
     images,
+    features,
     userReview,
     otherReviews,
     canUserReview,
@@ -289,6 +301,11 @@ export default function TurfDetailPage({
           </div>
 
           <div className="flex flex-col gap-1 px-4 py-2">
+            <h2 className="text-xl font-bold text-stone-600">Features</h2>
+            <TurfFeatureGrid features={turfDetails.features} />
+          </div>
+
+          <div className="flex flex-col gap-1 px-4 py-2">
             <div className="flex flex-row items-baseline justify-between">
               <h2 className="text-xl font-bold text-stone-600">Reviews</h2>
 
@@ -323,7 +340,14 @@ export default function TurfDetailPage({
                   <div className="flex flex-row items-center gap-2 rounded bg-stone-100 px-4 py-6">
                     <IdCard className="size-5 text-stone-500" />
                     <p className="text-sm font-medium text-stone-600">
-                      Please <Link className="text-green-700 hover:underline hover:underline-offset-2 hover:decoration-green-700" to="/login">log in</Link> to leave a review.
+                      Please{" "}
+                      <Link
+                        className="text-green-700 hover:underline hover:decoration-green-700 hover:underline-offset-2"
+                        to="/login"
+                      >
+                        log in
+                      </Link>{" "}
+                      to leave a review.
                     </p>
                   </div>
                 ) : turfDetails.canUserReview ? (
@@ -377,4 +401,3 @@ export default function TurfDetailPage({
     </main>
   );
 }
-

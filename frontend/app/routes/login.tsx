@@ -163,9 +163,7 @@ export default function LoginPage({ actionData }: Route.ComponentProps) {
   );
 }
 
-export async function clientAction({
-  request,
-}: Route.ClientActionArgs) {
+export async function clientAction({ request }: Route.ClientActionArgs) {
   const formData = await request.formData();
   const formErrors: Record<string, string> = {};
   let hasFormErrors = false;
