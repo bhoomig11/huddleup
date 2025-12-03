@@ -14,6 +14,7 @@ import java.sql.*;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.TreeMap;
 import javax.sql.DataSource;
 import org.springframework.stereotype.Repository;
 
@@ -272,12 +273,12 @@ public class TurfRepository {
    * Get all the images for a turf.
    *
    * @param turfId the turf ID
-   * @return a list of image URLs for the turf
+   * @return a list of image URLs for the turf, ordered by image_index
    * @throws TurfException if no such turf exists
    */
   public List<String> getAllTurfImages(int turfId) throws TurfException {
     String getTurfImagesQuery = "{CALL get_turf_images(?)}";
-    List<String> turfImages = new ArrayList<>();
+    TreeMap<Integer, String> imageMap = new TreeMap<>();
     try (Connection connection = dataSource.getConnection();
         CallableStatement cs = connection.prepareCall(getTurfImagesQuery)) {
       cs.setInt("p_turf_id", turfId);
@@ -285,10 +286,10 @@ public class TurfRepository {
         while (rs.next()) {
           int index = rs.getInt("image_index");
           String imageUrl = rs.getString("image_url");
-          turfImages.add(index, imageUrl);
+          imageMap.put(index, imageUrl);
         }
       }
-      return turfImages;
+      return new ArrayList<>(imageMap.values());
     } catch (SQLException e) {
       if (DatabaseExceptionCategory.RESOURCE_NOT_FOUND.matchesSQLState(e.getSQLState())) {
         throw new TurfException(e, TurfErrorCode.INVALID_TURF_ID);
