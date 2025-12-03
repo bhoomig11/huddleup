@@ -66,7 +66,7 @@ public class TurfService {
         turfId,
         authenticatedUsername,
         bookingRequest.startTimeUtc(),
-        bookingRequest.durationMins(),
+        bookingRequest.endTimeUtc(),
         bookingRequest.cardId(),
         bookingRequest.couponId());
   }

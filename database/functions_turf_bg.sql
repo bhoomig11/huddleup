@@ -145,7 +145,7 @@ DELIMITER ;
  * ----------
  *   - p_turf_id - the turf id that needs to be booked
  *   - p_start_time_utc - start time of the new booking
- *   - p_duration_min - duration of the new booking
+ *   - p_end_time_utc - end time of the new booking
  *
  *
  * Returns
@@ -157,16 +157,13 @@ DELIMITER $$
 CREATE FUNCTION check_conflicting_booking(
     p_turf_id INT,
     p_start_time_utc DATETIME, 
-    p_duration_min INT
+    p_end_time_utc DATETIME
 )
 RETURNS BOOLEAN 
 DETERMINISTIC
 READS SQL DATA
 BEGIN
-    DECLARE v_end_time DATETIME;
     DECLARE check_conflict BOOLEAN;
- 
-    SET v_end_time = DATE_ADD(p_start_time_utc, INTERVAL p_duration_min MINUTE);
 
     SET check_conflict = EXISTS(
         SELECT *
@@ -174,18 +171,14 @@ BEGIN
         WHERE
             turf_id = p_turf_id
             AND (
-                (
-                    p_start_time_utc BETWEEN start_time_utc
-                    AND DATE_ADD(start_time_utc, INTERVAL duration_mins MINUTE)
-                )
-                OR (
-                    v_end_time BETWEEN start_time_utc
-                    AND DATE_ADD(start_time_utc, INTERVAL duration_mins MINUTE)
-                )
-                OR (
-                    p_start_time_utc <= start_time_utc
-                    AND v_end_time >= DATE_ADD(start_time_utc, INTERVAL duration_mins MINUTE)
-                )
+                -- New booking starts within an existing booking
+                (p_start_time_utc >= start_time_utc AND p_start_time_utc < end_time_utc)
+                OR
+                -- New booking ends within an existing booking
+                (p_end_time_utc > start_time_utc AND p_end_time_utc <= end_time_utc)
+                OR
+                -- New booking completely contains an existing booking
+                (p_start_time_utc <= start_time_utc AND p_end_time_utc >= end_time_utc)
             )
     );
 

@@ -576,7 +576,7 @@ public class UserRepository {
         while (rs.next()) {
           int bookingId = rs.getInt("booking_id");
           Instant startTimeUtc = toInstantOrNull(rs.getTimestamp("start_time_utc"));
-          int durationMins = rs.getInt("duration_mins");
+          Instant endTimeUtc = toInstantOrNull(rs.getTimestamp("end_time_utc"));
           BigDecimal amount = rs.getBigDecimal("amount");
           String complaintSubject = rs.getString("complaint_subject");
           String complaintDescription = rs.getString("complaint_description");
@@ -593,7 +593,7 @@ public class UserRepository {
               new BookingSummary(
                   bookingId,
                   startTimeUtc,
-                  durationMins,
+                  endTimeUtc,
                   amount,
                   complaintSubject,
                   complaintDescription,
@@ -641,7 +641,7 @@ public class UserRepository {
         if (rs.next()) {
           int bookingIdResult = rs.getInt("booking_id");
           Instant startTimeUtc = toInstantOrNull(rs.getTimestamp("start_time_utc"));
-          int durationMins = rs.getInt("duration_mins");
+          Instant endTimeUtc = toInstantOrNull(rs.getTimestamp("end_time_utc"));
           BigDecimal amount = rs.getBigDecimal("amount");
           String complaintSubject = rs.getString("complaint_subject");
           String complaintDescription = rs.getString("complaint_description");
@@ -657,7 +657,7 @@ public class UserRepository {
           return new BookingSummary(
               bookingIdResult,
               startTimeUtc,
-              durationMins,
+              endTimeUtc,
               amount,
               complaintSubject,
               complaintDescription,
@@ -773,7 +773,7 @@ public class UserRepository {
         if (rs.next()) {
           int bookingId = rs.getInt("booking_id");
           Instant startTimeUtc = toInstantOrNull(rs.getTimestamp("start_time_utc"));
-          int durationMins = rs.getInt("duration_mins");
+          Instant endTimeUtc = toInstantOrNull(rs.getTimestamp("end_time_utc"));
           BigDecimal amount = rs.getBigDecimal("amount");
           String complaintSubject = rs.getString("complaint_subject");
           String complaintDescription = rs.getString("complaint_description");
@@ -790,7 +790,7 @@ public class UserRepository {
           return new BookingSummary(
               bookingId,
               startTimeUtc,
-              durationMins,
+              endTimeUtc,
               amount,
               complaintSubject,
               complaintDescription,

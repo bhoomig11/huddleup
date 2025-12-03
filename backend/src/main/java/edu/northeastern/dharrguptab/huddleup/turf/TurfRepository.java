@@ -152,7 +152,7 @@ public class TurfRepository {
    * @param turfId the ID of the turf being booked
    * @param username the username of the user making the booking
    * @param startTimeUtc the start time of the booking in UTC
-   * @param durationMins the duration of the booking in minutes
+   * @param endTimeUtc the end time of the booking in UTC
    * @param cardId the payment card ID
    * @param couponId the optional coupon ID to apply to the booking
    * @throws TurfException if the booking cannot be created
@@ -161,7 +161,7 @@ public class TurfRepository {
       int turfId,
       String username,
       Instant startTimeUtc,
-      int durationMins,
+      Instant endTimeUtc,
       int cardId,
       Integer couponId)
       throws TurfException {
@@ -171,8 +171,8 @@ public class TurfRepository {
         CallableStatement cs = connection.prepareCall(bookTurfQuery)) {
       cs.setInt("p_turf_id", turfId);
       cs.setString("p_username", username);
-      cs.setTimestamp("p_start_time_UTC", Timestamp.from(startTimeUtc));
-      cs.setInt("p_duration_mins", durationMins);
+      cs.setTimestamp("p_start_time_utc", Timestamp.from(startTimeUtc));
+      cs.setTimestamp("p_end_time_utc", Timestamp.from(endTimeUtc));
       cs.setInt("p_card_id", cardId);
       if (couponId != null) {
         cs.setInt("p_coupon_id", couponId);

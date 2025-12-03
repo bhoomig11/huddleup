@@ -8,7 +8,7 @@ import java.time.Instant;
  *
  * @param bookingId the ID of the booking
  * @param startTimeUtc the start time of the booking in UTC
- * @param durationMins the duration of the booking in minutes
+ * @param endTimeUtc the end time of the booking in UTC
  * @param amount the amount paid to confirm the booking
  * @param complaintSubject the subject of the associated complaint if any
  * @param complaintDescription the description of the associated complaint if any
@@ -23,7 +23,7 @@ import java.time.Instant;
 public record BookingSummary(
     int bookingId,
     Instant startTimeUtc,
-    int durationMins,
+    Instant endTimeUtc,
     BigDecimal amount,
     String complaintSubject,
     String complaintDescription,

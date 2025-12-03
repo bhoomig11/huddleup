@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { format } from "date-fns";
+import { format, intervalToDuration } from "date-fns";
 import { Link, redirect, useParams, useRevalidator } from "react-router";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";
@@ -49,6 +49,23 @@ export default function PreviousBookingsPage({
     };
   };
 
+  // Helper function to calculate and format duration
+  const formatDuration = (startTimeUtc: string, endTimeUtc: string) => {
+    const start = new Date(startTimeUtc);
+    const end = new Date(endTimeUtc);
+    const duration = intervalToDuration({ start, end });
+    
+    const parts: string[] = [];
+    if (duration.hours && duration.hours > 0) {
+      parts.push(`${duration.hours}h`);
+    }
+    if (duration.minutes && duration.minutes > 0) {
+      parts.push(`${duration.minutes}m`);
+    }
+    
+    return parts.join(" ") || "0m";
+  };
+
   // Helper function to check if complaint exists
   const hasComplaint = (booking: BookingSummary) => {
     return (
@@ -71,7 +88,12 @@ export default function PreviousBookingsPage({
             </h2>
 
             {bookings.map((booking) => {
-              const dateTime = formatDateTime(booking.startTimeUtc);
+              const startDateTime = formatDateTime(booking.startTimeUtc);
+              const endDateTime = formatDateTime(booking.endTimeUtc);
+              const duration = formatDuration(
+                booking.startTimeUtc,
+                booking.endTimeUtc
+              );
 
               return (
                 <Card key={booking.bookingId} className="p-4">
@@ -85,10 +107,10 @@ export default function PreviousBookingsPage({
                           Turf Name: {booking.turfName}
                         </p>
                         <p className="text-stone-500">
-                          Date: {dateTime.date} | {dateTime.time}
+                          Start: {startDateTime.date} | {startDateTime.time}
                         </p>
                         <p className="text-stone-500">
-                          Duration: {booking.durationMins} minutes
+                          End: {endDateTime.date} | {endDateTime.time} ({duration})
                         </p>
                         <p className="text-stone-500">
                           Card Number: {booking.maskedCardNumber}

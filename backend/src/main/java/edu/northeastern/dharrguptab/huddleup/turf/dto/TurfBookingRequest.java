@@ -6,13 +6,13 @@ import java.time.Instant;
  * Payload for booking a turf.
  *
  * @param startTimeUtc the start time of the booking in UTC
- * @param durationMins the duration of the booking in minutes
+ * @param endTimeUtc the end time of the booking in UTC
  * @param cardId the payment card ID
  * @param couponId the optional coupon ID to apply to the booking
  */
 public record TurfBookingRequest(
     Instant startTimeUtc,
-    int durationMins,
+    Instant endTimeUtc,
     int cardId,
     Integer couponId
 ) {}

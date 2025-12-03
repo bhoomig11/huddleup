@@ -13,7 +13,7 @@ USE huddleup;
  * --------------
  *   - booking_id - the ID of the booking
  *   - start_time_utc - the timestamp for when the booking starts
- *   - duration_mins - the duration of the booking in minutes
+ *   - end_time_utc - the timestamp for when the booking ends
  *   - amount - the amount paid to confirm the booking
  *   - complaint_subject - the subject of the associated complaint if any
  *   - complaint_description - the description of the associated complaint if any
@@ -46,7 +46,7 @@ BEGIN
     SELECT
         b.booking_id,
         b.start_time_utc,
-        b.duration_mins,
+        b.end_time_utc,
         b.amount,
         b.complaint_subject,
         b.complaint_description,
@@ -79,7 +79,7 @@ DELIMITER ;
  * --------------
  *   - booking_id - the ID of the booking
  *   - start_time_utc - the timestamp for when the booking starts
- *   - duration_mins - the duration of the booking in minutes
+ *   - end_time_utc - the timestamp for when the booking ends
  *   - amount - the amount paid to confirm the booking
  *   - complaint_subject - the subject of the associated complaint if any
  *   - complaint_description - the description of the associated complaint if any
@@ -119,7 +119,7 @@ BEGIN
     SELECT 
         b.booking_id,
         b.start_time_utc,
-        b.duration_mins,
+        b.end_time_utc,
         b.amount,
         b.complaint_subject,
         b.complaint_description,
@@ -151,10 +151,17 @@ DELIMITER ;
  * --------------
  *   - booking_id - the ID of the booking (NULL if no booking exists)
  *   - start_time_utc - the timestamp for when the booking starts (NULL if no booking exists)
- *   - duration_mins - the duration of the booking in minutes (NULL if no booking exists)
+ *   - end_time_utc - the timestamp for when the booking ends (NULL if no booking exists)
  *   - amount - the amount paid to confirm the booking (NULL if no booking exists)
+ *   - complaint_subject - the subject of the associated complaint if any (NULL if no booking exists)
+ *   - complaint_description - the description of the associated complaint if any (NULL if no booking exists)
+ *   - complaint_filed_at_utc - the timestamp for when any existing complaint was filed (NULL if no booking exists)
+ *   - complaint_resolved_at_utc - the timestamp for when any existing complaint was resolved (NULL if no booking exists)
  *   - turf_id - the ID of the turf that was booked (NULL if no booking exists)
  *   - username - the username of the user who made the booking (NULL if no booking exists)
+ *   - masked_card_number - the masked number of the card used to confirm the booking (NULL if no booking exists)
+ *   - coupon_id - the ID of the coupon applied to the booking if any (NULL if no booking exists)
+ *   - turf_name - the name of the booked turf (NULL if no booking exists)
  *
  * Errors
  * ------
@@ -184,7 +191,7 @@ BEGIN
     SELECT 
         b.booking_id,
         b.start_time_utc,
-        b.duration_mins,
+        b.end_time_utc,
         b.amount,
         b.complaint_subject,
         b.complaint_description,

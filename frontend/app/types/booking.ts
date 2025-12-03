@@ -1,7 +1,7 @@
 export type BookingSummary = {
   bookingId: number;
   startTimeUtc: string; // ISO 8601 string format
-  durationMins: number;
+  endTimeUtc: string; // ISO 8601 string format
   amount: number;
   complaintSubject: string | null;
   complaintDescription: string | null;

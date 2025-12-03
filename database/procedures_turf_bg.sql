@@ -288,7 +288,7 @@ DELIMITER ;
  *   - p_turf_id - ID of the turf being booked
  *   - p_username - Username of the user making the booking
  *   - p_start_time_utc - Start time of the booking (UTC)
- *   - p_duration_mins - Duration of the booking in minutes
+ *   - p_end_time_utc - End time of the booking (UTC)
  *   - p_card_id - Payment card ID
  *   - p_coupon_id - (Optional) coupon applied to the booking
  *
@@ -297,7 +297,7 @@ DELIMITER ;
  * ------
  *   - Signals SQLSTATE '45001' if the username is NULL or empty
  *   - Signals SQLSTATE '45001' if the turf ID is NULL
- *   - Signals SQLSTATE '45001' if the duration is not valid
+ *   - Signals SQLSTATE '45001' if start/end time validation fails
  *   - Signals SQLSTATE '45001' if the amount does not meet coupon requirements
  *   - Signals SQLSTATE '45002' if no such user, turf, or coupon exists
  *   - Signals SQLSTATE '45003' if there is a conflict with an existing booking
@@ -307,8 +307,8 @@ DELIMITER $$
 CREATE PROCEDURE book_turf(
     IN p_turf_id INT,
     IN p_username VARCHAR(64),
-    IN p_start_time_UTC DATETIME,
-    IN p_duration_mins INT,
+    IN p_start_time_utc DATETIME,
+    IN p_end_time_utc DATETIME,
     IN p_card_id INT,
     IN p_coupon_id INT
 )
@@ -317,8 +317,12 @@ BEGIN
     DECLARE v_amount DECIMAL(19,2);
     DECLARE v_discount DECIMAL(10,2) DEFAULT 0;
     DECLARE v_min_booking_amt DECIMAL(10,2);
-    DECLARE v_end_time DATETIME;
     DECLARE v_masked_card_num VARCHAR(19);
+    DECLARE v_start_minute INT;
+    DECLARE v_start_second INT;
+    DECLARE v_end_minute INT;
+    DECLARE v_end_second INT;
+    DECLARE v_duration_mins INT;
  
     IF (p_username IS NULL OR CHAR_LENGTH(p_username) = 0) THEN
         SIGNAL SQLSTATE '45001' SET MESSAGE_TEXT = 'Username cannot be empty';
@@ -335,17 +339,35 @@ BEGIN
     IF (p_coupon_id IS NOT NULL AND NOT EXISTS (SELECT coupon_id FROM coupon WHERE coupon_id = p_coupon_id)) THEN 
         SIGNAL SQLSTATE '45002' SET MESSAGE_TEXT = 'No such coupon exists';
     END IF;
- 
-    -- validate duration
-    IF (duration_mins IS NULL OR duration_mins <= 0) THEN
-        SIGNAL SQLSTATE '45001' SET MESSAGE_TEXT = 'Duration must be a positive number of minutes';
+
+    -- validate end time is after start time
+    IF (p_end_time_utc <= p_start_time_utc) THEN
+        SIGNAL SQLSTATE '45001' SET MESSAGE_TEXT = 'End time must be after start time';
     END IF;
 
-    -- calculate booking end time from start time and booking duration
-    SET v_end_time = DATE_ADD(p_start_time_UTC, INTERVAL p_duration_mins MINUTE);
+    -- validate start time is at a multiple of 30 minutes (00 or 30 minutes, 0 seconds)
+    SET v_start_minute = MINUTE(p_start_time_utc);
+    SET v_start_second = SECOND(p_start_time_utc);
+    IF (v_start_minute NOT IN (0, 30) OR v_start_second != 0) THEN
+        SIGNAL SQLSTATE '45001' SET MESSAGE_TEXT = 'Start time must be at a multiple of 30 minutes (e.g., 10:00, 10:30)';
+    END IF;
+    
+    -- validate end time is 1 minute before a multiple of 30 minutes (29 or 59 minutes, 0 seconds)
+    SET v_end_minute = MINUTE(p_end_time_utc);
+    SET v_end_second = SECOND(p_end_time_utc);
+    IF (v_end_minute NOT IN (29, 59) OR v_end_second != 0) THEN
+        SIGNAL SQLSTATE '45001' SET MESSAGE_TEXT = 'End time must be 1 minute before a multiple of 30 minutes (e.g., 10:29, 10:59)';
+    END IF;
+
+    -- validate duration: since start is at :00/:30 and end is at :29/:59,
+    -- duration should be 29 mod 30 (e.g., 29, 59, 89, 119 minutes)
+    SET v_duration_mins = TIMESTAMPDIFF(MINUTE, p_start_time_utc, p_end_time_utc);
+    IF (v_duration_mins % 30 != 29) THEN
+        SIGNAL SQLSTATE '45001' SET MESSAGE_TEXT = 'Duration must be 29 minutes modulo 30 (e.g., 29, 59, 89 minutes)';
+    END IF;
  
-    -- check for conflicting booking
-    IF check_conflicting_booking(p_turf_id, p_start_time_utc, p_duration_mins) THEN
+    -- check for conflicting booking (using start and end time)
+    IF check_conflicting_booking(p_turf_id, p_start_time_utc, p_end_time_utc) THEN
         SIGNAL SQLSTATE '45003'
         SET MESSAGE_TEXT = 'Time slot is already booked.';
     END IF;
@@ -355,10 +377,11 @@ BEGIN
     FROM turf AS t
     WHERE turf_id = p_turf_id;
 
-    SET v_amount = (p_duration_mins / 60) * v_hourly_rate;
+    -- calculate amount based on duration in minutes
+    SET v_amount = (v_duration_mins / 60) * v_hourly_rate;
 
     -- apply coupon if not null
-    IF (coupon_id IS NOT NULL) THEN
+    IF (p_coupon_id IS NOT NULL) THEN
         SELECT discount_percent, min_booking_amt 
         INTO v_discount, v_min_booking_amt
         FROM coupon 
@@ -378,7 +401,7 @@ BEGIN
  
     INSERT INTO booking (
         start_time_utc,
-        duration_mins,
+        end_time_utc,
         amount, 
         turf_id,
         username,
@@ -386,7 +409,7 @@ BEGIN
         coupon_id
     ) VALUES (
         p_start_time_utc,
-        p_duration_mins,
+        p_end_time_utc,
         v_amount,
         p_turf_id,
         p_username,
@@ -395,7 +418,6 @@ BEGIN
     );
 END $$
 DELIMITER ;
-
 /**
  * Procedure: get_all_turf_reviews
  * -------------------------------
