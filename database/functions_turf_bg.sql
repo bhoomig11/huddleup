@@ -127,7 +127,7 @@ BEGIN
     FROM card_detail
     WHERE card_id = p_card_id;
 
-    SET v_len_card_num = CHAR_LENGTH(org_card_number);
+    SET v_len_card_num = CHAR_LENGTH(v_org_card_number);
     SET v_masked_card_num = SUBSTRING(v_org_card_number, v_len_card_num - 4);
     SET v_masked_card_num = LPAD(v_masked_card_num, v_len_card_num, 'X');
 

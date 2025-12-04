@@ -12,7 +12,6 @@ import edu.northeastern.dharrguptab.huddleup.turf.exceptions.TurfErrorCode;
 import edu.northeastern.dharrguptab.huddleup.turf.exceptions.TurfException;
 import java.math.BigDecimal;
 import java.sql.*;
-import java.time.Instant;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -152,35 +151,47 @@ public class TurfRepository {
    *
    * @param turfId the ID of the turf being booked
    * @param username the username of the user making the booking
-   * @param startTimeUtc the start time of the booking in UTC
-   * @param endTimeUtc the end time of the booking in UTC
+   * @param date the date of the booking (yyyy-MM-dd format, local time)
+   * @param startTime the start time of the booking (HH:mm format, local time)
+   * @param endTime the end time of the booking (HH:mm format, local time)
    * @param cardId the payment card ID
    * @param couponId the optional coupon ID to apply to the booking
+   * @return the ID of the newly created booking
    * @throws TurfException if the booking cannot be created
    */
-  public void bookTurf(
+  public int bookTurf(
       int turfId,
       String username,
-      Instant startTimeUtc,
-      Instant endTimeUtc,
+      String date,
+      String startTime,
+      String endTime,
       int cardId,
       Integer couponId)
       throws TurfException {
-    String bookTurfQuery = "{CALL book_turf(?, ?, ?, ?, ?, ?)}";
+    String bookTurfQuery = "{CALL book_turf(?, ?, ?, ?, ?, ?, ?)}";
 
     try (Connection connection = dataSource.getConnection();
         CallableStatement cs = connection.prepareCall(bookTurfQuery)) {
       cs.setInt("p_turf_id", turfId);
       cs.setString("p_username", username);
-      cs.setTimestamp("p_start_time_utc", Timestamp.from(startTimeUtc));
-      cs.setTimestamp("p_end_time_utc", Timestamp.from(endTimeUtc));
+      cs.setDate("p_date", Date.valueOf(java.time.LocalDate.parse(date)));
+      cs.setTime("p_start_time", Time.valueOf(java.time.LocalTime.parse(startTime)));
+      cs.setTime("p_end_time", Time.valueOf(java.time.LocalTime.parse(endTime)));
       cs.setInt("p_card_id", cardId);
       if (couponId != null) {
         cs.setInt("p_coupon_id", couponId);
       } else {
         cs.setNull("p_coupon_id", Types.INTEGER);
       }
-      cs.executeUpdate();
+      
+      try (ResultSet rs = cs.executeQuery()) {
+        if (rs.next()) {
+          return rs.getInt("booking_id");
+        }
+      }
+      throw new TurfException(
+          new SQLException("Booking created but no booking_id returned"),
+          TurfErrorCode.INVALID_BOOKING_DATA);
     } catch (SQLException e) {
       DatabaseExceptionCategory databaseExceptionCategory =
           DatabaseExceptionCategory.fromSQLState(e.getSQLState());

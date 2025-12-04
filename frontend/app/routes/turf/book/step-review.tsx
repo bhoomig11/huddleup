@@ -2,12 +2,15 @@ import { useMemo, useState } from "react";
 import {
   Link,
   useSearchParams,
-  useNavigate,
   useRouteLoaderData,
   redirect,
+  useSubmit,
+  useNavigation,
+  data,
 } from "react-router";
 import type { Route } from "./+types/step-review";
 import type { clientLoader as layoutLoader } from "./layout";
+import type { BookingResponse } from "~/types/booking";
 import { Button } from "~/components/ui/button";
 import {
   Card,
@@ -27,6 +30,7 @@ import {
 } from "./components/time-grid-utils";
 import { CouponSelector } from "./components/coupon-selector";
 import type { CouponSummary } from "~/api/coupon";
+import { bookTurf } from "~/api/turf";
 
 export async function clientLoader({
   params,
@@ -48,6 +52,125 @@ export async function clientLoader({
   return {};
 }
 
+export async function clientAction({
+  params,
+  request,
+}: Route.ClientActionArgs) {
+  const turfId = Number.parseInt(params.turfId, 10);
+  if (Number.isNaN(turfId)) {
+    return data(
+      {
+        ok: false,
+        error: "Invalid turf ID",
+      },
+      { status: 400 }
+    );
+  }
+
+  const formData = await request.formData();
+
+  const date = formData.get("date");
+  const startTime = formData.get("startTime");
+  const endTime = formData.get("endTime");
+  const cardId = formData.get("cardId");
+  const couponId = formData.get("couponId");
+
+  // Validate required fields
+  if (!date || !startTime || !endTime || !cardId) {
+    return data(
+      {
+        ok: false,
+        error: "Missing required booking details",
+      },
+      { status: 400 }
+    );
+  }
+
+  // Parse cardId
+  const cardIdNum = Number.parseInt(cardId.toString(), 10);
+  if (Number.isNaN(cardIdNum)) {
+    return data(
+      {
+        ok: false,
+        error: "Invalid card ID",
+      },
+      { status: 400 }
+    );
+  }
+
+  // Parse couponId (optional)
+  let couponIdNum: number | null = null;
+  if (couponId && couponId.toString().trim() !== "") {
+    const parsed = Number.parseInt(couponId.toString(), 10);
+    if (Number.isNaN(parsed)) {
+      return data(
+        {
+          ok: false,
+          error: "Invalid coupon ID",
+        },
+        { status: 400 }
+      );
+    }
+    couponIdNum = parsed;
+  }
+
+  try {
+    const response = await bookTurf(turfId, {
+      date: date.toString(),
+      startTime: startTime.toString(),
+      endTime: endTime.toString(),
+      cardId: cardIdNum,
+      couponId: couponIdNum,
+    });
+
+    if (response.ok) {
+      const bookingResponse = (await response.json()) as BookingResponse;
+      const bookingId = bookingResponse.bookingId;
+
+      throw redirect(`/turf/${turfId}/book/${bookingId}/confirmation`);
+    } else if (response.status === 409) {
+      // Conflict, e.g., time slot already booked - redirect to conflict page with requested details
+      const conflictParams = new URLSearchParams({
+        date: date.toString(),
+        startTime: startTime.toString(),
+        endTime: endTime.toString(),
+      });
+      throw redirect(
+        `/turf/${turfId}/book/conflict?${conflictParams.toString()}`
+      );
+    } else {
+      // Other error - return error data
+      const errorData = await response.json().catch(() => ({}));
+      return data(
+        {
+          ok: false,
+          error:
+            errorData.message || "Failed to confirm booking. Please try again.",
+        },
+        { status: response.status }
+      );
+    }
+  } catch (error) {
+    // If it's a redirect, re-throw it
+    if (
+      error instanceof Response &&
+      error.status >= 300 &&
+      error.status < 400
+    ) {
+      throw error;
+    }
+    // Otherwise, return error
+    console.error("Booking error:", error);
+    return data(
+      {
+        ok: false,
+        error: "An unexpected error occurred during booking. Please try again.",
+      },
+      { status: 500 }
+    );
+  }
+}
+
 function parseCardIdFromQuery(
   searchParams: URLSearchParams,
   validCardIds: number[]
@@ -63,9 +186,10 @@ function parseCardIdFromQuery(
   return cardId;
 }
 
-export default function BookReview() {
+export default function BookReview({ actionData }: Route.ComponentProps) {
   const [searchParams] = useSearchParams();
-  const navigate = useNavigate();
+  const navigation = useNavigation();
+  const submit = useSubmit();
   const layoutData = useRouteLoaderData<typeof layoutLoader>(
     "routes/turf/book/layout"
   );
@@ -85,6 +209,10 @@ export default function BookReview() {
   if (!dateParam || !fromTime || !toTime) {
     return null;
   }
+
+  const isSubmitting = navigation.state === "submitting";
+  const errorMessage =
+    actionData && "error" in actionData ? actionData.error : null;
 
   const date = useMemo(() => {
     if (!dateParam) return null;
@@ -118,7 +246,6 @@ export default function BookReview() {
   const [selectedCoupon, setSelectedCoupon] = useState<CouponSummary | null>(
     null
   );
-  const [isConfirming, setIsConfirming] = useState(false);
 
   // Calculate pricing
   const subtotal = useMemo(() => {
@@ -134,29 +261,6 @@ export default function BookReview() {
     return subtotal - discount;
   }, [subtotal, discount]);
 
-  const handleConfirmBooking = async () => {
-    setIsConfirming(true);
-    try {
-      // TODO: Replace with actual API call
-      // Simulate API request
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      // For demo: randomly choose success or conflict
-      const isConflict = Math.random() > 0.7; // 30% chance of conflict
-
-      if (isConflict) {
-        navigate(`/turf/${turfId}/book/conflict`);
-      } else {
-        navigate(`/turf/${turfId}/book/confirmation`);
-      }
-    } catch (error) {
-      console.error("Booking error:", error);
-      // Handle error appropriately
-    } finally {
-      setIsConfirming(false);
-    }
-  };
-
   const timeRange = useMemo(() => {
     if (!fromTime || !toTime) return "N/A";
     const fromTimeFormatted = formatTimeTo12Hour(toHourMinute(fromTime));
@@ -167,6 +271,25 @@ export default function BookReview() {
   const formattedDuration = useMemo(() => {
     return formatDuration(durationHours);
   }, [durationHours]);
+
+  const handleConfirmBooking = () => {
+    if (!selectedCardId || !dateParam || !fromTime || !toTime) {
+      return;
+    }
+
+    submit(
+      {
+        date: dateParam,
+        startTime: fromTime,
+        endTime: toTime,
+        cardId: selectedCardId,
+        ...(selectedCoupon?.couponId && {
+          couponId: selectedCoupon.couponId,
+        }),
+      },
+      { method: "POST" }
+    );
+  };
 
   return (
     <Card className="w-full">
@@ -322,6 +445,23 @@ export default function BookReview() {
         {/* Coupon Section */}
         <CouponSelector onCouponChange={setSelectedCoupon} />
 
+        {/* Error Message */}
+        {errorMessage && (
+          <div className="flex items-center gap-2 rounded-md border border-red-300 bg-red-50 p-3 text-sm text-red-700">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              className="size-4"
+            >
+              <circle cx="12" cy="12" r="10" />
+              <path d="M15 9l-6 6M9 9l6 6" />
+            </svg>
+            <span>{errorMessage}</span>
+          </div>
+        )}
+
         {/* Navigation */}
         <div className="flex gap-3 pt-4">
           <Button variant="outline" className="flex-1" asChild>
@@ -335,9 +475,9 @@ export default function BookReview() {
             variant="default"
             className="flex-1 bg-green-700 hover:bg-green-600"
             onClick={handleConfirmBooking}
-            disabled={isConfirming || !selectedCard}
+            disabled={isSubmitting || !selectedCard}
           >
-            {isConfirming ? "Processing..." : "Confirm Booking"}
+            {isSubmitting ? "Processing..." : "Confirm Booking"}
           </Button>
         </div>
       </CardContent>

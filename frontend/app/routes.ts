@@ -40,7 +40,10 @@ export default [
           "routes/turf/book/step-select-card.tsx"
         ),
         route(":turfId/book/step-review", "routes/turf/book/step-review.tsx"),
-        route(":turfId/book/confirmation", "routes/turf/book/confirmation.tsx"),
+        route(
+          ":turfId/book/:bookingId/confirmation",
+          "routes/turf/book/confirmation.tsx"
+        ),
         route(":turfId/book/conflict", "routes/turf/book/conflict.tsx"),
       ]),
     ]),

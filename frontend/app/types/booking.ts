@@ -13,3 +13,11 @@ export type BookingSummary = {
   maskedCardNumber: string | null;
   couponId: number | null;
 };
+
+/**
+ * Response payload for booking a turf.
+ * This is returned by the booking API endpoint after a successful booking creation.
+ */
+export interface BookingResponse {
+  bookingId: number;
+}

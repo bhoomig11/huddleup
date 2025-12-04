@@ -287,10 +287,16 @@ DELIMITER ;
  * ----------------
  *   - p_turf_id - ID of the turf being booked
  *   - p_username - Username of the user making the booking
- *   - p_start_time_utc - Start time of the booking (UTC)
- *   - p_end_time_utc - End time of the booking (UTC)
+ *   - p_date - Date of the booking (DATE format: YYYY-MM-DD, local time)
+ *   - p_start_time - Start time of the booking (TIME format: HH:mm:ss, local time)
+ *   - p_end_time - End time of the booking (TIME format: HH:mm:ss, local time)
  *   - p_card_id - Payment card ID
  *   - p_coupon_id - (Optional) coupon applied to the booking
+ *
+ *
+ * Output Columns
+ * --------------
+ *   - booking_id - The ID of the newly created booking
  *
  *
  * Errors
@@ -307,13 +313,15 @@ DELIMITER $$
 CREATE PROCEDURE book_turf(
     IN p_turf_id INT,
     IN p_username VARCHAR(64),
-    IN p_start_time_utc DATETIME,
-    IN p_end_time_utc DATETIME,
+    IN p_date DATE,
+    IN p_start_time TIME,
+    IN p_end_time TIME,
     IN p_card_id INT,
     IN p_coupon_id INT
 )
 BEGIN
     DECLARE v_hourly_rate DECIMAL(10,2);
+    DECLARE v_iana_timezone VARCHAR(64);
     DECLARE v_amount DECIMAL(19,2);
     DECLARE v_discount DECIMAL(10,2) DEFAULT 0;
     DECLARE v_min_booking_amt DECIMAL(10,2);
@@ -323,6 +331,8 @@ BEGIN
     DECLARE v_end_minute INT;
     DECLARE v_end_second INT;
     DECLARE v_duration_mins INT;
+    DECLARE v_start_time_utc DATETIME;
+    DECLARE v_end_time_utc DATETIME;
  
     IF (p_username IS NULL OR CHAR_LENGTH(p_username) = 0) THEN
         SIGNAL SQLSTATE '45001' SET MESSAGE_TEXT = 'Username cannot be empty';
@@ -339,43 +349,48 @@ BEGIN
     IF (p_coupon_id IS NOT NULL AND NOT EXISTS (SELECT coupon_id FROM coupon WHERE coupon_id = p_coupon_id)) THEN 
         SIGNAL SQLSTATE '45002' SET MESSAGE_TEXT = 'No such coupon exists';
     END IF;
- 
-    -- validate end time is after start time
-    IF (p_end_time_utc <= p_start_time_utc) THEN
+
+    -- validate end time is after start time (in local time)
+    IF (p_end_time <= p_start_time) THEN
         SIGNAL SQLSTATE '45001' SET MESSAGE_TEXT = 'End time must be after start time';
     END IF;
 
     -- validate start time is at a multiple of 30 minutes (00 or 30 minutes, 0 seconds)
-    SET v_start_minute = MINUTE(p_start_time_utc);
-    SET v_start_second = SECOND(p_start_time_utc);
+    SET v_start_minute = MINUTE(p_start_time);
+    SET v_start_second = SECOND(p_start_time);
     IF (v_start_minute NOT IN (0, 30) OR v_start_second != 0) THEN
         SIGNAL SQLSTATE '45001' SET MESSAGE_TEXT = 'Start time must be at a multiple of 30 minutes (e.g., 10:00, 10:30)';
     END IF;
 
     -- validate end time is 1 minute before a multiple of 30 minutes (29 or 59 minutes, 0 seconds)
-    SET v_end_minute = MINUTE(p_end_time_utc);
-    SET v_end_second = SECOND(p_end_time_utc);
+    SET v_end_minute = MINUTE(p_end_time);
+    SET v_end_second = SECOND(p_end_time);
     IF (v_end_minute NOT IN (29, 59) OR v_end_second != 0) THEN
         SIGNAL SQLSTATE '45001' SET MESSAGE_TEXT = 'End time must be 1 minute before a multiple of 30 minutes (e.g., 10:29, 10:59)';
     END IF;
 
+    -- get the hourly rate and timezone from the turf
+    SELECT t.hourly_rate, t.iana_timezone 
+    INTO v_hourly_rate, v_iana_timezone
+    FROM turf AS t
+    WHERE turf_id = p_turf_id;
+
+    -- convert local times to UTC using the turf's timezone
+    SET v_start_time_utc = convert_local_to_utc(p_date, p_start_time, v_iana_timezone);
+    SET v_end_time_utc = convert_local_to_utc(p_date, p_end_time, v_iana_timezone);
+
     -- validate duration: since start is at :00/:30 and end is at :29/:59,
     -- duration should be 29 mod 30 (e.g., 29, 59, 89, 119 minutes)
-    SET v_duration_mins = TIMESTAMPDIFF(MINUTE, p_start_time_utc, p_end_time_utc);
+    SET v_duration_mins = TIMESTAMPDIFF(MINUTE, v_start_time_utc, v_end_time_utc);
     IF (v_duration_mins % 30 != 29) THEN
         SIGNAL SQLSTATE '45001' SET MESSAGE_TEXT = 'Duration must be 29 minutes modulo 30 (e.g., 29, 59, 89 minutes)';
     END IF;
  
-    -- check for conflicting booking (using start and end time)
-    IF check_conflicting_booking(p_turf_id, p_start_time_utc, p_end_time_utc) THEN
+    -- check for conflicting booking (using start and end time in UTC)
+    IF check_conflicting_booking(p_turf_id, v_start_time_utc, v_end_time_utc) THEN
         SIGNAL SQLSTATE '45003'
         SET MESSAGE_TEXT = 'Time slot is already booked.';
     END IF;
-
-    -- get the hourly rate
-    SELECT t.hourly_rate INTO v_hourly_rate
-    FROM turf AS t
-    WHERE turf_id = p_turf_id;
 
     -- calculate amount based on duration in minutes
     SET v_amount = (v_duration_mins / 60) * v_hourly_rate;
@@ -408,14 +423,27 @@ BEGIN
         masked_card_number,
         coupon_id
     ) VALUES (
-        p_start_time_utc,
-        p_end_time_utc,
+        v_start_time_utc,
+        v_end_time_utc,
         v_amount,
         p_turf_id,
         p_username,
         v_masked_card_num,
         p_coupon_id
     );
+
+    SELECT booking_id
+    FROM booking
+    WHERE turf_id = p_turf_id
+        AND username = p_username
+        AND start_time_utc = v_start_time_utc
+        AND end_time_utc = v_end_time_utc
+        AND amount = v_amount
+        AND masked_card_number = v_masked_card_num
+        AND (p_coupon_id IS NULL AND coupon_id IS NULL
+             OR coupon_id = p_coupon_id)
+    ORDER BY booking_id DESC
+    LIMIT 1;
 END $$
 DELIMITER ;
 /**

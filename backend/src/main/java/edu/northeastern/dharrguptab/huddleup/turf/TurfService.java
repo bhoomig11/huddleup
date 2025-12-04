@@ -54,8 +54,9 @@ public class TurfService {
    *
    * @param turfId the ID of the turf being booked
    * @param bookingRequest the booking request details
+   * @return the ID of the newly created booking
    */
-  public void bookTurf(int turfId, TurfBookingRequest bookingRequest) {
+  public int bookTurf(int turfId, TurfBookingRequest bookingRequest) {
     String authenticatedUsername = getAuthenticatedUsername();
 
     boolean isAuthenticated = authenticatedUsername != null;
@@ -63,11 +64,12 @@ public class TurfService {
       throw new UnauthenticatedException();
     }
 
-    turfRepository.bookTurf(
+    return turfRepository.bookTurf(
         turfId,
         authenticatedUsername,
-        bookingRequest.startTimeUtc(),
-        bookingRequest.endTimeUtc(),
+        bookingRequest.date(),
+        bookingRequest.startTime(),
+        bookingRequest.endTime(),
         bookingRequest.cardId(),
         bookingRequest.couponId());
   }

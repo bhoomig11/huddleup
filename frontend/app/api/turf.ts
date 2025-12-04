@@ -113,8 +113,9 @@ export async function fetchAvailableEndTimes(
 export async function bookTurf(
   turfId: number,
   bookingRequest: {
-    startTimeUtc: string; // ISO 8601 datetime string
-    endTimeUtc: string; // ISO 8601 datetime string
+    date: string; // yyyy-MM-dd format
+    startTime: string; // HH:mm format (local time)
+    endTime: string; // HH:mm format (local time)
     cardId: number;
     couponId?: number | null;
   }

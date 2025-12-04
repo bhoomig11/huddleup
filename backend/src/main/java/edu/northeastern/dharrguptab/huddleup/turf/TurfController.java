@@ -1,5 +1,6 @@
 package edu.northeastern.dharrguptab.huddleup.turf;
 
+import edu.northeastern.dharrguptab.huddleup.turf.dto.BookingResponse;
 import edu.northeastern.dharrguptab.huddleup.turf.dto.ReviewRequest;
 import edu.northeastern.dharrguptab.huddleup.turf.dto.TurfBookingRequest;
 import edu.northeastern.dharrguptab.huddleup.turf.dto.TurfData;
@@ -47,10 +48,13 @@ public class TurfController {
    *
    * @param turf_id the ID of the turf to book
    * @param bookingRequest the booking request details
+   * @return the booking response containing the booking ID
    */
   @PostMapping("/{turf_id}/book")
-  public void bookTurf(@PathVariable int turf_id, @RequestBody TurfBookingRequest bookingRequest) {
-    turfService.bookTurf(turf_id, bookingRequest);
+  public BookingResponse bookTurf(
+      @PathVariable int turf_id, @RequestBody TurfBookingRequest bookingRequest) {
+    int bookingId = turfService.bookTurf(turf_id, bookingRequest);
+    return new BookingResponse(bookingId);
   }
 
   /**

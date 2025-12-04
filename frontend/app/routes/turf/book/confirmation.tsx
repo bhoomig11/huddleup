@@ -1,6 +1,4 @@
-"use client";
-
-import { Link, useParams } from "react-router";
+import { Link } from "react-router";
 import { Button } from "~/components/ui/button";
 import {
   Card,
@@ -11,28 +9,10 @@ import {
 } from "~/components/ui/card";
 import { Separator } from "~/components/ui/separator";
 import { CheckCircle2, MapPin, Clock, CreditCard } from "lucide-react";
+import type { Route } from "./+types/confirmation";
 
-// Mock booking confirmation details - will come from API response
-const MOCK_CONFIRMATION = {
-  bookingId: "BK-2025-001234",
-  turfName: "Central Sports Complex",
-  date: "Friday, December 13, 2025",
-  timeRange: "14:00 to 17:00",
-  duration: 3,
-  totalAmount: 165.0,
-  paymentMethod: {
-    brand: "Visa",
-    last4: "4242",
-  },
-  couponApplied: {
-    code: "WELCOME10",
-    discount: 10,
-  },
-};
-
-export default function BookingConfirmation() {
-  const params = useParams();
-  const turfId = params.turfId;
+export default function BookingConfirmation({ params }: Route.ComponentProps) {
+  const { turfId, bookingId } = params;
 
   return (
     <Card className="w-full">
@@ -55,35 +35,28 @@ export default function BookingConfirmation() {
             <div className="space-y-2">
               <p className="text-sm text-stone-600">Booking ID</p>
               <p className="font-mono font-semibold text-stone-700">
-                {MOCK_CONFIRMATION.bookingId}
+                {bookingId}
               </p>
             </div>
             <Separator />
             <div>
               <p className="text-lg font-semibold text-stone-700">
-                {MOCK_CONFIRMATION.turfName}
+                Booking confirmed successfully
               </p>
             </div>
             <div className="flex gap-4 text-sm">
               <div className="flex items-start gap-2">
                 <Clock className="mt-0.5 size-4 shrink-0 text-green-700" />
                 <div>
-                  <p className="text-stone-600">Date & Time</p>
-                  <p className="font-medium text-stone-700">
-                    {MOCK_CONFIRMATION.date}
-                  </p>
-                  <p className="text-stone-600">
-                    {MOCK_CONFIRMATION.timeRange}
-                  </p>
+                  <p className="text-stone-600">Status</p>
+                  <p className="font-medium text-stone-700">Confirmed</p>
                 </div>
               </div>
               <div className="flex items-start gap-2">
                 <MapPin className="mt-0.5 size-4 shrink-0 text-green-700" />
                 <div>
-                  <p className="text-stone-600">Duration</p>
-                  <p className="font-medium text-stone-700">
-                    {MOCK_CONFIRMATION.duration} hours
-                  </p>
+                  <p className="text-stone-600">Turf ID</p>
+                  <p className="font-medium text-stone-700">{turfId}</p>
                 </div>
               </div>
             </div>
@@ -98,31 +71,13 @@ export default function BookingConfirmation() {
               <CreditCard className="size-5 text-stone-600" />
               <div className="flex-1">
                 <p className="text-sm text-stone-600">Payment Method</p>
-                <p className="font-medium text-stone-700">
-                  {MOCK_CONFIRMATION.paymentMethod.brand} ending in{" "}
-                  {MOCK_CONFIRMATION.paymentMethod.last4}
-                </p>
+                <p className="font-medium text-stone-700">Confirmed</p>
               </div>
             </div>
             <Separator />
-            {MOCK_CONFIRMATION.couponApplied && (
-              <>
-                <div className="flex justify-between text-sm">
-                  <span className="text-stone-600">
-                    Coupon ({MOCK_CONFIRMATION.couponApplied.code})
-                  </span>
-                  <span className="font-medium text-green-700">
-                    -{MOCK_CONFIRMATION.couponApplied.discount}%
-                  </span>
-                </div>
-                <Separator />
-              </>
-            )}
             <div className="flex justify-between font-semibold">
-              <span className="text-stone-700">Total Amount</span>
-              <span className="text-lg text-green-700">
-                ${MOCK_CONFIRMATION.totalAmount.toFixed(2)}
-              </span>
+              <span className="text-stone-700">Payment</span>
+              <span className="text-lg text-green-700">Confirmed</span>
             </div>
           </div>
         </div>
