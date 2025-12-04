@@ -1,6 +1,10 @@
 import { createContext, useContext } from "react";
 
-type AppUserContext = { username: string | null } | null;
+type AppUserContext = {
+  username: string | null;
+  firstName: string | null;
+  lastName: string | null;
+} | null;
 
 const appUserContext = createContext<AppUserContext>(null);
 
@@ -12,13 +16,22 @@ function useAppUser() {
   return appUser;
 }
 
-interface Props extends Exclude<AppUserContext, null> {
+interface Props {
+  username: string | null;
+  firstName: string | null;
+  lastName: string | null;
   children: React.ReactNode;
 }
 
 function AppUserProvider(props: Props) {
   return (
-    <appUserContext.Provider value={{ username: props.username }}>
+    <appUserContext.Provider
+      value={{
+        username: props.username,
+        firstName: props.firstName,
+        lastName: props.lastName,
+      }}
+    >
       {props.children}
     </appUserContext.Provider>
   );
