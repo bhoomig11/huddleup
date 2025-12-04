@@ -1,13 +1,10 @@
 import { useMemo, useState } from "react";
 import {
   Link,
-  useParams,
   useSearchParams,
   useRevalidator,
   useRouteLoaderData,
 } from "react-router";
-import type { Route } from "./+types/step-select-card";
-import type { CardDetail } from "~/types/card";
 import { Button } from "~/components/ui/button";
 import {
   Card,

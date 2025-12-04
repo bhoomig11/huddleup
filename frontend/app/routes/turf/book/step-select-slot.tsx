@@ -3,7 +3,6 @@
 import { add, format, startOfDay, parse } from "date-fns";
 import { useMemo } from "react";
 import { Link, useSearchParams, useRouteLoaderData } from "react-router";
-import type { Route } from "./+types/step-select-slot";
 import { Button } from "~/components/ui/button";
 import { Calendar } from "~/components/ui/calendar";
 import {

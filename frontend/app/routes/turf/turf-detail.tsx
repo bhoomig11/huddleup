@@ -355,9 +355,9 @@ export default function TurfDetailPage({
                   <div className="flex flex-row items-center gap-2 rounded bg-green-100 px-4 py-6">
                     <Info className="size-5 text-green-700" />
                     <p className="text-sm font-medium text-stone-600">
-                      You&apos;ll be able to leave a review after you&apos;ve visited this
-                      turf! Book a session and come back to share your
-                      experience.
+                      You&apos;ll be able to leave a review after you&apos;ve
+                      visited this turf! Book a session and come back to share
+                      your experience.
                     </p>
                   </div>
                 )

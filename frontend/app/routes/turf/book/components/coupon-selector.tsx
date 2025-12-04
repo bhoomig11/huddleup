@@ -97,12 +97,6 @@ export function CouponSelector({ onCouponChange }: CouponSelectorProps) {
     setValidationError(null);
   };
 
-  const isCodeValid = useMemo(() => {
-    if (!couponCode.trim()) return false;
-    const normalizedCode = couponCode.trim().toUpperCase();
-    return coupons.some((c) => c.couponCode.toUpperCase() === normalizedCode);
-  }, [couponCode, coupons]);
-
   return (
     <div className="space-y-3">
       <h3 className="font-semibold text-stone-700">Apply Coupon</h3>

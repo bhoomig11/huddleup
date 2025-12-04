@@ -1,12 +1,8 @@
 import { data } from "react-router";
-import type { Route } from "./+types/coupons";
 import { fetchAllValidCoupons } from "~/api/coupon";
 import type { CouponSummary } from "~/api/coupon";
 
-export async function clientLoader({
-  context,
-  request,
-}: Route.ClientLoaderArgs) {
+export async function clientLoader() {
   const response = await fetchAllValidCoupons();
   if (!response.ok) {
     throw data("Failed to fetch coupons", {

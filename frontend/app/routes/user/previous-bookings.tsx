@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { format, intervalToDuration } from "date-fns";
-import { Link, redirect, useParams, useRevalidator } from "react-router";
+import { redirect, useParams, useRevalidator } from "react-router";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";
 import { ProfileSidebar } from "~/routes/user/components/profile-sidebar";
@@ -54,7 +54,7 @@ export default function PreviousBookingsPage({
     const start = new Date(startTimeUtc);
     const end = new Date(endTimeUtc);
     const duration = intervalToDuration({ start, end });
-    
+
     const parts: string[] = [];
     if (duration.hours && duration.hours > 0) {
       parts.push(`${duration.hours}h`);
@@ -62,7 +62,7 @@ export default function PreviousBookingsPage({
     if (duration.minutes && duration.minutes > 0) {
       parts.push(`${duration.minutes}m`);
     }
-    
+
     return parts.join(" ") || "0m";
   };
 
@@ -110,7 +110,8 @@ export default function PreviousBookingsPage({
                           Start: {startDateTime.date} | {startDateTime.time}
                         </p>
                         <p className="text-stone-500">
-                          End: {endDateTime.date} | {endDateTime.time} ({duration})
+                          End: {endDateTime.date} | {endDateTime.time} (
+                          {duration})
                         </p>
                         <p className="text-stone-500">
                           Card Number: {booking.maskedCardNumber}
