@@ -55,6 +55,46 @@ export function getTimePeriod(time: string): TimePeriodKey {
 }
 
 /**
+ * Calculates duration in hours between two time strings (HH:mm or HH:mm:ss)
+ */
+export function calculateDurationHours(
+  fromTime: string,
+  toTime: string
+): number {
+  const [fromHours, fromMinutes] = fromTime.split(":").map(Number);
+  const [toHours, toMinutes] = toTime.split(":").map(Number);
+
+  const fromTotalMinutes = fromHours * 60 + fromMinutes;
+  const toTotalMinutes = toHours * 60 + toMinutes;
+
+  return (toTotalMinutes - fromTotalMinutes) / 60;
+}
+
+/**
+ * Formats duration in hours to a human-readable string with hours and minutes
+ * e.g., formatDuration(1.5) -> "1 hour 30 minutes"
+ *       formatDuration(2) -> "2 hours"
+ *       formatDuration(0.5) -> "30 minutes"
+ */
+export function formatDuration(hours: number): string {
+  const totalMinutes = Math.round(hours * 60);
+  const durationHours = Math.floor(totalMinutes / 60);
+  const durationMinutes = totalMinutes % 60;
+
+  const parts: string[] = [];
+  if (durationHours > 0) {
+    parts.push(`${durationHours} ${durationHours === 1 ? "hour" : "hours"}`);
+  }
+  if (durationMinutes > 0) {
+    parts.push(
+      `${durationMinutes} ${durationMinutes === 1 ? "minute" : "minutes"}`
+    );
+  }
+
+  return parts.length > 0 ? parts.join(" ") : "0 minutes";
+}
+
+/**
  * Groups times by their time period
  */
 export function groupTimesByPeriod(

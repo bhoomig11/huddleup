@@ -2,7 +2,7 @@
 
 import { add, format, startOfDay, parse } from "date-fns";
 import { useMemo } from "react";
-import { Link, useSearchParams, data } from "react-router";
+import { Link, useSearchParams, useRouteLoaderData } from "react-router";
 import type { Route } from "./+types/step-select-slot";
 import { Button } from "~/components/ui/button";
 import { Calendar } from "~/components/ui/calendar";
@@ -14,51 +14,25 @@ import {
   CardFooter,
   CardTitle,
 } from "~/components/ui/card";
-import { fetchTurfDetails } from "~/api/turf";
-import type { TurfDetails } from "~/types/turf";
-import { authContext } from "~/middleware/auth-middleware";
-import { redirectToLogin } from "~/utils/auth-errors";
 import { StartTimeGrid } from "./components/start-time-grid";
 import { EndTimeGrid } from "./components/end-time-grid";
 import { useResponsiveCalendarMonths } from "./hooks/use-responsive-calendar-months";
 import { Clock } from "lucide-react";
+import type { clientLoader } from "./layout";
 
-export async function clientLoader({
-  context,
-  params,
-  request,
-}: Route.ClientLoaderArgs) {
-  const auth = context.get(authContext);
-  if (auth === null) {
-    const currentPath = new URL(request.url).pathname;
-    redirectToLogin(currentPath);
+export default function BookSelectSlot() {
+  const layoutData = useRouteLoaderData<typeof clientLoader>(
+    "routes/turf/book/layout"
+  );
+  const turfDetails = layoutData?.turfDetails;
+
+  if (!turfDetails) {
+    throw new Error("Turf details not found");
   }
-
-  const turfId = Number.parseInt(params.turfId ?? "");
-  if (Number.isNaN(turfId)) {
-    const invalidTurfIdMessage =
-      "Invalid turf ID! Expected a number, received: " + params.turfId;
-    throw data(invalidTurfIdMessage, { status: 400 });
-  }
-
-  const response = await fetchTurfDetails(turfId);
-  if (!response.ok) {
-    throw data("Error fetching turf details", {
-      status: response.status,
-    });
-  }
-
-  const turfDetails = (await response.json()) as TurfDetails;
-  return { turfDetails };
-}
-
-export default function BookSelectSlot({ loaderData }: Route.ComponentProps) {
-  const { turfDetails } = loaderData;
 
   const [searchParams, setSearchParams] = useSearchParams();
   const numberOfMonths = useResponsiveCalendarMonths();
 
-  // Memoize based on actual string values to prevent unnecessary re-renders
   const dateParam = searchParams.get("date");
   const date = useMemo(() => {
     if (!dateParam) return null;

@@ -4,9 +4,10 @@ import {
   useParams,
   useSearchParams,
   useRevalidator,
-  data,
+  useRouteLoaderData,
 } from "react-router";
 import type { Route } from "./+types/step-select-card";
+import type { CardDetail } from "~/types/card";
 import { Button } from "~/components/ui/button";
 import {
   Card,
@@ -16,35 +17,8 @@ import {
   CardTitle,
 } from "~/components/ui/card";
 import { AddCardDialog } from "~/routes/user/components/add-card";
-import { getAllCardDetails } from "~/api/user";
-import { authContext } from "~/middleware/auth-middleware";
-import { redirectToLogin } from "~/utils/auth-errors";
 import { CardSelectionButton } from "./components/card-selection-button";
-import type { CardDetail } from "~/types/card";
-
-export async function clientLoader({
-  context,
-  request,
-}: Route.ClientLoaderArgs) {
-  const auth = context.get(authContext);
-  if (auth === null) {
-    const currentPath = new URL(request.url).pathname;
-    redirectToLogin(currentPath);
-  }
-
-  const username = auth!.username;
-  const response = await getAllCardDetails(username);
-
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
-    throw data(errorData.message || "Error fetching card details", {
-      status: response.status,
-    });
-  }
-
-  const cards = (await response.json()) as Array<CardDetail>;
-  return { cards, username };
-}
+import { clientLoader } from "./layout";
 
 function parseCardIdFromQuery(
   searchParams: URLSearchParams,
@@ -61,15 +35,24 @@ function parseCardIdFromQuery(
   return cardId;
 }
 
-export default function SelectPaymentMethod({
-  loaderData,
-}: Route.ComponentProps) {
-  const params = useParams();
+export default function SelectPaymentMethod() {
   const [searchParams, setSearchParams] = useSearchParams();
   const revalidator = useRevalidator();
-  const turfId = Number.parseInt(params.turfId ?? "");
-  const { cards, username } = loaderData;
+  const layoutData = useRouteLoaderData<typeof clientLoader>(
+    "routes/turf/book/layout"
+  );
 
+  const username = layoutData?.username;
+  if (!username) {
+    throw new Error("Username not found");
+  }
+
+  const turfId = layoutData?.turfDetails.turfId;
+  if (!turfId) {
+    throw new Error("Turf ID not found");
+  }
+
+  const cards = layoutData?.cards ?? [];
   const selectedCardId = useMemo(
     () =>
       parseCardIdFromQuery(
@@ -155,7 +138,7 @@ export default function SelectPaymentMethod({
                 asChild
               >
                 <Link
-                  to={`/turf/${turfId}/book/step-3?${searchParams.toString()}`}
+                  to={`/turf/${turfId}/book/step-review?${searchParams.toString()}`}
                 >
                   Next
                 </Link>

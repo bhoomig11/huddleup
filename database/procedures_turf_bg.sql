@@ -173,7 +173,7 @@ BEGIN
         discount_percent 
     FROM coupon
     WHERE coupon.coupon_start_date <= UTC_DATE() 
-        AND coupon.end_date >= UTC_DATE();
+        AND coupon.coupon_end_date >= UTC_DATE();
 END $$
 DELIMITER ;
 
