@@ -1,4 +1,3 @@
-import { format } from "date-fns";
 import type { TurfReview } from "~/types/turf";
 import { withBase } from "./base";
 import { getAuthToken, isTokenValid } from "~/utils/auth";
@@ -78,9 +77,11 @@ export async function fetchTurfFeatures(turfId: number) {
   return response;
 }
 
-export async function fetchAvailableStartTimes(turfId: number, date: Date) {
+export async function fetchAvailableStartTimes(
+  turfId: number,
+  dateString: string // Date string in yyyy-MM-dd format
+) {
   const headers = getAuthenticatedHeaders();
-  const dateString = format(date, "yyyy-MM-dd");
   const response = await fetch(
     withBase(`/api/turf/${turfId}/available-start-times?date=${dateString}`),
     {
@@ -93,11 +94,10 @@ export async function fetchAvailableStartTimes(turfId: number, date: Date) {
 
 export async function fetchAvailableEndTimes(
   turfId: number,
-  date: Date,
+  dateString: string, // Date string in yyyy-MM-dd format
   startTime: string // Time string (HH:mm:ss)
 ) {
   const headers = getAuthenticatedHeaders();
-  const dateString = format(date, "yyyy-MM-dd");
   const response = await fetch(
     withBase(
       `/api/turf/${turfId}/available-end-times?date=${dateString}&startTime=${startTime}`

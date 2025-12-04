@@ -3,6 +3,7 @@ import type { Route } from "./+types/available-end-times";
 import { fetchAvailableEndTimes } from "~/api/turf";
 import { authContext } from "~/middleware/auth-middleware";
 import { redirectToLogin } from "~/utils/auth-errors";
+import { isValidDateString } from "./book/utils/date-utils";
 
 export async function clientLoader({
   context,
@@ -32,12 +33,18 @@ export async function clientLoader({
     throw data("Start time parameter is required", { status: 400 });
   }
 
-  const date = new Date(dateParam);
-  if (Number.isNaN(date.getTime())) {
-    throw data("Invalid date format", { status: 400 });
+  // Validate date string format and ensure it represents a valid date
+  if (!isValidDateString(dateParam)) {
+    throw data("Invalid date format or date value. Expected yyyy-MM-dd", {
+      status: 400,
+    });
   }
 
-  const response = await fetchAvailableEndTimes(turfId, date, startTimeParam);
+  const response = await fetchAvailableEndTimes(
+    turfId,
+    dateParam,
+    startTimeParam
+  );
   if (!response.ok) {
     throw data("Failed to fetch available end times", {
       status: response.status,

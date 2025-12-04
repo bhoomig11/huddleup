@@ -82,12 +82,19 @@ export default function BookingConfirmation({
     try {
       const parsed = parseISO(booking.startTimeLocal);
       if (isNaN(parsed.getTime())) {
-        console.error("Invalid date parsed from startTimeLocal:", booking.startTimeLocal);
+        console.error(
+          "Invalid date parsed from startTimeLocal:",
+          booking.startTimeLocal
+        );
         return null;
       }
       return parsed;
     } catch (error) {
-      console.error("Error parsing startTimeLocal:", booking.startTimeLocal, error);
+      console.error(
+        "Error parsing startTimeLocal:",
+        booking.startTimeLocal,
+        error
+      );
       return null;
     }
   }, [booking.startTimeLocal]);
@@ -97,7 +104,10 @@ export default function BookingConfirmation({
     try {
       const parsed = parseISO(booking.endTimeLocal);
       if (isNaN(parsed.getTime())) {
-        console.error("Invalid date parsed from endTimeLocal:", booking.endTimeLocal);
+        console.error(
+          "Invalid date parsed from endTimeLocal:",
+          booking.endTimeLocal
+        );
         return null;
       }
       return parsed;
@@ -120,7 +130,12 @@ export default function BookingConfirmation({
 
   // Format time range
   const timeRange = useMemo(() => {
-    if (!startDate || !endDate || isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+    if (
+      !startDate ||
+      !endDate ||
+      isNaN(startDate.getTime()) ||
+      isNaN(endDate.getTime())
+    ) {
       return "Invalid time";
     }
     try {
@@ -135,7 +150,12 @@ export default function BookingConfirmation({
 
   // Calculate duration
   const durationHours = useMemo(() => {
-    if (!startDate || !endDate || isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+    if (
+      !startDate ||
+      !endDate ||
+      isNaN(startDate.getTime()) ||
+      isNaN(endDate.getTime())
+    ) {
       return 0;
     }
     const diffMs = endDate.getTime() - startDate.getTime();

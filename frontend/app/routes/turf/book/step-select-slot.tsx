@@ -1,6 +1,10 @@
 "use client";
 
-import { add, format, startOfDay, parse } from "date-fns";
+import { add, startOfDay } from "date-fns";
+import {
+  parseLocalDateString,
+  formatDateToLocalString,
+} from "./utils/date-utils";
 import { useMemo } from "react";
 import { Link, useSearchParams, useRouteLoaderData } from "react-router";
 import { Button } from "~/components/ui/button";
@@ -35,8 +39,7 @@ export default function BookSelectSlot() {
   const dateParam = searchParams.get("date");
   const date = useMemo(() => {
     if (!dateParam) return null;
-    const parsed = parse(dateParam, "yyyy-MM-dd", new Date());
-    return Number.isNaN(parsed.getTime()) ? null : parsed;
+    return parseLocalDateString(dateParam);
   }, [dateParam]);
 
   const fromTime = searchParams.get("fromTime");
@@ -57,7 +60,7 @@ export default function BookSelectSlot() {
 
     if ("date" in updates) {
       const newDateString = updates.date
-        ? format(updates.date, "yyyy-MM-dd")
+        ? formatDateToLocalString(updates.date)
         : null;
       const currentDateString = searchParams.get("date");
       if (newDateString !== currentDateString) {

@@ -20,7 +20,8 @@ import {
   CardTitle,
 } from "~/components/ui/card";
 import { Calendar, Clock } from "lucide-react";
-import { format, parse } from "date-fns";
+import { format } from "date-fns";
+import { parseLocalDateString } from "./utils/date-utils";
 import { formatMaskedCardNumber } from "~/routes/user/utils";
 import {
   toHourMinute,
@@ -216,8 +217,7 @@ export default function BookReview({ actionData }: Route.ComponentProps) {
 
   const date = useMemo(() => {
     if (!dateParam) return null;
-    const parsed = parse(dateParam, "yyyy-MM-dd", new Date());
-    return Number.isNaN(parsed.getTime()) ? null : parsed;
+    return parseLocalDateString(dateParam);
   }, [dateParam]);
 
   const formattedDate = useMemo(() => {

@@ -1,9 +1,9 @@
 import { useEffect } from "react";
 import { useFetcher } from "react-router";
-import { format } from "date-fns";
 import { TimeGrid } from "./time-grid";
 import type { clientLoader } from "../../available-end-times";
 import { useDebouncedLoading } from "../hooks/use-debounced-loading";
+import { formatDateToLocalString } from "../utils/date-utils";
 
 interface EndTimeGridProps {
   turfId: number;
@@ -23,7 +23,7 @@ export function EndTimeGrid({
   const fetcher = useFetcher<typeof clientLoader>();
 
   useEffect(() => {
-    const dateString = format(date, "yyyy-MM-dd");
+    const dateString = formatDateToLocalString(date);
     fetcher.load(
       `/turf/${turfId}/available-end-times?date=${dateString}&startTime=${encodeURIComponent(startTime)}`
     );
