@@ -21,6 +21,11 @@ export default [
     ...prefix("turf", [
       route("browse", "routes/turf/browse-turfs.tsx"),
       route(":turfId", "routes/turf/turf-detail.tsx"),
+      route(
+        ":turfId/book/:bookingId/confirmation",
+        "routes/turf/book/confirmation.tsx"
+      ),
+      route(":turfId/book/conflict", "routes/turf/book/conflict.tsx"),
       layout("routes/turf/book/layout.tsx", [
         route(
           ":turfId/available-start-times",
@@ -40,11 +45,6 @@ export default [
           "routes/turf/book/step-select-card.tsx"
         ),
         route(":turfId/book/step-review", "routes/turf/book/step-review.tsx"),
-        route(
-          ":turfId/book/:bookingId/confirmation",
-          "routes/turf/book/confirmation.tsx"
-        ),
-        route(":turfId/book/conflict", "routes/turf/book/conflict.tsx"),
       ]),
     ]),
   ]),

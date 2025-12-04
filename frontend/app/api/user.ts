@@ -23,6 +23,19 @@ export async function getAllUserBookings(username: string) {
   return response;
 }
 
+export async function getUserBooking(username: string, bookingId: number) {
+  const headers = getAuthenticatedHeaders();
+
+  const response = await fetch(
+    withBase(`/api/user/${username}/booking/${bookingId}`),
+    {
+      method: "GET",
+      headers,
+    }
+  );
+  return response;
+}
+
 export async function fileComplaint(
   username: string,
   bookingId: number,

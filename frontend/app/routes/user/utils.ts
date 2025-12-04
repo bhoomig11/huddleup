@@ -17,6 +17,28 @@ export const maskCardNumber = (cardNumber: string): string => {
 };
 
 /**
+ * Formats an already-masked card number into readable groups of 4 characters.
+ * Handles variable-length card numbers (13-19 digits) by grouping into 4-character chunks.
+ * 
+ * @param maskedCardNumber The already-masked card number (last 4 digits visible)
+ * @returns Formatted masked card number with spaces in groups of 4
+ */
+export const formatMaskedCardNumber = (maskedCardNumber: string): string => {
+  if (!maskedCardNumber) return maskedCardNumber;
+  
+  // Remove any existing spaces
+  const cleaned = maskedCardNumber.replace(/\s/g, "");
+  
+  // Group into chunks of 4 characters (handles variable-length cards)
+  const chunks: string[] = [];
+  for (let i = 0; i < cleaned.length; i += 4) {
+    chunks.push(cleaned.slice(i, i + 4));
+  }
+  
+  return chunks.join(" ");
+};
+
+/**
  * Filters input to allow only English alphabets and converts to uppercase.
  * Used for fields like state codes.
  * @param value The input value
