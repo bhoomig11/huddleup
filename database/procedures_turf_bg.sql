@@ -161,6 +161,9 @@ DELIMITER ;
  *   - coupon_code - code for the coupon visible to the user
  *   - coupon_description - description of the coupon
  *   - discount_percent - discount percent applied
+ *   - coupon_start_date - start date when the coupon becomes valid
+ *   - coupon_end_date - end date when the coupon expires
+ *   - min_booking_amt - minimum booking amount required to use this coupon (nullable)
  */ 
 DROP PROCEDURE IF EXISTS get_all_valid_coupons;
 DELIMITER $$
@@ -170,7 +173,10 @@ BEGIN
         coupon_id,
         coupon_code, 
         coupon_description, 
-        discount_percent 
+        discount_percent,
+        coupon_start_date,
+        coupon_end_date,
+        min_booking_amt
     FROM coupon
     WHERE coupon.coupon_start_date <= UTC_DATE() 
         AND coupon.coupon_end_date >= UTC_DATE();

@@ -30,7 +30,7 @@ import {
   formatDuration,
 } from "./components/time-grid-utils";
 import { CouponSelector } from "./components/coupon-selector";
-import type { CouponSummary } from "~/api/coupon";
+import type { CouponDetail } from "~/types/coupon";
 import { bookTurf } from "~/api/turf";
 
 export async function clientLoader({
@@ -236,7 +236,7 @@ export default function BookReview({ actionData }: Route.ComponentProps) {
     return cards.find((card) => card.cardId === selectedCardId) ?? null;
   }, [cards, selectedCardId]);
 
-  const [selectedCoupon, setSelectedCoupon] = useState<CouponSummary | null>(
+  const [selectedCoupon, setSelectedCoupon] = useState<CouponDetail | null>(
     null
   );
 
@@ -436,7 +436,10 @@ export default function BookReview({ actionData }: Route.ComponentProps) {
         </div>
 
         {/* Coupon Section */}
-        <CouponSelector onCouponChange={setSelectedCoupon} />
+        <CouponSelector
+          onCouponChange={setSelectedCoupon}
+          subtotal={subtotal}
+        />
 
         {/* Error Message */}
         {errorMessage && (

@@ -1,7 +1,6 @@
 package edu.northeastern.dharrguptab.huddleup.coupon;
 
 import edu.northeastern.dharrguptab.huddleup.coupon.dto.CouponDetail;
-import edu.northeastern.dharrguptab.huddleup.coupon.dto.CouponSummary;
 import java.util.List;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -19,7 +18,7 @@ public class CouponController {
 
   /** Endpoint for getting all currently valid coupons. */
   @GetMapping
-  public List<CouponSummary> getAllValidCoupons() {
+  public List<CouponDetail> getAllValidCoupons() {
     return couponService.getAllValidCoupons();
   }
 
