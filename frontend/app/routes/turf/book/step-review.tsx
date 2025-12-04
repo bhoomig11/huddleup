@@ -21,7 +21,7 @@ import {
 } from "~/components/ui/card";
 import { Calendar, Clock } from "lucide-react";
 import { format, parse } from "date-fns";
-import { maskCardNumber } from "~/routes/user/utils";
+import { formatMaskedCardNumber } from "~/routes/user/utils";
 import {
   toHourMinute,
   formatTimeTo12Hour,
@@ -373,8 +373,8 @@ export default function BookReview({ actionData }: Route.ComponentProps) {
               <div className="flex justify-between">
                 <span className="text-stone-600">Payment Method</span>
                 {selectedCard ? (
-                  <span className="font-medium text-stone-700">
-                    {maskCardNumber(selectedCard.cardNumber)}
+                  <span className="font-mono font-medium text-stone-700">
+                    {formatMaskedCardNumber(selectedCard.cardNumber)}
                   </span>
                 ) : (
                   <Link

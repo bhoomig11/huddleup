@@ -1,7 +1,14 @@
 import { useMemo } from "react";
 import { Link } from "react-router";
 import { format } from "date-fns";
-import { CheckCircle2, Calendar, Clock, MapPin, CreditCard, DollarSign } from "lucide-react";
+import {
+  CheckCircle2,
+  Calendar,
+  Clock,
+  MapPin,
+  CreditCard,
+  DollarSign,
+} from "lucide-react";
 import { Button } from "~/components/ui/button";
 import type { Route } from "./+types/confirmation";
 import { getUserBooking } from "~/api/user";
@@ -65,7 +72,7 @@ export async function clientLoader({
 
 export default function BookingConfirmation({
   loaderData,
-  params
+  params,
 }: Route.ComponentProps) {
   const { booking, turfDetails } = loaderData;
   const { turfId } = params;
@@ -121,135 +128,141 @@ export default function BookingConfirmation({
 
   return (
     <main className="flex w-full flex-col items-center py-8">
-    <div className="w-full max-w-2xl px-4">
-    <div className="w-full">
-      {/* Success Header */}
-      <div className="mb-6 flex items-center gap-3">
-        <CheckCircle2 className="size-10 text-green-600" />
-        <div>
-          <h1 className="text-2xl font-bold text-stone-800">
-            Booking Confirmed!
-          </h1>
-          <p className="text-stone-600">
-            Your turf booking has been successfully confirmed
-          </p>
-        </div>
-      </div>
-
-      {/* Complete Ticket Stub - All Information */}
-      <div className="relative overflow-hidden rounded-lg border border-stone-300 bg-white p-6 shadow-sm">
-        {/* Header with Turf Name and Booking ID */}
-        <div className="mb-6 flex items-start justify-between">
-          <div className="flex-1">
-            <h2 className="text-2xl font-bold text-stone-800">
-              {booking.turfName}
-            </h2>
-            <div className="mt-1 flex items-center gap-1.5 text-sm text-stone-600">
-              <MapPin className="size-3.5 shrink-0" />
-              <span>{addressString}</span>
+      <div className="w-full max-w-2xl px-4">
+        <div className="w-full">
+          {/* Success Header */}
+          <div className="mb-6 flex items-center gap-3">
+            <CheckCircle2 className="size-10 text-green-600" />
+            <div>
+              <h1 className="text-2xl font-bold text-stone-800">
+                Booking Confirmed!
+              </h1>
+              <p className="text-stone-600">
+                Your turf booking has been successfully confirmed
+              </p>
             </div>
           </div>
-          <div className="ml-6 shrink-0 text-right">
-            <p className="text-xs font-medium text-stone-500 uppercase tracking-wide">
-              Booking ID
-            </p>
-            <p className="font-mono text-lg font-bold text-stone-800">
-              #{booking.bookingId}
-            </p>
-          </div>
-        </div>
 
-        {/* Divider */}
-        <div className="mb-6 border-t border-stone-300"></div>
-
-        {/* Date and Time - Highlighted */}
-        <div className="mb-6">
-          <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-            <div className="flex items-start gap-3">
-              <div className="mt-0.5 shrink-0 rounded-md bg-green-100 p-2">
-                <Calendar className="size-5 text-green-700" />
-              </div>
+          {/* Complete Ticket Stub - All Information */}
+          <div className="relative overflow-hidden rounded-lg border border-stone-300 bg-white p-6 shadow-sm">
+            {/* Header with Turf Name and Booking ID */}
+            <div className="mb-6 flex items-start justify-between">
               <div className="flex-1">
-                <p className="mb-1 text-xs font-medium tracking-wide text-stone-500 uppercase">
-                  Date
+                <h2 className="text-2xl font-bold text-stone-800">
+                  {booking.turfName}
+                </h2>
+                <div className="mt-1 flex items-center gap-1.5 text-sm text-stone-600">
+                  <MapPin className="size-3.5 shrink-0" />
+                  <span>{addressString}</span>
+                </div>
+              </div>
+              <div className="ml-6 shrink-0 text-right">
+                <p className="text-xs font-medium tracking-wide text-stone-500 uppercase">
+                  Booking ID
                 </p>
-                <p className="text-xl font-bold text-stone-800">{formattedDate}</p>
+                <p className="font-mono text-lg font-bold text-stone-800">
+                  #{booking.bookingId}
+                </p>
               </div>
             </div>
-            <div className="flex items-start gap-3">
-              <div className="mt-0.5 shrink-0 rounded-md bg-green-100 p-2">
-                <Clock className="size-5 text-green-700" />
+
+            {/* Divider */}
+            <div className="mb-6 border-t border-stone-300"></div>
+
+            {/* Date and Time - Highlighted */}
+            <div className="mb-6">
+              <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+                <div className="flex items-start gap-3">
+                  <div className="mt-0.5 shrink-0 rounded-md bg-green-100 p-2">
+                    <Calendar className="size-5 text-green-700" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="mb-1 text-xs font-medium tracking-wide text-stone-500 uppercase">
+                      Date
+                    </p>
+                    <p className="text-xl font-bold text-stone-800">
+                      {formattedDate}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="mt-0.5 shrink-0 rounded-md bg-green-100 p-2">
+                    <Clock className="size-5 text-green-700" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="mb-1 text-xs font-medium tracking-wide text-stone-500 uppercase">
+                      Time
+                    </p>
+                    <p className="text-xl font-bold text-stone-800">
+                      {timeRange}
+                    </p>
+                    <p className="mt-1 text-sm text-stone-600">
+                      {formattedDuration}
+                    </p>
+                  </div>
+                </div>
               </div>
-              <div className="flex-1">
-                <p className="mb-1 text-xs font-medium tracking-wide text-stone-500 uppercase">
-                  Time
-                </p>
-                <p className="text-xl font-bold text-stone-800">{timeRange}</p>
-                <p className="mt-1 text-sm text-stone-600">{formattedDuration}</p>
+            </div>
+
+            {/* Divider */}
+            <div className="mb-4 border-t border-stone-300"></div>
+
+            {/* Payment Information - De-emphasized */}
+            <div className="space-y-2.5 text-sm">
+              {formattedCardNumber && (
+                <div className="flex items-center justify-between text-stone-600">
+                  <div className="flex items-center gap-2">
+                    <CreditCard className="size-4 text-stone-400" />
+                    <span>Payment Method</span>
+                  </div>
+                  <span className="font-mono font-medium text-stone-700">
+                    {formattedCardNumber}
+                  </span>
+                </div>
+              )}
+              <div className="flex items-center justify-between pt-2 text-stone-600">
+                <div className="flex items-center gap-2">
+                  <DollarSign className="size-4 text-stone-400" />
+                  <span>Total Paid</span>
+                </div>
+                <span className="font-semibold text-stone-800">
+                  ${booking.amount.toFixed(2)}
+                </span>
               </div>
             </div>
           </div>
-        </div>
 
-        {/* Divider */}
-        <div className="mb-4 border-t border-stone-300"></div>
+          {/* Info Message */}
+          <div className="mt-6 rounded-lg bg-green-50 p-4 text-sm text-green-900">
+            <p className="mb-1 font-semibold">What&apos;s next?</p>
+            <ul className="list-inside space-y-1 text-green-800">
+              <li>• Your booking is confirmed and ready to use</li>
+              <li>• You can view and manage this booking from your profile</li>
+              <li>
+                • Show your booking ID (#{booking.bookingId}) at the venue for
+                check-in
+              </li>
+            </ul>
+          </div>
 
-        {/* Payment Information - De-emphasized */}
-        <div className="space-y-2.5 text-sm">
-          {formattedCardNumber && (
-            <div className="flex items-center justify-between text-stone-600">
-              <div className="flex items-center gap-2">
-                <CreditCard className="size-4 text-stone-400" />
-                <span>Payment Method</span>
-              </div>
-              <span className="font-mono font-medium text-stone-700">
-                {formattedCardNumber}
-              </span>
-            </div>
-          )}
-          <div className="flex items-center justify-between pt-2 text-stone-600">
-            <div className="flex items-center gap-2">
-              <DollarSign className="size-4 text-stone-400" />
-              <span>Total Paid</span>
-            </div>
-            <span className="font-semibold text-stone-800">
-              ${booking.amount.toFixed(2)}
-            </span>
+          {/* Navigation */}
+          <div className="mt-6 flex gap-3">
+            <Link to={`/turf/${turfId}`} className="flex-1">
+              <Button variant="outline" className="w-full">
+                Back to Turf
+              </Button>
+            </Link>
+            <Link to="/turf/browse" className="flex-1">
+              <Button
+                variant="default"
+                className="w-full bg-green-700 hover:bg-green-600"
+              >
+                Browse More Turfs
+              </Button>
+            </Link>
           </div>
         </div>
       </div>
-
-      {/* Info Message */}
-      <div className="mt-6 rounded-lg bg-green-50 p-4 text-sm text-green-900">
-        <p className="mb-1 font-semibold">What&apos;s next?</p>
-        <ul className="list-inside space-y-1 text-green-800">
-          <li>• Your booking is confirmed and ready to use</li>
-          <li>• You can view and manage this booking from your profile</li>
-          <li>
-            • Show your booking ID (#{booking.bookingId}) at the venue for
-            check-in
-          </li>
-        </ul>
-      </div>
-
-      {/* Navigation */}
-      <div className="mt-6 flex gap-3">
-        <Link to={`/turf/${turfId}`} className="flex-1">
-          <Button variant="outline" className="w-full">
-            Back to Turf
-          </Button>
-        </Link>
-        <Link to="/turf/browse" className="flex-1">
-          <Button
-            variant="default"
-            className="w-full bg-green-700 hover:bg-green-600"
-          >
-            Browse More Turfs
-          </Button>
-        </Link>
-      </div>
-    </div>
-    </div>
     </main>
   );
 }

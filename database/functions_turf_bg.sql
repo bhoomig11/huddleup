@@ -128,8 +128,8 @@ BEGIN
     WHERE card_id = p_card_id;
 
     SET v_len_card_num = CHAR_LENGTH(v_org_card_number);
-    SET v_masked_card_num = SUBSTRING(v_org_card_number, v_len_card_num - 4);
-    SET v_masked_card_num = LPAD(v_masked_card_num, v_len_card_num, 'X');
+    SET v_masked_card_num = SUBSTRING(v_org_card_number FROM v_len_card_num - 3 FOR 4);
+    SET v_masked_card_num = LPAD(v_masked_card_num, v_len_card_num, '*');
 
     RETURN v_masked_card_num;
 END$$

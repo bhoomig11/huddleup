@@ -6,7 +6,7 @@ import { AddCardDialog } from "~/routes/user/components/add-card";
 import { ViewCardDialog } from "~/routes/user/components/view-card";
 import { ProfileSidebar } from "~/routes/user/components/profile-sidebar";
 import { getAllCardDetails, deleteCardDetail } from "~/api/user";
-import { maskCardNumber, formatExpiryDate } from "~/routes/user/utils";
+import { formatMaskedCardNumber, formatExpiryDate } from "~/routes/user/utils";
 import { data, redirect } from "react-router";
 import type { CardDetail } from "~/types/card";
 import type { Route } from "./+types/payment-methods";
@@ -114,7 +114,10 @@ export default function PaymentMethodsPage({
                         Name on Card: {card.nameOnCard}
                       </p>
                       <p className="text-gray-500">
-                        Card Number: {maskCardNumber(card.cardNumber)}
+                        Card Number:{" "}
+                        <span className="font-mono">
+                          {formatMaskedCardNumber(card.cardNumber)}
+                        </span>
                       </p>
                       <p className="text-gray-500">
                         Expiry: {expiry.month}/{expiry.year}

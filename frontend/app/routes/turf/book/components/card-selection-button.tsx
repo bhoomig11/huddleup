@@ -1,5 +1,5 @@
 import { CreditCard, CheckCircle2 } from "lucide-react";
-import { formatExpiryDate, maskCardNumber } from "~/routes/user/utils";
+import { formatExpiryDate, formatMaskedCardNumber } from "~/routes/user/utils";
 import type { CardDetail } from "~/types/card";
 
 interface CardSelectionButtonProps {
@@ -14,7 +14,7 @@ export function CardSelectionButton({
   onSelect,
 }: CardSelectionButtonProps) {
   const expiry = formatExpiryDate(card.expiryDate);
-  const maskedNumber = maskCardNumber(card.cardNumber);
+  const maskedNumber = formatMaskedCardNumber(card.cardNumber);
 
   return (
     <button

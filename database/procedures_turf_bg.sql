@@ -233,7 +233,7 @@ DELIMITER ;
  * Output Columns
  * --------------
  *   - card_id - the ID of the card
- *   - card_number - the card number
+ *   - card_number - the masked card number (last 4 digits visible)
  *   - name_on_card - the name on the card
  *   - expiry_date - the card expiry date
  *   - addr_street_1 - the primary street address line of the card's billing address
@@ -264,7 +264,7 @@ BEGIN
 
     SELECT
         card_id,
-        card_number,
+        get_masked_card_number(card_id) AS card_number,
         name_on_card,
         expiry_date,
         addr_street_1,
@@ -349,7 +349,7 @@ BEGIN
     IF (p_coupon_id IS NOT NULL AND NOT EXISTS (SELECT coupon_id FROM coupon WHERE coupon_id = p_coupon_id)) THEN 
         SIGNAL SQLSTATE '45002' SET MESSAGE_TEXT = 'No such coupon exists';
     END IF;
-
+ 
     -- validate end time is after start time (in local time)
     IF (p_end_time <= p_start_time) THEN
         SIGNAL SQLSTATE '45001' SET MESSAGE_TEXT = 'End time must be after start time';
