@@ -12,13 +12,13 @@ USE huddleup;
  * Output Columns
  * --------------
  *   - booking_id - the ID of the booking
- *   - start_time_utc - the timestamp for when the booking starts
- *   - end_time_utc - the timestamp for when the booking ends
+ *   - start_time_local - the timestamp for when the booking starts (in turf's local timezone)
+ *   - end_time_local - the timestamp for when the booking ends (in turf's local timezone)
  *   - amount - the amount paid to confirm the booking
  *   - complaint_subject - the subject of the associated complaint if any
  *   - complaint_description - the description of the associated complaint if any
- *   - complaint_filed_at_utc - the timestamp for when any existing complaint was filed
- *   - complaint_resolved_at_utc - the timestamp for when any existing complaint was resolved
+ *   - complaint_filed_at_utc - the timestamp for when any existing complaint was filed (in UTC)
+ *   - complaint_resolved_at_utc - the timestamp for when any existing complaint was resolved (in UTC)
  *   - turf_id - the ID of the turf that was booked
  *   - username - the username of the user who made the booking
  *   - masked_card_number - the masked number of the card used to confirm the booking
@@ -45,8 +45,8 @@ BEGIN
 
     SELECT
         b.booking_id,
-        b.start_time_utc,
-        b.end_time_utc,
+        convert_utc_to_local(b.start_time_utc, t.iana_timezone) AS start_time_local,
+        convert_utc_to_local(b.end_time_utc, t.iana_timezone) AS end_time_local,
         b.amount,
         b.complaint_subject,
         b.complaint_description,
@@ -78,13 +78,13 @@ DELIMITER ;
  * Output Columns
  * --------------
  *   - booking_id - the ID of the booking
- *   - start_time_utc - the timestamp for when the booking starts
- *   - end_time_utc - the timestamp for when the booking ends
+ *   - start_time_local - the timestamp for when the booking starts (in turf's local timezone)
+ *   - end_time_local - the timestamp for when the booking ends (in turf's local timezone)
  *   - amount - the amount paid to confirm the booking
  *   - complaint_subject - the subject of the associated complaint if any
  *   - complaint_description - the description of the associated complaint if any
- *   - complaint_filed_at_utc - the timestamp for when any existing complaint was filed
- *   - complaint_resolved_at_utc - the timestamp for when any existing complaint was resolved
+ *   - complaint_filed_at_utc - the timestamp for when any existing complaint was filed (in UTC)
+ *   - complaint_resolved_at_utc - the timestamp for when any existing complaint was resolved (in UTC)
  *   - turf_id - the ID of the turf that was booked
  *   - username - the username of the user who made the booking
  *   - masked_card_number - the masked number of the card used to confirm the booking
@@ -118,8 +118,8 @@ BEGIN
 
     SELECT 
         b.booking_id,
-        b.start_time_utc,
-        b.end_time_utc,
+        convert_utc_to_local(b.start_time_utc, t.iana_timezone) AS start_time_local,
+        convert_utc_to_local(b.end_time_utc, t.iana_timezone) AS end_time_local,
         b.amount,
         b.complaint_subject,
         b.complaint_description,
@@ -150,13 +150,13 @@ DELIMITER ;
  * Output Columns
  * --------------
  *   - booking_id - the ID of the booking (NULL if no booking exists)
- *   - start_time_utc - the timestamp for when the booking starts (NULL if no booking exists)
- *   - end_time_utc - the timestamp for when the booking ends (NULL if no booking exists)
+ *   - start_time_local - the timestamp for when the booking starts, in turf's local timezone (NULL if no booking exists)
+ *   - end_time_local - the timestamp for when the booking ends, in turf's local timezone (NULL if no booking exists)
  *   - amount - the amount paid to confirm the booking (NULL if no booking exists)
  *   - complaint_subject - the subject of the associated complaint if any (NULL if no booking exists)
  *   - complaint_description - the description of the associated complaint if any (NULL if no booking exists)
- *   - complaint_filed_at_utc - the timestamp for when any existing complaint was filed (NULL if no booking exists)
- *   - complaint_resolved_at_utc - the timestamp for when any existing complaint was resolved (NULL if no booking exists)
+ *   - complaint_filed_at_utc - the timestamp for when any existing complaint was filed, in UTC (NULL if no booking exists)
+ *   - complaint_resolved_at_utc - the timestamp for when any existing complaint was resolved, in UTC (NULL if no booking exists)
  *   - turf_id - the ID of the turf that was booked (NULL if no booking exists)
  *   - username - the username of the user who made the booking (NULL if no booking exists)
  *   - masked_card_number - the masked number of the card used to confirm the booking (NULL if no booking exists)
@@ -190,8 +190,8 @@ BEGIN
 
     SELECT 
         b.booking_id,
-        b.start_time_utc,
-        b.end_time_utc,
+        convert_utc_to_local(b.start_time_utc, t.iana_timezone) AS start_time_local,
+        convert_utc_to_local(b.end_time_utc, t.iana_timezone) AS end_time_local,
         b.amount,
         b.complaint_subject,
         b.complaint_description,

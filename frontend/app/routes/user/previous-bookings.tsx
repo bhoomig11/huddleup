@@ -50,9 +50,9 @@ export default function PreviousBookingsPage({
   };
 
   // Helper function to calculate and format duration
-  const formatDuration = (startTimeUtc: string, endTimeUtc: string) => {
-    const start = new Date(startTimeUtc);
-    const end = new Date(endTimeUtc);
+  const formatDuration = (startTimeLocal: string, endTimeLocal: string) => {
+    const start = new Date(startTimeLocal);
+    const end = new Date(endTimeLocal);
     const duration = intervalToDuration({ start, end });
 
     const parts: string[] = [];
@@ -88,11 +88,11 @@ export default function PreviousBookingsPage({
             </h2>
 
             {bookings.map((booking) => {
-              const startDateTime = formatDateTime(booking.startTimeUtc);
-              const endDateTime = formatDateTime(booking.endTimeUtc);
+              const startDateTime = formatDateTime(booking.startTimeLocal);
+              const endDateTime = formatDateTime(booking.endTimeLocal);
               const duration = formatDuration(
-                booking.startTimeUtc,
-                booking.endTimeUtc
+                booking.startTimeLocal,
+                booking.endTimeLocal
               );
 
               return (

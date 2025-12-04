@@ -220,3 +220,34 @@ BEGIN
 END $$
 DELIMITER ;
 
+/**
+ * Function: convert_utc_to_local
+ * -------------------------------
+ * Converts a UTC datetime to local datetime using the provided timezone.
+ *
+ * Parameters
+ * ----------
+ *   - p_datetime_utc - the datetime in UTC (DATETIME format)
+ *   - p_timezone - the IANA timezone identifier (e.g., 'America/New_York')
+ *
+ * Returns
+ * -------
+ * The datetime in local timezone (DATETIME format)
+ */
+DROP FUNCTION IF EXISTS convert_utc_to_local;
+DELIMITER $$
+CREATE FUNCTION convert_utc_to_local(
+    p_datetime_utc DATETIME,
+    p_timezone VARCHAR(64)
+)
+RETURNS DATETIME
+DETERMINISTIC
+NO SQL
+BEGIN
+    RETURN CONVERT_TZ(
+        p_datetime_utc,
+        'UTC',
+        p_timezone
+    );
+END $$
+DELIMITER ;

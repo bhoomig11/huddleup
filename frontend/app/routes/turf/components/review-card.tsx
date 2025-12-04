@@ -89,7 +89,7 @@ export function ReviewCard(props: ReviewCardProps) {
             According to our records, you visited this turf on{" "}
             {props.latestBooking && (
               <span className="font-semibold text-green-700">
-                {formatBookingDate(props.latestBooking.startTimeUtc)}
+                {formatBookingDate(props.latestBooking.startTimeLocal)}
               </span>
             )}
             . We hope you had an amazing time! 🎉

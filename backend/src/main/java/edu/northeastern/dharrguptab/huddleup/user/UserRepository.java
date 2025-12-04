@@ -19,6 +19,7 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -575,8 +576,8 @@ public class UserRepository {
       try (ResultSet rs = cs.executeQuery()) {
         while (rs.next()) {
           int bookingId = rs.getInt("booking_id");
-          Instant startTimeUtc = toInstantOrNull(rs.getTimestamp("start_time_utc"));
-          Instant endTimeUtc = toInstantOrNull(rs.getTimestamp("end_time_utc"));
+          LocalDateTime startTimeLocal = toLocalDateTimeOrNull(rs.getTimestamp("start_time_local"));
+          LocalDateTime endTimeLocal = toLocalDateTimeOrNull(rs.getTimestamp("end_time_local"));
           BigDecimal amount = rs.getBigDecimal("amount");
           String complaintSubject = rs.getString("complaint_subject");
           String complaintDescription = rs.getString("complaint_description");
@@ -592,8 +593,8 @@ public class UserRepository {
           bookings.add(
               new BookingSummary(
                   bookingId,
-                  startTimeUtc,
-                  endTimeUtc,
+                  startTimeLocal,
+                  endTimeLocal,
                   amount,
                   complaintSubject,
                   complaintDescription,
@@ -640,8 +641,8 @@ public class UserRepository {
       try (ResultSet rs = cs.executeQuery()) {
         if (rs.next()) {
           int bookingIdResult = rs.getInt("booking_id");
-          Instant startTimeUtc = toInstantOrNull(rs.getTimestamp("start_time_utc"));
-          Instant endTimeUtc = toInstantOrNull(rs.getTimestamp("end_time_utc"));
+          LocalDateTime startTimeLocal = toLocalDateTimeOrNull(rs.getTimestamp("start_time_local"));
+          LocalDateTime endTimeLocal = toLocalDateTimeOrNull(rs.getTimestamp("end_time_local"));
           BigDecimal amount = rs.getBigDecimal("amount");
           String complaintSubject = rs.getString("complaint_subject");
           String complaintDescription = rs.getString("complaint_description");
@@ -656,8 +657,8 @@ public class UserRepository {
 
           return new BookingSummary(
               bookingIdResult,
-              startTimeUtc,
-              endTimeUtc,
+              startTimeLocal,
+              endTimeLocal,
               amount,
               complaintSubject,
               complaintDescription,
@@ -772,8 +773,8 @@ public class UserRepository {
       try (ResultSet rs = cs.executeQuery()) {
         if (rs.next()) {
           int bookingId = rs.getInt("booking_id");
-          Instant startTimeUtc = toInstantOrNull(rs.getTimestamp("start_time_utc"));
-          Instant endTimeUtc = toInstantOrNull(rs.getTimestamp("end_time_utc"));
+          LocalDateTime startTimeLocal = toLocalDateTimeOrNull(rs.getTimestamp("start_time_local"));
+          LocalDateTime endTimeLocal = toLocalDateTimeOrNull(rs.getTimestamp("end_time_local"));
           BigDecimal amount = rs.getBigDecimal("amount");
           String complaintSubject = rs.getString("complaint_subject");
           String complaintDescription = rs.getString("complaint_description");
@@ -789,8 +790,8 @@ public class UserRepository {
 
           return new BookingSummary(
               bookingId,
-              startTimeUtc,
-              endTimeUtc,
+              startTimeLocal,
+              endTimeLocal,
               amount,
               complaintSubject,
               complaintDescription,
@@ -837,5 +838,16 @@ public class UserRepository {
    */
   private Instant toInstantOrNull(Timestamp timestamp) {
     return timestamp == null ? null : timestamp.toInstant();
+  }
+
+  /**
+   * Convert a SQL {@link Timestamp} to a {@link LocalDateTime} while preserving null to avoid an
+   * {@link IllegalArgumentException}.
+   *
+   * @param timestamp the SQL timestamp to convert
+   * @return the converted local datetime, or null if the timestamp is null
+   */
+  private LocalDateTime toLocalDateTimeOrNull(Timestamp timestamp) {
+    return timestamp == null ? null : timestamp.toLocalDateTime();
   }
 }

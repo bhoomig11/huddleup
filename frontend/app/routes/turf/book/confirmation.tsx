@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { Link } from "react-router";
-import { format } from "date-fns";
+import { format, parseISO } from "date-fns";
 import {
   CheckCircle2,
   Calendar,
@@ -77,29 +77,67 @@ export default function BookingConfirmation({
   const { booking, turfDetails } = loaderData;
   const { turfId } = params;
 
-  // Convert UTC times to local Date objects
   const startDate = useMemo(() => {
-    return new Date(booking.startTimeUtc);
-  }, [booking.startTimeUtc]);
+    if (!booking.startTimeLocal) return null;
+    try {
+      const parsed = parseISO(booking.startTimeLocal);
+      if (isNaN(parsed.getTime())) {
+        console.error("Invalid date parsed from startTimeLocal:", booking.startTimeLocal);
+        return null;
+      }
+      return parsed;
+    } catch (error) {
+      console.error("Error parsing startTimeLocal:", booking.startTimeLocal, error);
+      return null;
+    }
+  }, [booking.startTimeLocal]);
 
   const endDate = useMemo(() => {
-    return new Date(booking.endTimeUtc);
-  }, [booking.endTimeUtc]);
+    if (!booking.endTimeLocal) return null;
+    try {
+      const parsed = parseISO(booking.endTimeLocal);
+      if (isNaN(parsed.getTime())) {
+        console.error("Invalid date parsed from endTimeLocal:", booking.endTimeLocal);
+        return null;
+      }
+      return parsed;
+    } catch (error) {
+      console.error("Error parsing endTimeLocal:", booking.endTimeLocal, error);
+      return null;
+    }
+  }, [booking.endTimeLocal]);
 
   // Format date
   const formattedDate = useMemo(() => {
-    return format(startDate, "EEEE, MMMM d, yyyy");
+    if (!startDate || isNaN(startDate.getTime())) return "Invalid date";
+    try {
+      return format(startDate, "EEEE, MMMM d, yyyy");
+    } catch (error) {
+      console.error("Error formatting date:", error);
+      return "Invalid date";
+    }
   }, [startDate]);
 
   // Format time range
   const timeRange = useMemo(() => {
-    const startTime = format(startDate, "h:mm a");
-    const endTime = format(endDate, "h:mm a");
-    return `${startTime} to ${endTime}`;
+    if (!startDate || !endDate || isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+      return "Invalid time";
+    }
+    try {
+      const startTime = format(startDate, "hh:mm a");
+      const endTime = format(endDate, "hh:mm a");
+      return `${startTime} to ${endTime}`;
+    } catch (error) {
+      console.error("Error formatting time range:", error);
+      return "Invalid time";
+    }
   }, [startDate, endDate]);
 
   // Calculate duration
   const durationHours = useMemo(() => {
+    if (!startDate || !endDate || isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+      return 0;
+    }
     const diffMs = endDate.getTime() - startDate.getTime();
     return diffMs / (1000 * 60 * 60);
   }, [startDate, endDate]);

@@ -1,7 +1,7 @@
 export type BookingSummary = {
   bookingId: number;
-  startTimeUtc: string; // ISO 8601 string format
-  endTimeUtc: string; // ISO 8601 string format
+  startTimeLocal: string; // ISO 8601 string format (turf's local time, no timezone)
+  endTimeLocal: string; // ISO 8601 string format (turf's local time, no timezone)
   amount: number;
   complaintSubject: string | null;
   complaintDescription: string | null;
