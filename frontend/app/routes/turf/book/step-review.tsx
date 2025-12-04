@@ -131,14 +131,7 @@ export async function clientAction({
       throw redirect(`/turf/${turfId}/book/${bookingId}/confirmation`);
     } else if (response.status === 409) {
       // Conflict, e.g., time slot already booked - redirect to conflict page with requested details
-      const conflictParams = new URLSearchParams({
-        date: date.toString(),
-        startTime: startTime.toString(),
-        endTime: endTime.toString(),
-      });
-      throw redirect(
-        `/turf/${turfId}/book/conflict?${conflictParams.toString()}`
-      );
+      throw redirect(`/turf/${turfId}/book/conflict`);
     } else {
       // Other error - return error data
       const errorData = await response.json().catch(() => ({}));

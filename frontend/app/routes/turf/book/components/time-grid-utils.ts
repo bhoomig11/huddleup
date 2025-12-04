@@ -16,7 +16,7 @@ export function toHourMinute(time: string): string {
 
 /**
  * Formats a time string (HH:mm) to 12-hour display format
- * e.g., formatTimeTo12Hour("06:00") -> "6:00 AM"
+ * e.g., formatTimeTo12Hour("06:00") -> "06:00 AM"
  */
 export function formatTimeTo12Hour(timeStr: string): string {
   const [hours, minutes] = timeStr.split(":").map(Number);
@@ -24,7 +24,7 @@ export function formatTimeTo12Hour(timeStr: string): string {
   let displayHour = hours % 12;
   if (displayHour === 0) displayHour = 12;
 
-  return `${displayHour}:${minutes.toString().padStart(2, "0")} ${period}`;
+  return `${displayHour.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")} ${period}`;
 }
 
 /**

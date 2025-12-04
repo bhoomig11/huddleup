@@ -22,6 +22,7 @@ import { EndTimeGrid } from "./components/end-time-grid";
 import { useResponsiveCalendarMonths } from "./hooks/use-responsive-calendar-months";
 import { Clock } from "lucide-react";
 import type { clientLoader } from "./layout";
+import { formatTimeTo12Hour, toHourMinute } from "./components/time-grid-utils";
 
 export default function BookSelectSlot() {
   const layoutData = useRouteLoaderData<typeof clientLoader>(
@@ -129,6 +130,16 @@ export default function BookSelectSlot() {
     updateSearchParams({ toTime: time });
   };
 
+  const formattedOperatingHours = useMemo(() => {
+    const formattedOpeningTime = formatTimeTo12Hour(
+      toHourMinute(turfDetails.opensAtLocalTime)
+    );
+    const formattedClosingTime = formatTimeTo12Hour(
+      toHourMinute(turfDetails.closesAtLocalTime)
+    );
+    return `${formattedOpeningTime} - ${formattedClosingTime}`;
+  }, [turfDetails.opensAtLocalTime, turfDetails.closesAtLocalTime]);
+
   return (
     <Card className="w-full">
       <CardHeader>
@@ -149,7 +160,7 @@ export default function BookSelectSlot() {
               Operating Hours
             </div>
             <div className="text-sm text-stone-700">
-              {turfDetails.opensAtLocalTime} - {turfDetails.closesAtLocalTime}
+              {formattedOperatingHours}
             </div>
           </div>
         </div>
