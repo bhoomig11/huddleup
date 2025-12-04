@@ -12,7 +12,12 @@ import type { BookingSummary } from "~/types/booking";
 import type { Route } from "./+types/turf-detail";
 import { data, redirect } from "react-router";
 import { Link } from "react-router";
-import type { TurfDetails, TurfDetailsWithExtras, TurfFeature, TurfReview } from "~/types/turf";
+import type {
+  TurfDetails,
+  TurfDetailsWithExtras,
+  TurfFeature,
+  TurfReview,
+} from "~/types/turf";
 import { isAuthError, redirectToLogin } from "~/utils/auth-errors";
 import {
   Clock,
@@ -73,7 +78,8 @@ export async function clientLoader({
   }
 
   const details = (await detailsResponse.json()) as TurfDetails;
-  const images = (await imagesResponse.json()) as TurfDetailsWithExtras["images"];
+  const images =
+    (await imagesResponse.json()) as TurfDetailsWithExtras["images"];
   const reviews = (await reviewsResponse.json()) as Array<TurfReview>;
   const features = (await featuresResponse.json()) as Array<TurfFeature>;
 
@@ -202,16 +208,6 @@ function formatTurfOperationTime(time24Hr: string): string {
   const ampm = hourIn24Hr >= 12 ? "PM" : "AM";
   const formattedTime = `${hh}:${mm} ${ampm}`;
   return formattedTime;
-}
-
-function formatBookingDate(dateString: string): string {
-  const date = new Date(dateString);
-  const options: Intl.DateTimeFormatOptions = {
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-  };
-  return date.toLocaleDateString("en-US", options);
 }
 
 export default function TurfDetailPage({
@@ -359,7 +355,7 @@ export default function TurfDetailPage({
                   <div className="flex flex-row items-center gap-2 rounded bg-green-100 px-4 py-6">
                     <Info className="size-5 text-green-700" />
                     <p className="text-sm font-medium text-stone-600">
-                      You'll be able to leave a review after you've visited this
+                      You&apos;ll be able to leave a review after you&apos;ve visited this
                       turf! Book a session and come back to share your
                       experience.
                     </p>

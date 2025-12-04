@@ -78,10 +78,7 @@ export async function fetchTurfFeatures(turfId: number) {
   return response;
 }
 
-export async function fetchAvailableStartTimes(
-  turfId: number,
-  date: Date
-) {
+export async function fetchAvailableStartTimes(turfId: number, date: Date) {
   const headers = getAuthenticatedHeaders();
   const dateString = format(date, "yyyy-MM-dd");
   const response = await fetch(

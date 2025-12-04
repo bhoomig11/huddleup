@@ -22,6 +22,8 @@ export default [
       route("browse", "routes/turf/browse-turfs.tsx"),
       route(":turfId", "routes/turf/turf-detail.tsx"),
       layout("routes/turf/book/layout.tsx", [
+        route(":turfId/available-start-times", "routes/turf/available-start-times.tsx"),
+        route(":turfId/available-end-times", "routes/turf/available-end-times.tsx"),
         route(":turfId/book", "routes/turf/book/index.tsx"),
         route(":turfId/book/step-select-slot", "routes/turf/book/step-select-slot.tsx"),
         route(":turfId/book/step-2", "routes/turf/book/step-2.tsx"),
