@@ -57,6 +57,16 @@ public class TurfRepository {
           String zipcode = rs.getString("addr_zip_code");
           BigDecimal turfRating = rs.getBigDecimal("avg_rating");
           int numberOfRatings = rs.getInt("number_of_ratings");
+          
+          // Fetch features for this turf (catch exception in case turf was deleted)
+          List<TurfFeature> features = new ArrayList<>();
+          try {
+            features = getAllTurfFeatures(turfId);
+          } catch (TurfException e) {
+            // If turf doesn't exist, use empty features list
+            features = new ArrayList<>();
+          }
+          
           turfs.add(
               new TurfSummary(
                   turfId,
@@ -66,7 +76,8 @@ public class TurfRepository {
                   hourlyRate,
                   turfRating,
                   numberOfRatings,
-                  new Address(streetLine1, streetLine2, town, state, zipcode)));
+                  new Address(streetLine1, streetLine2, town, state, zipcode),
+                  features));
         }
       }
       return turfs;
@@ -494,6 +505,113 @@ public class TurfRepository {
       }
     } catch (Exception e) {
       throw new RuntimeException(e);
+    }
+  }
+
+  /**
+   * Search for turfs with optional filters.
+   *
+   * @param query optional search query string to match against turf name, address, or sport name
+   * @param date optional date to check availability
+   * @param fromTime optional start time for availability check (HH:mm format)
+   * @param toTime optional end time for availability check (HH:mm format)
+   * @return list of turf summaries matching the search criteria
+   * @throws TurfException if there's a database error
+   */
+  public List<TurfSummary> searchTurfs(String query, LocalDate date, String fromTime, String toTime)
+      throws TurfException {
+    String searchTurfsQuery = "{CALL search_turfs(?, ?, ?, ?)}";
+    List<TurfSummary> turfs = new ArrayList<>();
+
+    try (Connection connection = dataSource.getConnection();
+        CallableStatement cs = connection.prepareCall(searchTurfsQuery)) {
+      if (query != null && !query.trim().isEmpty()) {
+        cs.setString("p_query", query.trim());
+      } else {
+        cs.setNull("p_query", Types.VARCHAR);
+      }
+      
+      if (date != null) {
+        cs.setDate("p_date", Date.valueOf(date));
+      } else {
+        cs.setNull("p_date", Types.DATE);
+      }
+      
+      if (fromTime != null && !fromTime.trim().isEmpty()) {
+        cs.setTime("p_from_time", Time.valueOf(fromTime));
+      } else {
+        cs.setNull("p_from_time", Types.TIME);
+      }
+      
+      if (toTime != null && !toTime.trim().isEmpty()) {
+        cs.setTime("p_to_time", Time.valueOf(toTime));
+      } else {
+        cs.setNull("p_to_time", Types.TIME);
+      }
+      
+      try (ResultSet rs = cs.executeQuery()) {
+        while (rs.next()) {
+          int turfId = rs.getInt("turf_id");
+          String turfName = rs.getString("turf_name");
+          String imageUrl = rs.getString("image_url");
+          String sportName = rs.getString("sport_name");
+          BigDecimal hourlyRate = rs.getBigDecimal("hourly_rate");
+          String streetLine1 = rs.getString("addr_street_1");
+          String streetLine2 = rs.getString("addr_street_2");
+          String town = rs.getString("addr_town");
+          String state = rs.getString("addr_state");
+          String zipcode = rs.getString("addr_zip_code");
+          BigDecimal turfRating = rs.getBigDecimal("avg_rating");
+          int numberOfRatings = rs.getInt("number_of_ratings");
+          
+          List<TurfFeature> features = new ArrayList<>();
+          try {
+            features = getAllTurfFeatures(turfId);
+          } catch (TurfException e) {
+            features = new ArrayList<>();
+          }
+          
+          turfs.add(
+              new TurfSummary(
+                  turfId,
+                  turfName,
+                  imageUrl,
+                  sportName,
+                  hourlyRate,
+                  turfRating,
+                  numberOfRatings,
+                  new Address(streetLine1, streetLine2, town, state, zipcode),
+                  features));
+        }
+      }
+      return turfs;
+    } catch (SQLException e) {
+      throw new TurfException(e, AppErrorCode.UNKNOWN);
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  /**
+   * Get all available features in the system.
+   *
+   * @return a list of all features
+   */
+  public List<TurfFeature> getAllFeatures() {
+    String getAllFeaturesQuery = "{CALL get_all_features()}";
+    List<TurfFeature> features = new ArrayList<>();
+    try (Connection connection = dataSource.getConnection();
+        CallableStatement cs = connection.prepareCall(getAllFeaturesQuery)) {
+      try (ResultSet rs = cs.executeQuery()) {
+        while (rs.next()) {
+          String featureName = rs.getString("feature_name");
+          String featureDescription = rs.getString("feature_description");
+          features.add(new TurfFeature(featureName, featureDescription));
+        }
+      }
+      return features;
+    } catch (SQLException e) {
+      throw new TurfException(e, AppErrorCode.UNKNOWN);
     }
   }
 }

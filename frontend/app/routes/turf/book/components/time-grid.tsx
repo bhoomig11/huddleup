@@ -30,13 +30,13 @@ export function TimeGrid({
     return PERIOD_CONFIGS.find((period) => grouped[period.key].length > 0);
   }, [grouped]);
 
-  const selectedTimePeriod = useMemo(() => {
+  const selectedTimePeriodKey = useMemo(() => {
     if (!selectedTime) return null;
     return getTimePeriod(selectedTime);
   }, [selectedTime]);
 
   const [selectedPeriodKey, setSelectedPeriodKey] = useState(
-    PERIOD_CONFIGS[0].key
+    selectedTimePeriodKey ?? firstPeriodWithTimes?.key ?? PERIOD_CONFIGS[0].key
   );
 
   useEffect(() => {
@@ -61,7 +61,7 @@ export function TimeGrid({
       <TabsList className="grid h-auto w-full grid-cols-5 gap-1 p-1">
         {PERIOD_CONFIGS.map((period) => {
           const hasTimes = grouped[period.key].length > 0;
-          const hasSelectedTime = selectedTimePeriod === period.key;
+          const hasSelectedTime = selectedTimePeriodKey === period.key;
           const Icon = period.icon;
           return (
             <TabsTrigger

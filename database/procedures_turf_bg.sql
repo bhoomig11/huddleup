@@ -328,6 +328,8 @@ CREATE PROCEDURE book_turf(
 BEGIN
     DECLARE v_hourly_rate DECIMAL(10,2);
     DECLARE v_iana_timezone VARCHAR(64);
+    DECLARE v_opens_at_local TIME;
+    DECLARE v_closes_at_local TIME;
     DECLARE v_amount DECIMAL(19,2);
     DECLARE v_discount DECIMAL(10,2) DEFAULT 0;
     DECLARE v_min_booking_amt DECIMAL(10,2);
@@ -375,11 +377,17 @@ BEGIN
         SIGNAL SQLSTATE '45001' SET MESSAGE_TEXT = 'End time must be 1 minute before a multiple of 30 minutes (e.g., 10:29, 10:59)';
     END IF;
 
-    -- get the hourly rate and timezone from the turf
-    SELECT t.hourly_rate, t.iana_timezone 
-    INTO v_hourly_rate, v_iana_timezone
+    -- get the hourly rate, timezone, and operational hours from the turf
+    SELECT t.hourly_rate, t.iana_timezone, t.opens_at_local, t.closes_at_local
+    INTO v_hourly_rate, v_iana_timezone, v_opens_at_local, v_closes_at_local
     FROM turf AS t
     WHERE turf_id = p_turf_id;
+
+    -- validate that booking time is within operational hours
+    IF (p_start_time < v_opens_at_local OR p_end_time > v_closes_at_local) THEN
+        SIGNAL SQLSTATE '45001' 
+        SET MESSAGE_TEXT = 'Booking time must be within turf operational hours';
+    END IF;
 
     -- convert local times to UTC using the turf's timezone
     SET v_start_time_utc = convert_local_to_utc(p_date, p_start_time, v_iana_timezone);
@@ -446,12 +454,13 @@ BEGIN
         AND end_time_utc = v_end_time_utc
         AND amount = v_amount
         AND masked_card_number = v_masked_card_num
-        AND (p_coupon_id IS NULL AND coupon_id IS NULL
-             OR coupon_id = p_coupon_id)
+        AND ((p_coupon_id IS NULL AND coupon_id IS NULL)
+             OR (p_coupon_id IS NOT NULL AND coupon_id = p_coupon_id))
     ORDER BY booking_id DESC
     LIMIT 1;
 END $$
 DELIMITER ;
+
 /**
  * Procedure: get_all_turf_reviews
  * -------------------------------
@@ -524,6 +533,27 @@ BEGIN
     INNER JOIN turf_feature AS tf ON ttf.feature_name = tf.feat_name
     WHERE ttf.turf_id = p_turf_id
     ORDER BY tf.feat_name;
+END $$
+DELIMITER ;
+
+/**
+ * Procedure: get_all_features
+ * ----------------------------
+ * Get all available features in the system.
+ *
+ *
+ * Output Columns
+ * --------------
+ *   - feature_name - the name of the feature
+ *   - feature_description - the description of the feature
+ */
+DROP PROCEDURE IF EXISTS get_all_features;
+DELIMITER $$
+CREATE PROCEDURE get_all_features()
+BEGIN
+    SELECT feat_name AS feature_name, feat_description AS feature_description
+    FROM turf_feature
+    ORDER BY feat_name;
 END $$
 DELIMITER ;
 
@@ -630,6 +660,8 @@ CREATE PROCEDURE get_available_end_times(
 )
 BEGIN
     DECLARE v_start_minute INT;
+    DECLARE v_opens_at_local TIME;
+    DECLARE v_closes_at_local TIME;
     
     IF (p_turf_id IS NULL) THEN
         SIGNAL SQLSTATE '45001'
@@ -658,6 +690,17 @@ BEGIN
         SET MESSAGE_TEXT = 'No such turf exists';
     END IF;
     
+    -- Validate that start time is within operational hours
+    SELECT opens_at_local, closes_at_local
+    INTO v_opens_at_local, v_closes_at_local
+    FROM turf
+    WHERE turf_id = p_turf_id;
+    
+    IF (p_start_time < v_opens_at_local OR p_start_time >= v_closes_at_local) THEN
+        SIGNAL SQLSTATE '45001'
+        SET MESSAGE_TEXT = 'Start time must be within turf operational hours';
+    END IF;
+    
     WITH RECURSIVE end_times AS (
         SELECT 
             ADDTIME(p_start_time, '00:29:00') AS end_time_local,
@@ -681,8 +724,92 @@ BEGIN
         SELECT 1 FROM booking b
         WHERE b.turf_id = p_turf_id
         AND convert_local_to_utc(p_date, et.end_time_local, et.iana_timezone) > b.start_time_utc
-        AND convert_local_to_utc(p_date, p_start_time, et.iana_timezone) <= b.end_time_utc
+        AND convert_local_to_utc(p_date, et.end_time_local, et.iana_timezone) <= b.end_time_utc
     )
     ORDER BY et.end_time_local;
+END $$
+DELIMITER ;
+
+/**
+ * Procedure: search_turfs
+ * -----------------------
+ * Search for turfs with optional filters for query string, date, and time range.
+ * If date and time range are provided, only returns turfs that are available
+ * during that time slot.
+ *
+ *
+ * Input Parameters
+ * ----------------
+ *   - p_query - Optional search query string to match against turf name, address, or sport name
+ *   - p_date - Optional date to check availability (YYYY-MM-DD format)
+ *   - p_from_time - Optional start time for availability check (HH:mm format)
+ *   - p_to_time - Optional end time for availability check (HH:mm format)
+ *
+ *
+ * Output Columns
+ * --------------
+ *   - turf_id - The id (PK) of the turf
+ *   - turf_name - The name of the turf
+ *   - image_url - The first or default image of the turf
+ *   - sport_name - type of sport that can be played on the selected turf
+ *   - hourly_rate - the hourly rate for the selected turf
+ *   - addr_street_1 - primary street address line of the turf
+ *   - addr_street_2 - secondary street address line of the turf
+ *   - addr_town - town of the turf
+ *   - addr_state - state of the turf
+ *   - addr_zip_code - zipcode of the turf
+ *   - avg_rating - Derived average rating of the turf
+ *   - number_of_ratings - the number of user ratings for the turf
+ */
+DROP PROCEDURE IF EXISTS search_turfs;
+DELIMITER $$
+CREATE PROCEDURE search_turfs(
+    IN p_query VARCHAR(255),
+    IN p_date DATE,
+    IN p_from_time TIME,
+    IN p_to_time TIME
+)
+BEGIN
+    SELECT DISTINCT t.turf_id,
+           t.turf_name, 
+           img.image_url,
+           t.sport_name,
+           t.hourly_rate,
+           t.addr_street_1,
+           t.addr_street_2,
+           t.addr_town,
+           t.addr_state,
+           t.addr_zip_code,
+           get_avg_turf_rating(t.turf_id) AS avg_rating,
+           get_count_turf_rating(t.turf_id) AS number_of_ratings
+    FROM turf AS t
+    INNER JOIN turf_image AS img
+    ON t.turf_id = img.turf_id
+    WHERE img.image_index = 0
+    -- Search query filter (matches turf name, address fields, or sport name)
+    AND (p_query IS NULL OR p_query = '' OR
+         t.turf_name LIKE CONCAT('%', p_query, '%') OR
+         t.addr_street_1 LIKE CONCAT('%', p_query, '%') OR
+         t.addr_street_2 LIKE CONCAT('%', p_query, '%') OR
+         t.addr_town LIKE CONCAT('%', p_query, '%') OR
+         t.addr_state LIKE CONCAT('%', p_query, '%') OR
+         t.addr_zip_code LIKE CONCAT('%', p_query, '%') OR
+         t.sport_name LIKE CONCAT('%', p_query, '%')
+    )
+    -- Availability filter (only if date and time range are provided)
+    AND (p_date IS NULL OR p_from_time IS NULL OR p_to_time IS NULL OR
+         (
+             -- Check that the selected time range is within operational hours
+             p_from_time >= t.opens_at_local
+             AND p_to_time <= t.closes_at_local
+             -- Check that there are no conflicting bookings
+             AND NOT EXISTS (
+                 SELECT 1 FROM booking b
+                 WHERE b.turf_id = t.turf_id
+                 AND convert_local_to_utc(p_date, p_from_time, t.iana_timezone) < b.end_time_utc
+                 AND convert_local_to_utc(p_date, p_to_time, t.iana_timezone) > b.start_time_utc
+             )
+         )
+    );
 END $$
 DELIMITER ;

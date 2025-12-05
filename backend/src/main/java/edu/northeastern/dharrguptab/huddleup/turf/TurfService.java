@@ -142,6 +142,11 @@ public class TurfService {
     return turfFeatures;
   }
 
+  /** Get all available features in the system */
+  public List<TurfFeature> getAllFeatures() {
+    return turfRepository.getAllFeatures();
+  }
+
   /**
    * Get available start times for a turf on a given date.
    *
@@ -163,6 +168,19 @@ public class TurfService {
    */
   public List<String> getAvailableEndTimes(int turfId, LocalDate date, String startTime) {
     return turfRepository.getAvailableEndTimes(turfId, date, startTime);
+  }
+
+  /**
+   * Search for turfs with optional filters.
+   *
+   * @param query optional search query string to match against turf name, address, or sport name
+   * @param date optional date to check availability
+   * @param fromTime optional start time for availability check (HH:mm format)
+   * @param toTime optional end time for availability check (HH:mm format)
+   * @return list of turf summaries matching the search criteria
+   */
+  public List<TurfSummary> searchTurfs(String query, LocalDate date, String fromTime, String toTime) {
+    return turfRepository.searchTurfs(query, date, fromTime, toTime);
   }
 
   /**

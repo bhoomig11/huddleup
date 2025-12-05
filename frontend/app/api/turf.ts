@@ -19,6 +19,35 @@ export async function findTurfs() {
   return response;
 }
 
+export async function searchTurfs(params: {
+  query?: string;
+  date?: string; // yyyy-MM-dd format
+  fromTime?: string; // HH:mm format
+  toTime?: string; // HH:mm format
+}) {
+  const searchParams = new URLSearchParams();
+  if (params.query) {
+    searchParams.append("query", params.query);
+  }
+  if (params.date) {
+    searchParams.append("date", params.date);
+  }
+  if (params.fromTime) {
+    searchParams.append("fromTime", params.fromTime);
+  }
+  if (params.toTime) {
+    searchParams.append("toTime", params.toTime);
+  }
+
+  const queryString = searchParams.toString();
+  const url = queryString
+    ? `/api/turf/search?${queryString}`
+    : "/api/turf/search";
+
+  const response = await fetch(withBase(url));
+  return response;
+}
+
 export async function fetchTurfDetails(turfId: number) {
   const response = await fetch(withBase(`/api/turf/${turfId}`));
   return response;
@@ -74,6 +103,11 @@ export async function deleteTurfReview(turfId: number) {
 
 export async function fetchTurfFeatures(turfId: number) {
   const response = await fetch(withBase(`/api/turf/${turfId}/feature`));
+  return response;
+}
+
+export async function fetchAllFeatures() {
+  const response = await fetch(withBase("/api/turf/feature"));
   return response;
 }
 

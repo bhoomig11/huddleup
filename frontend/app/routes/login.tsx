@@ -207,8 +207,6 @@ export async function clientAction({ request }: Route.ClientActionArgs) {
   setAuthToken(token);
 
   const returnUrl = formData.get("returnUrl")?.toString();
-  const redirectPath = returnUrl
-    ? decodeURIComponent(returnUrl)
-    : "/turf/browse";
+  const redirectPath = returnUrl ? decodeURIComponent(returnUrl) : "/";
   throw redirect(redirectPath);
 }
