@@ -35,8 +35,8 @@ export function ProfileSidebar() {
         <Link
           to={`/user/${username}/profile`}
           className={cn(
-            "rounded px-2 py-1 text-left text-stone-500 hover:bg-green-100",
-            activeTab === "details" && "bg-green-100 font-semibold"
+            "rounded px-2 py-1 text-left font-semibold text-green-700 hover:bg-stone-300/30",
+            activeTab === "details" && "bg-stone-300/60 font-semibold"
           )}
         >
           Account Details
@@ -45,8 +45,8 @@ export function ProfileSidebar() {
         <Link
           to={`/user/${username}/cards`}
           className={cn(
-            "rounded px-2 py-1 text-left text-stone-500 hover:bg-green-100",
-            activeTab === "payment" && "bg-green-100 font-semibold"
+            "rounded px-2 py-1 text-left font-semibold text-green-700 hover:bg-stone-300/30",
+            activeTab === "payment" && "bg-stone-300/60 font-semibold"
           )}
         >
           Payment Methods
@@ -55,8 +55,8 @@ export function ProfileSidebar() {
         <Link
           to={`/user/${username}/booking`}
           className={cn(
-            "rounded px-2 py-1 text-left text-stone-500 hover:bg-green-100",
-            activeTab === "bookings" && "bg-green-100 font-semibold"
+            "rounded px-2 py-1 text-left font-semibold text-green-700 hover:bg-stone-300/30",
+            activeTab === "bookings" && "bg-stone-300/60 font-semibold"
           )}
         >
           Previous Bookings
