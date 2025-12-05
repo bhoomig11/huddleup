@@ -702,7 +702,7 @@ BEGIN
         SELECT 1 FROM booking b
         WHERE b.turf_id = p_turf_id
         AND convert_local_to_utc(p_date, et.end_time_local, et.iana_timezone) > b.start_time_utc
-        AND convert_local_to_utc(p_date, p_start_time, et.iana_timezone) <= b.end_time_utc
+        AND convert_local_to_utc(p_date, et.end_time_local, et.iana_timezone) <= b.end_time_utc
     )
     ORDER BY et.end_time_local;
 END $$
