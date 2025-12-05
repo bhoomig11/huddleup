@@ -542,7 +542,9 @@ export default function BrowseTurfsPage({ loaderData }: Route.ComponentProps) {
                         View Details
                       </Link>
                       <Link
-                        to={buildUrlWithDateTimeParams(`/turf/${turf.turfId}/book`)}
+                        to={buildUrlWithDateTimeParams(
+                          `/turf/${turf.turfId}/book`
+                        )}
                         className="flex h-9 items-center justify-center rounded bg-green-700 px-3.5 py-1.5 text-sm text-white hover:bg-green-600 active:bg-green-700"
                       >
                         Book Now

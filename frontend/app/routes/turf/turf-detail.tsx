@@ -222,7 +222,7 @@ export default function TurfDetailPage({
     const date = searchParams.get("date");
     const fromTime = searchParams.get("fromTime");
     const toTime = searchParams.get("toTime");
-    
+
     if (date && fromTime && toTime) {
       url.searchParams.set("date", date);
       url.searchParams.set("fromTime", fromTime);
@@ -297,7 +297,11 @@ export default function TurfDetailPage({
                   className="bg-green-700 text-lg font-medium hover:bg-green-600"
                   asChild
                 >
-                  <Link to={buildUrlWithDateTimeParams(`/turf/${turfDetails.turfId}/book`)}>
+                  <Link
+                    to={buildUrlWithDateTimeParams(
+                      `/turf/${turfDetails.turfId}/book`
+                    )}
+                  >
                     Book Now
                   </Link>
                 </Button>
