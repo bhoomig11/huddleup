@@ -1,4 +1,4 @@
-import { Link, useParams } from "react-router";
+import { Link } from "react-router";
 import { AlertCircle } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import type { Route } from "./+types/conflict";
