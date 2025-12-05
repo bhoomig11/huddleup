@@ -7,11 +7,11 @@ import {
 } from "@react-router/dev/routes";
 
 export default [
-  index("routes/home.tsx"),
   route("login", "routes/login.tsx"),
   route("signup", "routes/signup.tsx"),
   route("coupons", "routes/coupons.tsx"),
   layout("routes/layout.tsx", [
+    index("routes/home.tsx"),
     // user routes
     route("user/:username/profile", "routes/user/profile.tsx"),
     route("user/:username/booking", "routes/user/previous-bookings.tsx"),

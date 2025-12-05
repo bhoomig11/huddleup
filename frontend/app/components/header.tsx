@@ -38,7 +38,7 @@ export function Header() {
 
   const handleLogout = () => {
     removeAuthToken();
-    navigate("/turf/browse");
+    navigate("/");
   };
 
   return (
@@ -46,7 +46,7 @@ export function Header() {
       <header className="mx-auto flex w-9/10 max-w-360 items-center justify-between px-4">
         <div className="flex items-center gap-4">
           <Link
-            to="/turf/browse"
+            to="/"
             className="text-green-700 transition-opacity hover:opacity-80"
           >
             <HuddleUpLogo />

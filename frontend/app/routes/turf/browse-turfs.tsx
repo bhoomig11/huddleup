@@ -1,24 +1,14 @@
-import { add, format } from "date-fns";
 import {
   ChevronDownIcon,
   LandPlot,
   Search,
-  Calendar as CalendarIcon,
-  Clock,
   X,
   ArrowUpDown,
   Check,
   Star,
 } from "lucide-react";
-import { useState, useMemo, useEffect } from "react";
+import { useMemo, useEffect } from "react";
 import { Button } from "~/components/ui/button";
-import { Calendar } from "~/components/ui/calendar";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "~/components/ui/popover";
-import { TimeGrid } from "./book/components/time-grid";
 import {
   InputGroup,
   InputGroupAddon,
@@ -28,10 +18,6 @@ import { searchTurfs, fetchAllFeatures } from "~/api/turf";
 import { data, Link } from "react-router";
 import type { TurfSummary, TurfFeature } from "~/types/turf";
 import type { Route } from "./+types/browse-turfs";
-import {
-  formatTimeTo12Hour,
-  toHourMinute,
-} from "./book/components/time-grid-utils";
 import { useTurfSearchParams } from "./hooks/use-turf-search-params";
 import { Slider } from "~/components/ui/slider";
 import { RadioGroup, RadioGroupItem } from "~/components/ui/radio-group";
@@ -45,6 +31,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
+import { DatePicker } from "./components/date-picker";
+import { TimeSlotPicker } from "./components/time-slot-picker";
 
 export async function clientLoader({ request }: Route.ClientLoaderArgs) {
   const url = new URL(request.url);
@@ -561,179 +549,3 @@ export default function BrowseTurfsPage({ loaderData }: Route.ComponentProps) {
     </main>
   );
 }
-
-type DatePickerProps = {
-  date: Date | undefined;
-  onDateChange: (date: Date | undefined) => void;
-};
-
-function DatePicker({ date, onDateChange }: DatePickerProps) {
-  const [open, setOpen] = useState(false);
-
-  const validBookingStartDate = new Date();
-  const validBookingEndDate = add(validBookingStartDate, { months: 2 });
-
-  return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          id="date-picker"
-          className="h-12 min-w-40 justify-between rounded-none border-0 border-r border-stone-300/80 bg-white font-normal"
-        >
-          <div className="flex items-center gap-2">
-            <CalendarIcon className="size-4 shrink-0 text-stone-500" />
-            <span className="truncate text-stone-600">
-              {date ? format(date, "EEE, MMM dd") : "Select date"}
-            </span>
-          </div>
-          <ChevronDownIcon className="size-4 shrink-0" />
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent
-        className="w-auto overflow-hidden bg-white p-0"
-        align="center"
-      >
-        <div className="p-4">
-          <Calendar
-            mode="single"
-            selected={date}
-            captionLayout="label"
-            numberOfMonths={2}
-            onSelect={(selectedDate) => {
-              onDateChange(selectedDate);
-              setOpen(false);
-            }}
-            defaultMonth={date ?? validBookingStartDate}
-            startMonth={validBookingStartDate}
-            endMonth={validBookingEndDate}
-            disabled={{
-              before: validBookingStartDate,
-              after: validBookingEndDate,
-            }}
-          />
-        </div>
-      </PopoverContent>
-    </Popover>
-  );
-}
-
-type TimeSlotPickerProps = {
-  fromTime: string | null;
-  toTime: string | null;
-  onFromTimeChange: (time: string | null) => void;
-  onToTimeChange: (time: string | null) => void;
-};
-
-function TimeSlotPicker({
-  fromTime,
-  toTime,
-  onFromTimeChange,
-  onToTimeChange,
-}: TimeSlotPickerProps) {
-  const [open, setOpen] = useState(false);
-
-  const displayText = () => {
-    if (fromTime && toTime) {
-      return `${formatTimeTo12Hour(toHourMinute(fromTime))} - ${formatTimeTo12Hour(toHourMinute(toTime))}`;
-    }
-    if (fromTime) {
-      return `${formatTimeTo12Hour(toHourMinute(fromTime))} - ...`;
-    }
-    return "Select time";
-  };
-
-  return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          id="time-picker"
-          className="h-12 min-w-48 justify-between rounded-none border-0 bg-white font-normal"
-        >
-          <div className="flex min-w-0 flex-1 items-center gap-2">
-            <Clock className="size-4 shrink-0 text-stone-500" />
-            <span className="truncate text-stone-600">{displayText()}</span>
-          </div>
-          <ChevronDownIcon className="ml-2 size-4 shrink-0" />
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent
-        className="w-auto overflow-hidden bg-white p-0"
-        align="center"
-      >
-        <div className="space-y-4 p-4">
-          <div>
-            <div className="mb-2 text-xs font-medium text-stone-500">From</div>
-            <TimeGrid
-              times={fromTimes}
-              selectedTime={fromTime}
-              onSelect={(time) => {
-                onFromTimeChange(time);
-              }}
-            />
-          </div>
-
-          {fromTime && (
-            <div>
-              <div className="mb-2 text-xs font-medium text-stone-500">To</div>
-              <TimeGrid
-                times={toTimes.filter((t) => t > fromTime)}
-                selectedTime={toTime}
-                onSelect={(time) => {
-                  onToTimeChange(time);
-                  if (fromTime && time) {
-                    setOpen(false);
-                  }
-                }}
-              />
-            </div>
-          )}
-
-          {(fromTime || toTime) && (
-            <div className="flex justify-end gap-2 border-t border-stone-200 pt-3">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => {
-                  onFromTimeChange(null);
-                  onToTimeChange(null);
-                }}
-                className="text-xs"
-              >
-                Clear
-              </Button>
-            </div>
-          )}
-        </div>
-      </PopoverContent>
-    </Popover>
-  );
-}
-
-/**
- * Constructs a time string in the 24-hours format "HH:MM:SS" (e.g. "14:27:00").
- *
- * @param hour the hour mark for the time (0-23)
- * @param minute the minute mark for the time (0-59)
- * @returns the constructed time string
- */
-function create24HrTimeString(hour: number, minute: number): string {
-  const hourString = hour.toString().padStart(2, "0"); // E.g. converts 3 to "03"
-  const minuteString = minute.toString().padStart(2, "0");
-  return `${hourString}:${minuteString}:00`;
-}
-
-const hours = Array.from({ length: 24 }, (_, i) => i);
-
-const fromTimes = hours.reduce((times, hour) => {
-  const startOfHour = create24HrTimeString(hour, 0);
-  const halfPastHour = create24HrTimeString(hour, 30);
-  return [...times, startOfHour, halfPastHour];
-}, [] as string[]);
-
-const toTimes = hours.reduce((times, hour) => {
-  const beforeHalfPastHour = create24HrTimeString(hour, 29);
-  const beforeEndOfHour = create24HrTimeString(hour, 59);
-  return [...times, beforeHalfPastHour, beforeEndOfHour];
-}, [] as string[]);
