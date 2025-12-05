@@ -17,7 +17,7 @@ export function ProfileSidebar() {
   const activeTab = getActiveTab();
 
   return (
-    <div className="min-h-screen basis-1/4 border-r bg-slate-50 p-6">
+    <div className="min-h-screen basis-1/4 border-r bg-stone-100 p-6">
       {/* User Pic */}
       <div className="mb-10 flex flex-col items-center border-green-700">
         <img

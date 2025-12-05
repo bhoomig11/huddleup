@@ -75,7 +75,7 @@ export default function PaymentMethodsPage({
     }
   };
   return (
-    <main className="min-h-screen bg-slate-50">
+    <main className="min-h-screen bg-stone-100">
       <div className="mx-auto flex w-full max-w-7xl flex-row">
         {/* LEFT PANEL */}
         <ProfileSidebar />
