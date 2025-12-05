@@ -11,7 +11,7 @@ import { getLatestUserTurfBooking } from "~/api/user";
 import type { BookingSummary } from "~/types/booking";
 import type { Route } from "./+types/turf-detail";
 import { data, redirect } from "react-router";
-import { Link } from "react-router";
+import { Link, useSearchParams } from "react-router";
 import type {
   TurfDetails,
   TurfDetailsWithExtras,
@@ -215,6 +215,21 @@ export default function TurfDetailPage({
 }: Route.ComponentProps) {
   const appUser = useAppUser();
   const isAuthenticated = appUser.username !== null;
+  const [searchParams] = useSearchParams();
+
+  const buildUrlWithDateTimeParams = (basePath: string) => {
+    const url = new URL(basePath, window.location.origin);
+    const date = searchParams.get("date");
+    const fromTime = searchParams.get("fromTime");
+    const toTime = searchParams.get("toTime");
+    
+    if (date && fromTime && toTime) {
+      url.searchParams.set("date", date);
+      url.searchParams.set("fromTime", fromTime);
+      url.searchParams.set("toTime", toTime);
+    }
+    return url.pathname + url.search;
+  };
   const addressParts = [
     turfDetails.address.streetLine1,
     turfDetails.address.streetLine2,
@@ -282,7 +297,9 @@ export default function TurfDetailPage({
                   className="bg-green-700 text-lg font-medium hover:bg-green-600"
                   asChild
                 >
-                  <Link to={`/turf/${turfDetails.turfId}/book`}>Book Now</Link>
+                  <Link to={buildUrlWithDateTimeParams(`/turf/${turfDetails.turfId}/book`)}>
+                    Book Now
+                  </Link>
                 </Button>
               </div>
             </div>

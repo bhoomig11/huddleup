@@ -33,6 +33,7 @@ import {
 } from "~/components/ui/dropdown-menu";
 import { DatePicker } from "./components/date-picker";
 import { TimeSlotPicker } from "./components/time-slot-picker";
+import { format } from "date-fns";
 
 export async function clientLoader({ request }: Route.ClientLoaderArgs) {
   const url = new URL(request.url);
@@ -177,6 +178,17 @@ export default function BrowseTurfsPage({ loaderData }: Route.ComponentProps) {
     if (turfs.length > 0 && minPrice !== maxPrice) {
       turfSearchParams.handlePriceRangeChange([minPrice, maxPrice]);
     }
+  };
+
+  const buildUrlWithDateTimeParams = (basePath: string) => {
+    const url = new URL(basePath, window.location.origin);
+    const { date, fromTime, toTime } = turfSearchParams;
+    if (date && fromTime && toTime) {
+      url.searchParams.set("date", format(date, "yyyy-MM-dd"));
+      url.searchParams.set("fromTime", fromTime);
+      url.searchParams.set("toTime", toTime);
+    }
+    return url.pathname + url.search;
   };
 
   return (
@@ -524,13 +536,13 @@ export default function BrowseTurfsPage({ loaderData }: Route.ComponentProps) {
                     </div>
                     <div className="flex flex-row items-baseline gap-2">
                       <Link
-                        to={`/turf/${turf.turfId}`}
+                        to={buildUrlWithDateTimeParams(`/turf/${turf.turfId}`)}
                         className="flex h-9 items-center justify-center rounded px-3.5 py-1.5 text-sm font-semibold text-green-700 hover:bg-stone-300/30 active:bg-stone-300/60"
                       >
                         View Details
                       </Link>
                       <Link
-                        to={`/turf/${turf.turfId}/book`}
+                        to={buildUrlWithDateTimeParams(`/turf/${turf.turfId}/book`)}
                         className="flex h-9 items-center justify-center rounded bg-green-700 px-3.5 py-1.5 text-sm text-white hover:bg-green-600 active:bg-green-700"
                       >
                         Book Now
