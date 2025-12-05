@@ -446,8 +446,8 @@ BEGIN
         AND end_time_utc = v_end_time_utc
         AND amount = v_amount
         AND masked_card_number = v_masked_card_num
-        AND (p_coupon_id IS NULL AND coupon_id IS NULL
-             OR coupon_id = p_coupon_id)
+        AND ((p_coupon_id IS NULL AND coupon_id IS NULL)
+             OR (p_coupon_id IS NOT NULL AND coupon_id = p_coupon_id))
     ORDER BY booking_id DESC
     LIMIT 1;
 END $$
