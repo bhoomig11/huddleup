@@ -107,6 +107,12 @@ public class TurfController {
     return turfService.getTurfFeatures(turf_id);
   }
 
+  /** Endpoint for getting all available features in the system */
+  @GetMapping("/feature")
+  public List<TurfFeature> getAllFeatures() {
+    return turfService.getAllFeatures();
+  }
+
   /**
    * Endpoint for getting available start times for a turf on a given date.
    *
@@ -135,5 +141,23 @@ public class TurfController {
       @RequestParam @DateTimeFormat(iso = ISO.DATE) LocalDate date,
       @RequestParam String startTime) {
     return turfService.getAvailableEndTimes(turf_id, date, startTime);
+  }
+
+  /**
+   * Endpoint for searching turfs with optional filters.
+   *
+   * @param query optional search query string to match against turf name, address, or sport name
+   * @param date optional date to check availability (YYYY-MM-DD format)
+   * @param fromTime optional start time for availability check (HH:mm format)
+   * @param toTime optional end time for availability check (HH:mm format)
+   * @return list of turf summaries matching the search criteria
+   */
+  @GetMapping("/search")
+  public List<TurfSummary> searchTurfs(
+      @RequestParam(required = false) String query,
+      @RequestParam(required = false) @DateTimeFormat(iso = ISO.DATE) LocalDate date,
+      @RequestParam(required = false) String fromTime,
+      @RequestParam(required = false) String toTime) {
+    return turfService.searchTurfs(query, date, fromTime, toTime);
   }
 }

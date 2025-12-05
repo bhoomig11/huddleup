@@ -528,6 +528,27 @@ END $$
 DELIMITER ;
 
 /**
+ * Procedure: get_all_features
+ * ----------------------------
+ * Get all available features in the system.
+ *
+ *
+ * Output Columns
+ * --------------
+ *   - feature_name - the name of the feature
+ *   - feature_description - the description of the feature
+ */
+DROP PROCEDURE IF EXISTS get_all_features;
+DELIMITER $$
+CREATE PROCEDURE get_all_features()
+BEGIN
+    SELECT feat_name AS feature_name, feat_description AS feature_description
+    FROM turf_feature
+    ORDER BY feat_name;
+END $$
+DELIMITER ;
+
+/**
  * Procedure: get_available_start_times
  * ------------------------------------
  * Get all available start times (:00, :30) for a turf on a given date.
@@ -684,5 +705,83 @@ BEGIN
         AND convert_local_to_utc(p_date, p_start_time, et.iana_timezone) <= b.end_time_utc
     )
     ORDER BY et.end_time_local;
+END $$
+DELIMITER ;
+
+/**
+ * Procedure: search_turfs
+ * -----------------------
+ * Search for turfs with optional filters for query string, date, and time range.
+ * If date and time range are provided, only returns turfs that are available
+ * during that time slot.
+ *
+ *
+ * Input Parameters
+ * ----------------
+ *   - p_query - Optional search query string to match against turf name, address, or sport name
+ *   - p_date - Optional date to check availability (YYYY-MM-DD format)
+ *   - p_from_time - Optional start time for availability check (HH:mm format)
+ *   - p_to_time - Optional end time for availability check (HH:mm format)
+ *
+ *
+ * Output Columns
+ * --------------
+ *   - turf_id - The id (PK) of the turf
+ *   - turf_name - The name of the turf
+ *   - image_url - The first or default image of the turf
+ *   - sport_name - type of sport that can be played on the selected turf
+ *   - hourly_rate - the hourly rate for the selected turf
+ *   - addr_street_1 - primary street address line of the turf
+ *   - addr_street_2 - secondary street address line of the turf
+ *   - addr_town - town of the turf
+ *   - addr_state - state of the turf
+ *   - addr_zip_code - zipcode of the turf
+ *   - avg_rating - Derived average rating of the turf
+ *   - number_of_ratings - the number of user ratings for the turf
+ */
+DROP PROCEDURE IF EXISTS search_turfs;
+DELIMITER $$
+CREATE PROCEDURE search_turfs(
+    IN p_query VARCHAR(255),
+    IN p_date DATE,
+    IN p_from_time TIME,
+    IN p_to_time TIME
+)
+BEGIN
+    SELECT DISTINCT t.turf_id,
+           t.turf_name, 
+           img.image_url,
+           t.sport_name,
+           t.hourly_rate,
+           t.addr_street_1,
+           t.addr_street_2,
+           t.addr_town,
+           t.addr_state,
+           t.addr_zip_code,
+           get_avg_turf_rating(t.turf_id) AS avg_rating,
+           get_count_turf_rating(t.turf_id) AS number_of_ratings
+    FROM turf AS t
+    INNER JOIN turf_image AS img
+    ON t.turf_id = img.turf_id
+    WHERE img.image_index = 0
+    -- Search query filter (matches turf name, address fields, or sport name)
+    AND (p_query IS NULL OR p_query = '' OR
+         t.turf_name LIKE CONCAT('%', p_query, '%') OR
+         t.addr_street_1 LIKE CONCAT('%', p_query, '%') OR
+         t.addr_street_2 LIKE CONCAT('%', p_query, '%') OR
+         t.addr_town LIKE CONCAT('%', p_query, '%') OR
+         t.addr_state LIKE CONCAT('%', p_query, '%') OR
+         t.addr_zip_code LIKE CONCAT('%', p_query, '%') OR
+         t.sport_name LIKE CONCAT('%', p_query, '%')
+    )
+    -- Availability filter (only if date and time range are provided)
+    AND (p_date IS NULL OR p_from_time IS NULL OR p_to_time IS NULL OR
+         NOT EXISTS (
+             SELECT 1 FROM booking b
+             WHERE b.turf_id = t.turf_id
+             AND convert_local_to_utc(p_date, p_from_time, t.iana_timezone) < b.end_time_utc
+             AND convert_local_to_utc(p_date, p_to_time, t.iana_timezone) > b.start_time_utc
+         )
+    );
 END $$
 DELIMITER ;

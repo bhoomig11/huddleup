@@ -49,7 +49,7 @@ export type TurfSummary = Pick<
   | "averageRating"
   | "numberOfRatings"
   | "address"
-> & { imageUrl: string };
+> & { imageUrl: string; features: Array<TurfFeature> };
 
 export type TurfFeature = {
   featureName: string;

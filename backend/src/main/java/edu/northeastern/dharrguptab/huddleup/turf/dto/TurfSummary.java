@@ -2,6 +2,7 @@ package edu.northeastern.dharrguptab.huddleup.turf.dto;
 
 import edu.northeastern.dharrguptab.huddleup.common.dto.Address;
 import java.math.BigDecimal;
+import java.util.List;
 
 /** Represents a turf's information summary. */
 public record TurfSummary(
@@ -12,4 +13,5 @@ public record TurfSummary(
     BigDecimal hourlyRate,
     BigDecimal averageRating,
     int numberOfRatings,
-    Address address) {}
+    Address address,
+    List<TurfFeature> features) {}
