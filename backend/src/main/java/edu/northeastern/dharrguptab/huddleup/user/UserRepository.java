@@ -467,10 +467,11 @@ public class UserRepository {
       cs.setString("p_username", username);
       try (ResultSet rs = cs.executeQuery()) {
         while (rs.next()) {
+          int announcementId = rs.getInt("announcement_id");
           String title = rs.getString("announcement_title");
           Instant sentAt = toInstantOrNull(rs.getTimestamp("sent_at"));
           Instant readAt = toInstantOrNull(rs.getTimestamp("read_at"));
-          announcements.add(new AnnouncementSummary(title, sentAt, readAt));
+          announcements.add(new AnnouncementSummary(announcementId, title, sentAt, readAt));
         }
       }
       return announcements;

@@ -144,6 +144,7 @@ DELIMITER ;
  *
  * Output Columns
  * --------------
+ *   - announcement_id - the ID of the announcement
  *   - announcement_title - the title of the announcement
  *   - sent_at - the datetime representing when the announcement was sent
  *   - read_at - the datetime representing when the announcement was read
@@ -161,7 +162,7 @@ BEGIN
         SIGNAL SQLSTATE '45001' SET MESSAGE_TEXT = 'Username cannot be NULL';
     END IF;
 
-    SELECT announcement_title, sent_at, read_at
+    SELECT announcement_id, announcement_title, sent_at, read_at
     FROM announcement_read_receipt
     INNER JOIN announcement USING (announcement_id)
     WHERE username = p_username;
