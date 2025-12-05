@@ -328,6 +328,8 @@ CREATE PROCEDURE book_turf(
 BEGIN
     DECLARE v_hourly_rate DECIMAL(10,2);
     DECLARE v_iana_timezone VARCHAR(64);
+    DECLARE v_opens_at_local TIME;
+    DECLARE v_closes_at_local TIME;
     DECLARE v_amount DECIMAL(19,2);
     DECLARE v_discount DECIMAL(10,2) DEFAULT 0;
     DECLARE v_min_booking_amt DECIMAL(10,2);
@@ -375,11 +377,17 @@ BEGIN
         SIGNAL SQLSTATE '45001' SET MESSAGE_TEXT = 'End time must be 1 minute before a multiple of 30 minutes (e.g., 10:29, 10:59)';
     END IF;
 
-    -- get the hourly rate and timezone from the turf
-    SELECT t.hourly_rate, t.iana_timezone 
-    INTO v_hourly_rate, v_iana_timezone
+    -- get the hourly rate, timezone, and operational hours from the turf
+    SELECT t.hourly_rate, t.iana_timezone, t.opens_at_local, t.closes_at_local
+    INTO v_hourly_rate, v_iana_timezone, v_opens_at_local, v_closes_at_local
     FROM turf AS t
     WHERE turf_id = p_turf_id;
+
+    -- validate that booking time is within operational hours
+    IF (p_start_time < v_opens_at_local OR p_end_time > v_closes_at_local) THEN
+        SIGNAL SQLSTATE '45001' 
+        SET MESSAGE_TEXT = 'Booking time must be within turf operational hours';
+    END IF;
 
     -- convert local times to UTC using the turf's timezone
     SET v_start_time_utc = convert_local_to_utc(p_date, p_start_time, v_iana_timezone);
@@ -452,6 +460,7 @@ BEGIN
     LIMIT 1;
 END $$
 DELIMITER ;
+
 /**
  * Procedure: get_all_turf_reviews
  * -------------------------------
@@ -651,6 +660,8 @@ CREATE PROCEDURE get_available_end_times(
 )
 BEGIN
     DECLARE v_start_minute INT;
+    DECLARE v_opens_at_local TIME;
+    DECLARE v_closes_at_local TIME;
     
     IF (p_turf_id IS NULL) THEN
         SIGNAL SQLSTATE '45001'
@@ -677,6 +688,17 @@ BEGIN
     IF NOT EXISTS (SELECT turf_id FROM turf WHERE turf_id = p_turf_id) THEN
         SIGNAL SQLSTATE '45002'
         SET MESSAGE_TEXT = 'No such turf exists';
+    END IF;
+    
+    -- Validate that start time is within operational hours
+    SELECT opens_at_local, closes_at_local
+    INTO v_opens_at_local, v_closes_at_local
+    FROM turf
+    WHERE turf_id = p_turf_id;
+    
+    IF (p_start_time < v_opens_at_local OR p_start_time >= v_closes_at_local) THEN
+        SIGNAL SQLSTATE '45001'
+        SET MESSAGE_TEXT = 'Start time must be within turf operational hours';
     END IF;
     
     WITH RECURSIVE end_times AS (
@@ -776,11 +798,17 @@ BEGIN
     )
     -- Availability filter (only if date and time range are provided)
     AND (p_date IS NULL OR p_from_time IS NULL OR p_to_time IS NULL OR
-         NOT EXISTS (
-             SELECT 1 FROM booking b
-             WHERE b.turf_id = t.turf_id
-             AND convert_local_to_utc(p_date, p_from_time, t.iana_timezone) < b.end_time_utc
-             AND convert_local_to_utc(p_date, p_to_time, t.iana_timezone) > b.start_time_utc
+         (
+             -- Check that the selected time range is within operational hours
+             p_from_time >= t.opens_at_local
+             AND p_to_time <= t.closes_at_local
+             -- Check that there are no conflicting bookings
+             AND NOT EXISTS (
+                 SELECT 1 FROM booking b
+                 WHERE b.turf_id = t.turf_id
+                 AND convert_local_to_utc(p_date, p_from_time, t.iana_timezone) < b.end_time_utc
+                 AND convert_local_to_utc(p_date, p_to_time, t.iana_timezone) > b.start_time_utc
+             )
          )
     );
 END $$
