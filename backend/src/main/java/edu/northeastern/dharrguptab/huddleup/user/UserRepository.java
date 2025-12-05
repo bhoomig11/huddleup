@@ -6,6 +6,8 @@ import edu.northeastern.dharrguptab.huddleup.common.dto.Address;
 import edu.northeastern.dharrguptab.huddleup.common.exceptions.AppErrorCode;
 import edu.northeastern.dharrguptab.huddleup.common.exceptions.DatabaseExceptionCategory;
 import edu.northeastern.dharrguptab.huddleup.user.dto.*;
+import edu.northeastern.dharrguptab.huddleup.user.exceptions.BookingErrorCode;
+import edu.northeastern.dharrguptab.huddleup.user.exceptions.BookingException;
 import edu.northeastern.dharrguptab.huddleup.user.exceptions.UserErrorCode;
 import edu.northeastern.dharrguptab.huddleup.user.exceptions.UserException;
 import java.math.BigDecimal;
@@ -17,6 +19,7 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -573,8 +576,8 @@ public class UserRepository {
       try (ResultSet rs = cs.executeQuery()) {
         while (rs.next()) {
           int bookingId = rs.getInt("booking_id");
-          Instant startTimeUtc = toInstantOrNull(rs.getTimestamp("start_time_utc"));
-          int durationMins = rs.getInt("duration_mins");
+          LocalDateTime startTimeLocal = toLocalDateTimeOrNull(rs.getTimestamp("start_time_local"));
+          LocalDateTime endTimeLocal = toLocalDateTimeOrNull(rs.getTimestamp("end_time_local"));
           BigDecimal amount = rs.getBigDecimal("amount");
           String complaintSubject = rs.getString("complaint_subject");
           String complaintDescription = rs.getString("complaint_description");
@@ -590,8 +593,8 @@ public class UserRepository {
           bookings.add(
               new BookingSummary(
                   bookingId,
-                  startTimeUtc,
-                  durationMins,
+                  startTimeLocal,
+                  endTimeLocal,
                   amount,
                   complaintSubject,
                   complaintDescription,
@@ -638,8 +641,8 @@ public class UserRepository {
       try (ResultSet rs = cs.executeQuery()) {
         if (rs.next()) {
           int bookingIdResult = rs.getInt("booking_id");
-          Instant startTimeUtc = toInstantOrNull(rs.getTimestamp("start_time_utc"));
-          int durationMins = rs.getInt("duration_mins");
+          LocalDateTime startTimeLocal = toLocalDateTimeOrNull(rs.getTimestamp("start_time_local"));
+          LocalDateTime endTimeLocal = toLocalDateTimeOrNull(rs.getTimestamp("end_time_local"));
           BigDecimal amount = rs.getBigDecimal("amount");
           String complaintSubject = rs.getString("complaint_subject");
           String complaintDescription = rs.getString("complaint_description");
@@ -654,8 +657,8 @@ public class UserRepository {
 
           return new BookingSummary(
               bookingIdResult,
-              startTimeUtc,
-              durationMins,
+              startTimeLocal,
+              endTimeLocal,
               amount,
               complaintSubject,
               complaintDescription,
@@ -753,30 +756,73 @@ public class UserRepository {
   }
 
   /**
-   * Delete a review for a user's turf.
+   * Get the latest attended booking for a user at a specific turf.
    *
    * @param username the username of the user
-   * @param turfId the ID of the turf for which the review is being deleted
-   * @throws UserException if the review cannot be deleted
+   * @param turfId the ID of the turf
+   * @return the latest booking if it exists, null otherwise
+   * @throws BookingException if the user or turf does not exist or if input is invalid
    */
-  public void deleteUserReview(String username, int turfId) throws UserException {
-    String deleteUserReviewQuery = "{CALL delete_user_review(?, ?)}";
+  public BookingSummary getLatestUserTurfBooking(String username, int turfId)
+      throws BookingException {
+    String getLatestBookingQuery = "{CALL get_latest_user_turf_booking(?, ?)}";
     try (Connection connection = dataSource.getConnection();
-        CallableStatement cs = connection.prepareCall(deleteUserReviewQuery)) {
+        CallableStatement cs = connection.prepareCall(getLatestBookingQuery)) {
       cs.setString("p_username", username);
       cs.setInt("p_turf_id", turfId);
-      cs.executeUpdate();
+      try (ResultSet rs = cs.executeQuery()) {
+        if (rs.next()) {
+          int bookingId = rs.getInt("booking_id");
+          LocalDateTime startTimeLocal = toLocalDateTimeOrNull(rs.getTimestamp("start_time_local"));
+          LocalDateTime endTimeLocal = toLocalDateTimeOrNull(rs.getTimestamp("end_time_local"));
+          BigDecimal amount = rs.getBigDecimal("amount");
+          String complaintSubject = rs.getString("complaint_subject");
+          String complaintDescription = rs.getString("complaint_description");
+          Instant complaintFiledAtUtc =
+              toInstantOrNull(rs.getTimestamp("complaint_filed_at_utc"));
+          Instant complaintResolvedAtUtc =
+              toInstantOrNull(rs.getTimestamp("complaint_resolved_at_utc"));
+          int resultTurfId = rs.getInt("turf_id");
+          String bookingUsername = rs.getString("username");
+          String maskedCardNumber = rs.getString("masked_card_number");
+          Integer couponId = rs.getObject("coupon_id", Integer.class);
+          String turfName = rs.getString("turf_name");
+
+          return new BookingSummary(
+              bookingId,
+              startTimeLocal,
+              endTimeLocal,
+              amount,
+              complaintSubject,
+              complaintDescription,
+              complaintFiledAtUtc,
+              complaintResolvedAtUtc,
+              resultTurfId,
+              turfName,
+              bookingUsername,
+              maskedCardNumber,
+              couponId);
+        }
+      }
+      return null;
     } catch (SQLException e) {
       DatabaseExceptionCategory databaseExceptionCategory =
           DatabaseExceptionCategory.fromSQLState(e.getSQLState());
+      String errorMessage = e.getMessage();
 
       switch (databaseExceptionCategory) {
-        case GENERIC_APP_ERROR:
-          throw new UserException(e, UserErrorCode.REVIEW_NOT_FOUND);
+        case VALIDATION_ERROR:
+          throw new BookingException(e, BookingErrorCode.INVALID_INPUT);
         case RESOURCE_NOT_FOUND:
-          throw new UserException(e, UserErrorCode.REVIEW_NOT_FOUND);
+          if (errorMessage != null && errorMessage.toLowerCase().contains("user")) {
+            throw new BookingException(e, BookingErrorCode.USER_NOT_FOUND);
+          } else if (errorMessage != null && errorMessage.toLowerCase().contains("turf")) {
+            throw new BookingException(e, BookingErrorCode.TURF_NOT_FOUND);
+          } else {
+            throw new BookingException(e, AppErrorCode.UNKNOWN);
+          }
         default:
-          throw new UserException(e, AppErrorCode.UNKNOWN);
+          throw new BookingException(e, AppErrorCode.UNKNOWN);
       }
     } catch (Exception e) {
       throw new RuntimeException(e);
@@ -792,5 +838,16 @@ public class UserRepository {
    */
   private Instant toInstantOrNull(Timestamp timestamp) {
     return timestamp == null ? null : timestamp.toInstant();
+  }
+
+  /**
+   * Convert a SQL {@link Timestamp} to a {@link LocalDateTime} while preserving null to avoid an
+   * {@link IllegalArgumentException}.
+   *
+   * @param timestamp the SQL timestamp to convert
+   * @return the converted local datetime, or null if the timestamp is null
+   */
+  private LocalDateTime toLocalDateTimeOrNull(Timestamp timestamp) {
+    return timestamp == null ? null : timestamp.toLocalDateTime();
   }
 }

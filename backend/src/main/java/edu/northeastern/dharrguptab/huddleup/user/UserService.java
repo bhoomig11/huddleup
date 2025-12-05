@@ -438,12 +438,13 @@ public class UserService {
   }
 
   /**
-   * Delete a review for a user's turf.
+   * Get the latest attended booking for a user at a specific turf.
    *
    * @param username the username of the user
-   * @param turfId the ID of the turf for which the review is being deleted
+   * @param turfId the ID of the turf
+   * @return the latest booking if it exists, null otherwise
    */
-  public void deleteUserReview(String username, int turfId) {
+  public BookingSummary getLatestUserTurfBooking(String username, int turfId) {
     String authenticatedUsername = getAuthenticatedUsername();
 
     boolean isAuthenticated = authenticatedUsername != null;
@@ -456,7 +457,7 @@ public class UserService {
       throw new UnauthorizedException();
     }
 
-    userRepository.deleteUserReview(username, turfId);
+    return userRepository.getLatestUserTurfBooking(username, turfId);
   }
 
   /**

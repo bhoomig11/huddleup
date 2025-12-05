@@ -8,7 +8,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "~/components/ui/dialog";
-import { getInputClass, maskCardNumber } from "~/routes/user/utils";
+import { getInputClass, formatMaskedCardNumber } from "~/routes/user/utils";
 
 interface ViewCardDialogProps {
   open: boolean;
@@ -52,8 +52,10 @@ export function ViewCardDialog({
             <Input
               id="view-card-number"
               type="text"
-              value={maskCardNumber(cardData.cardNumber)}
-              className={getInputClass(maskCardNumber(cardData.cardNumber))}
+              value={formatMaskedCardNumber(cardData.cardNumber)}
+              className={`font-mono ${getInputClass(
+                formatMaskedCardNumber(cardData.cardNumber)
+              )}`}
               disabled
             />
           </div>

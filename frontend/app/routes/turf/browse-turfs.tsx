@@ -20,7 +20,7 @@ import {
   InputGroupInput,
 } from "~/components/ui/input-group";
 import { findTurfs } from "~/api/turf";
-import { data } from "react-router";
+import { data, Link } from "react-router";
 import type { TurfSummary } from "~/types/turf";
 import type { Route } from "./+types/browse-turfs";
 import { HuddleUpLogo } from "~/components/huddleup-logo";
@@ -144,19 +144,19 @@ export default function BrowseTurfsPage({
                       </span>
                     </div>
                   </div>
-                  <div className="flex flex-row gap-2">
-                    <Button
-                      variant="ghost"
-                      className="px-3.5 py-1.5 font-semibold text-green-700 hover:bg-stone-300/30 active:bg-stone-300/60"
+                  <div className="flex flex-row items-baseline gap-2">
+                    <Link
+                      to={`/turf/${turf.turfId}`}
+                      className="flex h-9 items-center justify-center rounded px-3.5 py-1.5 text-sm font-semibold text-green-700 hover:bg-stone-300/30 active:bg-stone-300/60"
                     >
                       View Details
-                    </Button>
-                    <Button
-                      variant="default"
-                      className="rounded bg-green-700 px-3.5 py-1.5 text-white hover:bg-green-600 active:bg-green-700"
+                    </Link>
+                    <Link
+                      to="#"
+                      className="flex h-9 items-center justify-center rounded bg-green-700 px-3.5 py-1.5 text-sm text-white hover:bg-green-600 active:bg-green-700"
                     >
                       Book Now
-                    </Button>
+                    </Link>
                   </div>
                 </div>
               </div>

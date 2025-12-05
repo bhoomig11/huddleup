@@ -18,7 +18,8 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 @Component
 public class UserJwtFilter extends OncePerRequestFilter {
-  private static final String USER_URL_PATH_ANT_PATTERN = "/api/user/";
+  private static final String USER_URL_PATH_PREFIX = "/api/user/";
+  private static final String TURF_URL_PATH_PREFIX = "/api/turf/";
 
   private final JwtService userJwtService;
   private final AppUserService appUserService;
@@ -33,7 +34,12 @@ public class UserJwtFilter extends OncePerRequestFilter {
   public UserJwtFilter(JwtService jwtService, AppUserService appUserService) {
     this.userJwtService = jwtService;
     this.appUserService = appUserService;
-    this.requestMatcher = request -> request.getRequestURI().startsWith(USER_URL_PATH_ANT_PATTERN);
+    this.requestMatcher =
+        request -> {
+          String requestURI = request.getRequestURI();
+          return requestURI.startsWith(USER_URL_PATH_PREFIX)
+              || requestURI.startsWith(TURF_URL_PATH_PREFIX);
+        };
   }
 
   @Override

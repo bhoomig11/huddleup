@@ -161,6 +161,9 @@ DELIMITER ;
  *   - coupon_code - code for the coupon visible to the user
  *   - coupon_description - description of the coupon
  *   - discount_percent - discount percent applied
+ *   - coupon_start_date - start date when the coupon becomes valid
+ *   - coupon_end_date - end date when the coupon expires
+ *   - min_booking_amt - minimum booking amount required to use this coupon (nullable)
  */ 
 DROP PROCEDURE IF EXISTS get_all_valid_coupons;
 DELIMITER $$
@@ -170,10 +173,13 @@ BEGIN
         coupon_id,
         coupon_code, 
         coupon_description, 
-        discount_percent 
+        discount_percent,
+        coupon_start_date,
+        coupon_end_date,
+        min_booking_amt
     FROM coupon
     WHERE coupon.coupon_start_date <= UTC_DATE() 
-        AND coupon.end_date >= UTC_DATE();
+        AND coupon.coupon_end_date >= UTC_DATE();
 END $$
 DELIMITER ;
 
@@ -233,7 +239,7 @@ DELIMITER ;
  * Output Columns
  * --------------
  *   - card_id - the ID of the card
- *   - card_number - the card number
+ *   - card_number - the masked card number (last 4 digits visible)
  *   - name_on_card - the name on the card
  *   - expiry_date - the card expiry date
  *   - addr_street_1 - the primary street address line of the card's billing address
@@ -264,7 +270,7 @@ BEGIN
 
     SELECT
         card_id,
-        card_number,
+        get_masked_card_number(card_id) AS card_number,
         name_on_card,
         expiry_date,
         addr_street_1,
@@ -287,17 +293,23 @@ DELIMITER ;
  * ----------------
  *   - p_turf_id - ID of the turf being booked
  *   - p_username - Username of the user making the booking
- *   - p_start_time_utc - Start time of the booking (UTC)
- *   - p_duration_mins - Duration of the booking in minutes
+ *   - p_date - Date of the booking (DATE format: YYYY-MM-DD, local time)
+ *   - p_start_time - Start time of the booking (TIME format: HH:mm:ss, local time)
+ *   - p_end_time - End time of the booking (TIME format: HH:mm:ss, local time)
  *   - p_card_id - Payment card ID
  *   - p_coupon_id - (Optional) coupon applied to the booking
+ *
+ *
+ * Output Columns
+ * --------------
+ *   - booking_id - The ID of the newly created booking
  *
  *
  * Errors
  * ------
  *   - Signals SQLSTATE '45001' if the username is NULL or empty
  *   - Signals SQLSTATE '45001' if the turf ID is NULL
- *   - Signals SQLSTATE '45001' if the duration is not valid
+ *   - Signals SQLSTATE '45001' if start/end time validation fails
  *   - Signals SQLSTATE '45001' if the amount does not meet coupon requirements
  *   - Signals SQLSTATE '45002' if no such user, turf, or coupon exists
  *   - Signals SQLSTATE '45003' if there is a conflict with an existing booking
@@ -307,18 +319,26 @@ DELIMITER $$
 CREATE PROCEDURE book_turf(
     IN p_turf_id INT,
     IN p_username VARCHAR(64),
-    IN p_start_time_UTC DATETIME,
-    IN p_duration_mins INT,
+    IN p_date DATE,
+    IN p_start_time TIME,
+    IN p_end_time TIME,
     IN p_card_id INT,
     IN p_coupon_id INT
 )
 BEGIN
     DECLARE v_hourly_rate DECIMAL(10,2);
+    DECLARE v_iana_timezone VARCHAR(64);
     DECLARE v_amount DECIMAL(19,2);
     DECLARE v_discount DECIMAL(10,2) DEFAULT 0;
     DECLARE v_min_booking_amt DECIMAL(10,2);
-    DECLARE v_end_time DATETIME;
     DECLARE v_masked_card_num VARCHAR(19);
+    DECLARE v_start_minute INT;
+    DECLARE v_start_second INT;
+    DECLARE v_end_minute INT;
+    DECLARE v_end_second INT;
+    DECLARE v_duration_mins INT;
+    DECLARE v_start_time_utc DATETIME;
+    DECLARE v_end_time_utc DATETIME;
  
     IF (p_username IS NULL OR CHAR_LENGTH(p_username) = 0) THEN
         SIGNAL SQLSTATE '45001' SET MESSAGE_TEXT = 'Username cannot be empty';
@@ -336,29 +356,53 @@ BEGIN
         SIGNAL SQLSTATE '45002' SET MESSAGE_TEXT = 'No such coupon exists';
     END IF;
  
-    -- validate duration
-    IF (duration_mins IS NULL OR duration_mins <= 0) THEN
-        SIGNAL SQLSTATE '45001' SET MESSAGE_TEXT = 'Duration must be a positive number of minutes';
+    -- validate end time is after start time (in local time)
+    IF (p_end_time <= p_start_time) THEN
+        SIGNAL SQLSTATE '45001' SET MESSAGE_TEXT = 'End time must be after start time';
     END IF;
 
-    -- calculate booking end time from start time and booking duration
-    SET v_end_time = DATE_ADD(p_start_time_UTC, INTERVAL p_duration_mins MINUTE);
+    -- validate start time is at a multiple of 30 minutes (00 or 30 minutes, 0 seconds)
+    SET v_start_minute = MINUTE(p_start_time);
+    SET v_start_second = SECOND(p_start_time);
+    IF (v_start_minute NOT IN (0, 30) OR v_start_second != 0) THEN
+        SIGNAL SQLSTATE '45001' SET MESSAGE_TEXT = 'Start time must be at a multiple of 30 minutes (e.g., 10:00, 10:30)';
+    END IF;
+
+    -- validate end time is 1 minute before a multiple of 30 minutes (29 or 59 minutes, 0 seconds)
+    SET v_end_minute = MINUTE(p_end_time);
+    SET v_end_second = SECOND(p_end_time);
+    IF (v_end_minute NOT IN (29, 59) OR v_end_second != 0) THEN
+        SIGNAL SQLSTATE '45001' SET MESSAGE_TEXT = 'End time must be 1 minute before a multiple of 30 minutes (e.g., 10:29, 10:59)';
+    END IF;
+
+    -- get the hourly rate and timezone from the turf
+    SELECT t.hourly_rate, t.iana_timezone 
+    INTO v_hourly_rate, v_iana_timezone
+    FROM turf AS t
+    WHERE turf_id = p_turf_id;
+
+    -- convert local times to UTC using the turf's timezone
+    SET v_start_time_utc = convert_local_to_utc(p_date, p_start_time, v_iana_timezone);
+    SET v_end_time_utc = convert_local_to_utc(p_date, p_end_time, v_iana_timezone);
+
+    -- validate duration: since start is at :00/:30 and end is at :29/:59,
+    -- duration should be 29 mod 30 (e.g., 29, 59, 89, 119 minutes)
+    SET v_duration_mins = TIMESTAMPDIFF(MINUTE, v_start_time_utc, v_end_time_utc);
+    IF (v_duration_mins % 30 != 29) THEN
+        SIGNAL SQLSTATE '45001' SET MESSAGE_TEXT = 'Duration must be 29 minutes modulo 30 (e.g., 29, 59, 89 minutes)';
+    END IF;
  
-    -- check for conflicting booking
-    IF check_conflicting_booking(p_turf_id, p_start_time_utc, p_duration_mins) THEN
+    -- check for conflicting booking (using start and end time in UTC)
+    IF check_conflicting_booking(p_turf_id, v_start_time_utc, v_end_time_utc) THEN
         SIGNAL SQLSTATE '45003'
         SET MESSAGE_TEXT = 'Time slot is already booked.';
     END IF;
 
-    -- get the hourly rate
-    SELECT t.hourly_rate INTO v_hourly_rate
-    FROM turf AS t
-    WHERE turf_id = p_turf_id;
-
-    SET v_amount = (p_duration_mins / 60) * v_hourly_rate;
+    -- calculate amount based on duration in minutes
+    SET v_amount = (v_duration_mins / 60) * v_hourly_rate;
 
     -- apply coupon if not null
-    IF (coupon_id IS NOT NULL) THEN
+    IF (p_coupon_id IS NOT NULL) THEN
         SELECT discount_percent, min_booking_amt 
         INTO v_discount, v_min_booking_amt
         FROM coupon 
@@ -378,24 +422,36 @@ BEGIN
  
     INSERT INTO booking (
         start_time_utc,
-        duration_mins,
+        end_time_utc,
         amount, 
         turf_id,
         username,
         masked_card_number,
         coupon_id
     ) VALUES (
-        p_start_time_utc,
-        p_duration_mins,
+        v_start_time_utc,
+        v_end_time_utc,
         v_amount,
         p_turf_id,
         p_username,
         v_masked_card_num,
         p_coupon_id
     );
+
+    SELECT booking_id
+    FROM booking
+    WHERE turf_id = p_turf_id
+        AND username = p_username
+        AND start_time_utc = v_start_time_utc
+        AND end_time_utc = v_end_time_utc
+        AND amount = v_amount
+        AND masked_card_number = v_masked_card_num
+        AND (p_coupon_id IS NULL AND coupon_id IS NULL
+             OR coupon_id = p_coupon_id)
+    ORDER BY booking_id DESC
+    LIMIT 1;
 END $$
 DELIMITER ;
-
 /**
  * Procedure: get_all_turf_reviews
  * -------------------------------
@@ -430,5 +486,203 @@ BEGIN
     SELECT review, rating, username
     FROM review
     WHERE turf_id = p_turf_id;
+END $$
+DELIMITER ;
+
+/**
+ * Procedure: get_turf_features
+ * ----------------------------
+ * Get all the features for a given turf.
+ *
+ *
+ * Input Parameters
+ * ----------------
+ *   - p_turf_id - The id (PK) for which the features are fetched
+ *
+ *
+ * Output Columns
+ * --------------
+ *   - feature_name - the name of the feature
+ *   - feature_description - the description of the feature
+ *
+ *
+ * Errors
+ * ------
+ *   - Signals SQLSTATE '45002' if no such turf exists
+ */
+DROP PROCEDURE IF EXISTS get_turf_features;
+DELIMITER $$
+CREATE PROCEDURE get_turf_features(IN p_turf_id INT)
+BEGIN
+    IF NOT EXISTS (SELECT turf_id FROM turf WHERE turf_id = p_turf_id) THEN
+        SIGNAL SQLSTATE '45002'
+        SET MESSAGE_TEXT = 'No such turf exists';
+    END IF;
+
+    SELECT tf.feat_name AS feature_name, tf.feat_description AS feature_description
+    FROM turf_to_feature AS ttf
+    INNER JOIN turf_feature AS tf ON ttf.feature_name = tf.feat_name
+    WHERE ttf.turf_id = p_turf_id
+    ORDER BY tf.feat_name;
+END $$
+DELIMITER ;
+
+/**
+ * Procedure: get_available_start_times
+ * ------------------------------------
+ * Get all available start times (:00, :30) for a turf on a given date.
+ * A start time is available if it doesn't fall within an existing booking.
+ *
+ * Input Parameters
+ * ----------------
+ *   - p_turf_id - the ID of the turf
+ *   - p_date - the date to check availability for (DATE format: YYYY-MM-DD)
+ *
+ * Output Columns
+ * --------------
+ *   - start_time_local - available start time in local timezone (TIME format: HH:mm:ss)
+ *
+ * Errors
+ * ------
+ *   - Signals SQLSTATE '45001' if p_turf_id or p_date is NULL
+ *   - Signals SQLSTATE '45002' if no such turf exists
+ */
+DROP PROCEDURE IF EXISTS get_available_start_times;
+DELIMITER $$
+CREATE PROCEDURE get_available_start_times(
+    IN p_turf_id INT,
+    IN p_date DATE
+)
+BEGIN
+    IF (p_turf_id IS NULL) THEN
+        SIGNAL SQLSTATE '45001'
+        SET MESSAGE_TEXT = 'Turf ID cannot be NULL or empty';
+    END IF;
+
+    IF (p_date IS NULL) THEN
+        SIGNAL SQLSTATE '45001'
+        SET MESSAGE_TEXT = 'Date cannot be NULL or empty';
+    END IF;
+    
+    IF NOT EXISTS (SELECT turf_id FROM turf WHERE turf_id = p_turf_id) THEN
+        SIGNAL SQLSTATE '45002'
+        SET MESSAGE_TEXT = 'No such turf exists';
+    END IF;
+    
+    WITH RECURSIVE start_times AS (
+        SELECT 
+            opens_at_local AS start_time_local,
+            closes_at_local,
+            iana_timezone
+        FROM turf
+        WHERE turf_id = p_turf_id
+        
+        UNION ALL
+        
+        SELECT 
+            ADDTIME(st.start_time_local, '00:30:00') AS start_time_local,
+            st.closes_at_local,
+            st.iana_timezone
+        FROM start_times AS st
+        WHERE ADDTIME(st.start_time_local, '00:30:00') < st.closes_at_local
+    )
+    SELECT st.start_time_local
+    FROM start_times st
+    WHERE NOT EXISTS (
+        SELECT 1 FROM booking b
+        WHERE b.turf_id = p_turf_id
+        AND convert_local_to_utc(p_date, st.start_time_local, st.iana_timezone) >= b.start_time_utc
+        AND convert_local_to_utc(p_date, st.start_time_local, st.iana_timezone) < b.end_time_utc
+    )
+    ORDER BY st.start_time_local;
+END $$
+DELIMITER ;
+
+/**
+ * Procedure: get_available_end_times
+ * ----------------------------------
+ * Get all available end times (:29, :59) for a turf on a given date and start time.
+ * An end time is available if the range [start_time, end_time] doesn't conflict
+ * with any existing booking.
+ *
+ * Input Parameters
+ * ----------------
+ *   - p_turf_id - the ID of the turf
+ *   - p_date - the date to check availability for (DATE format: YYYY-MM-DD)
+ *   - p_start_time - the selected start time (TIME format: HH:mm:ss, must be :00 or :30)
+ *
+ * Output Columns
+ * --------------
+ *   - end_time_local - available end time in local timezone (TIME format: HH:mm:ss)
+ *
+ * Errors
+ * ------
+ *   - Signals SQLSTATE '45001' if any input parameter is NULL
+ *   - Signals SQLSTATE '45001' if p_start_time is not at :00 or :30
+ *   - Signals SQLSTATE '45002' if no such turf exists
+ */
+DROP PROCEDURE IF EXISTS get_available_end_times;
+DELIMITER $$
+CREATE PROCEDURE get_available_end_times(
+    IN p_turf_id INT,
+    IN p_date DATE,
+    IN p_start_time TIME
+)
+BEGIN
+    DECLARE v_start_minute INT;
+    
+    IF (p_turf_id IS NULL) THEN
+        SIGNAL SQLSTATE '45001'
+        SET MESSAGE_TEXT = 'Turf ID cannot be NULL or empty';
+    END IF;
+
+    IF (p_date IS NULL) THEN
+        SIGNAL SQLSTATE '45001'
+        SET MESSAGE_TEXT = 'Date cannot be NULL or empty';
+    END IF;
+
+    IF (p_start_time IS NULL) THEN
+        SIGNAL SQLSTATE '45001'
+        SET MESSAGE_TEXT = 'Start time cannot be NULL or empty';
+    END IF;
+    
+    -- Validate start time is at :00 or :30
+    SET v_start_minute = MINUTE(p_start_time);
+    IF (v_start_minute NOT IN (0, 30) OR SECOND(p_start_time) != 0) THEN
+        SIGNAL SQLSTATE '45001'
+        SET MESSAGE_TEXT = 'Start time must be at :00 or :30 minutes';
+    END IF;
+    
+    IF NOT EXISTS (SELECT turf_id FROM turf WHERE turf_id = p_turf_id) THEN
+        SIGNAL SQLSTATE '45002'
+        SET MESSAGE_TEXT = 'No such turf exists';
+    END IF;
+    
+    WITH RECURSIVE end_times AS (
+        SELECT 
+            ADDTIME(p_start_time, '00:29:00') AS end_time_local,
+            closes_at_local,
+            iana_timezone
+        FROM turf
+        WHERE turf_id = p_turf_id
+        
+        UNION ALL
+        
+        SELECT 
+            ADDTIME(et.end_time_local, '00:30:00') AS end_time_local,
+            et.closes_at_local,
+            et.iana_timezone
+        FROM end_times AS et
+        WHERE ADDTIME(et.end_time_local, '00:30:00') <= et.closes_at_local
+    )
+    SELECT et.end_time_local
+    FROM end_times et
+    WHERE NOT EXISTS (
+        SELECT 1 FROM booking b
+        WHERE b.turf_id = p_turf_id
+        AND convert_local_to_utc(p_date, et.end_time_local, et.iana_timezone) > b.start_time_utc
+        AND convert_local_to_utc(p_date, p_start_time, et.iana_timezone) <= b.end_time_utc
+    )
+    ORDER BY et.end_time_local;
 END $$
 DELIMITER ;

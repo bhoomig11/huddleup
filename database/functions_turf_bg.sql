@@ -127,9 +127,9 @@ BEGIN
     FROM card_detail
     WHERE card_id = p_card_id;
 
-    SET v_len_card_num = CHAR_LENGTH(org_card_number);
-    SET v_masked_card_num = SUBSTRING(v_org_card_number, v_len_card_num - 4);
-    SET v_masked_card_num = LPAD(v_masked_card_num, v_len_card_num, 'X');
+    SET v_len_card_num = CHAR_LENGTH(v_org_card_number);
+    SET v_masked_card_num = SUBSTRING(v_org_card_number FROM v_len_card_num - 3 FOR 4);
+    SET v_masked_card_num = LPAD(v_masked_card_num, v_len_card_num, '*');
 
     RETURN v_masked_card_num;
 END$$
@@ -145,7 +145,7 @@ DELIMITER ;
  * ----------
  *   - p_turf_id - the turf id that needs to be booked
  *   - p_start_time_utc - start time of the new booking
- *   - p_duration_min - duration of the new booking
+ *   - p_end_time_utc - end time of the new booking
  *
  *
  * Returns
@@ -157,16 +157,13 @@ DELIMITER $$
 CREATE FUNCTION check_conflicting_booking(
     p_turf_id INT,
     p_start_time_utc DATETIME, 
-    p_duration_min INT
+    p_end_time_utc DATETIME
 )
 RETURNS BOOLEAN 
 DETERMINISTIC
 READS SQL DATA
 BEGIN
-    DECLARE v_end_time DATETIME;
     DECLARE check_conflict BOOLEAN;
- 
-    SET v_end_time = DATE_ADD(p_start_time_utc, INTERVAL p_duration_min MINUTE);
 
     SET check_conflict = EXISTS(
         SELECT *
@@ -174,18 +171,14 @@ BEGIN
         WHERE
             turf_id = p_turf_id
             AND (
-                (
-                    p_start_time_utc BETWEEN start_time_utc
-                    AND DATE_ADD(start_time_utc, INTERVAL duration_mins MINUTE)
-                )
-                OR (
-                    v_end_time BETWEEN start_time_utc
-                    AND DATE_ADD(start_time_utc, INTERVAL duration_mins MINUTE)
-                )
-                OR (
-                    p_start_time_utc <= start_time_utc
-                    AND v_end_time >= DATE_ADD(start_time_utc, INTERVAL duration_mins MINUTE)
-                )
+                -- New booking starts within an existing booking
+                (p_start_time_utc >= start_time_utc AND p_start_time_utc < end_time_utc)
+                OR
+                -- New booking ends within an existing booking
+                (p_end_time_utc > start_time_utc AND p_end_time_utc <= end_time_utc)
+                OR
+                -- New booking completely contains an existing booking
+                (p_start_time_utc <= start_time_utc AND p_end_time_utc >= end_time_utc)
             )
     );
 
@@ -193,3 +186,68 @@ BEGIN
 END $$
 DELIMITER ;
 
+/**
+ * Function: convert_local_to_utc
+ * -------------------------------
+ * Converts a local date and time to UTC datetime using the provided timezone.
+ *
+ * Parameters
+ * ----------
+ *   - p_date - the date in local timezone (DATE format: YYYY-MM-DD)
+ *   - p_time - the time in local timezone (TIME format: HH:mm:ss)
+ *   - p_timezone - the IANA timezone identifier (e.g., 'America/New_York')
+ *
+ * Returns
+ * -------
+ * The datetime in UTC (DATETIME format)
+ */
+DROP FUNCTION IF EXISTS convert_local_to_utc;
+DELIMITER $$
+CREATE FUNCTION convert_local_to_utc(
+    p_date DATE,
+    p_time TIME,
+    p_timezone VARCHAR(64)
+)
+RETURNS DATETIME
+DETERMINISTIC
+NO SQL
+BEGIN
+    RETURN CONVERT_TZ(
+        CONCAT(p_date, ' ', p_time),
+        p_timezone,
+        'UTC'
+    );
+END $$
+DELIMITER ;
+
+/**
+ * Function: convert_utc_to_local
+ * -------------------------------
+ * Converts a UTC datetime to local datetime using the provided timezone.
+ *
+ * Parameters
+ * ----------
+ *   - p_datetime_utc - the datetime in UTC (DATETIME format)
+ *   - p_timezone - the IANA timezone identifier (e.g., 'America/New_York')
+ *
+ * Returns
+ * -------
+ * The datetime in local timezone (DATETIME format)
+ */
+DROP FUNCTION IF EXISTS convert_utc_to_local;
+DELIMITER $$
+CREATE FUNCTION convert_utc_to_local(
+    p_datetime_utc DATETIME,
+    p_timezone VARCHAR(64)
+)
+RETURNS DATETIME
+DETERMINISTIC
+NO SQL
+BEGIN
+    RETURN CONVERT_TZ(
+        p_datetime_utc,
+        'UTC',
+        p_timezone
+    );
+END $$
+DELIMITER ;

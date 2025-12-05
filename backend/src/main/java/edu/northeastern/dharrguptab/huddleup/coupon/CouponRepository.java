@@ -3,7 +3,6 @@ package edu.northeastern.dharrguptab.huddleup.coupon;
 import edu.northeastern.dharrguptab.huddleup.common.exceptions.AppErrorCode;
 import edu.northeastern.dharrguptab.huddleup.common.exceptions.DatabaseExceptionCategory;
 import edu.northeastern.dharrguptab.huddleup.coupon.dto.CouponDetail;
-import edu.northeastern.dharrguptab.huddleup.coupon.dto.CouponSummary;
 import edu.northeastern.dharrguptab.huddleup.coupon.exceptions.CouponErrorCode;
 import edu.northeastern.dharrguptab.huddleup.coupon.exceptions.CouponException;
 import java.math.BigDecimal;
@@ -29,11 +28,11 @@ public class CouponRepository {
   /**
    * Retrieve all coupons that are currently valid.
    *
-   * @return list of valid coupon summaries
+   * @return list of valid coupon details
    */
-  public List<CouponSummary> getAllValidCoupons() {
+  public List<CouponDetail> getAllValidCoupons() {
     String getAllValidCouponsQuery = "{CALL get_all_valid_coupons()}";
-    List<CouponSummary> coupons = new ArrayList<>();
+    List<CouponDetail> coupons = new ArrayList<>();
 
     try (Connection connection = dataSource.getConnection();
         CallableStatement cs = connection.prepareCall(getAllValidCouponsQuery);
@@ -43,8 +42,16 @@ public class CouponRepository {
         String couponCode = rs.getString("coupon_code");
         String couponDescription = rs.getString("coupon_description");
         int discountPercent = rs.getInt("discount_percent");
+        Date sqlStartDate = rs.getDate("coupon_start_date");
+        Date sqlEndDate = rs.getDate("coupon_end_date");
+        BigDecimal minBookingAmt = rs.getBigDecimal("min_booking_amt");
+
+        LocalDate startDate = sqlStartDate != null ? sqlStartDate.toLocalDate() : null;
+        LocalDate endDate = sqlEndDate != null ? sqlEndDate.toLocalDate() : null;
+
         coupons.add(
-            new CouponSummary(couponId, couponCode, couponDescription, discountPercent));
+            new CouponDetail(
+                couponId, couponCode, couponDescription, discountPercent, startDate, endDate, minBookingAmt));
       }
       return coupons;
     } catch (SQLException e) {

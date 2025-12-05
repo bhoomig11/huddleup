@@ -72,7 +72,7 @@ const profileFormSchema = z.object({
 type ProfileFormValues = z.infer<typeof profileFormSchema>;
 
 // Helper to convert UserProfile from backend to form values
-function userProfileToFormValues(profile: any): ProfileFormValues {
+function userProfileToFormValues(profile: UserProfile): ProfileFormValues {
   return {
     username: profile.username ?? "",
     email: profile.email ?? "",

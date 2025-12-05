@@ -155,7 +155,7 @@ CREATE TABLE coupon (
 CREATE TABLE booking (
     booking_id INT PRIMARY KEY AUTO_INCREMENT,
     start_time_utc DATETIME NOT NULL,
-    duration_mins INT NOT NULL,
+    end_time_utc DATETIME NOT NULL,
     amount DECIMAL(19, 2) NOT NULL,
     complaint_subject VARCHAR(64),
     complaint_description VARCHAR(255),

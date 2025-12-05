@@ -7,13 +7,25 @@ export const getInputClass = (value: string) =>
   );
 
 /**
- * Masks a card number showing only the last 4 digits.
- * @param cardNumber The full card number
- * @returns Masked card number in format "**** **** **** 1234"
+ * Formats an already-masked card number into readable groups of 4 characters.
+ * Handles variable-length card numbers (13-19 digits) by grouping into 4-character chunks.
+ *
+ * @param maskedCardNumber The already-masked card number (last 4 digits visible)
+ * @returns Formatted masked card number with spaces in groups of 4
  */
-export const maskCardNumber = (cardNumber: string): string => {
-  if (cardNumber.length < 4) return cardNumber;
-  return `**** **** **** ${cardNumber.slice(-4)}`;
+export const formatMaskedCardNumber = (maskedCardNumber: string): string => {
+  if (!maskedCardNumber) return maskedCardNumber;
+
+  // Remove any existing spaces
+  const cleaned = maskedCardNumber.replace(/\s/g, "");
+
+  // Group into chunks of 4 characters (handles variable-length cards)
+  const chunks: string[] = [];
+  for (let i = 0; i < cleaned.length; i += 4) {
+    chunks.push(cleaned.slice(i, i + 4));
+  }
+
+  return chunks.join(" ");
 };
 
 /**
@@ -42,8 +54,8 @@ export const handleNumericInput = (value: string): string => {
  * @returns the formatted date in MM/YYYY format
  */
 export const formatExpiryDate = (expiryDate: string) => {
-    const date = new Date(expiryDate);
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const year = String(date.getFullYear());
-    return { month, year };
-  };
+  const date = new Date(expiryDate);
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const year = String(date.getFullYear());
+  return { month, year };
+};
