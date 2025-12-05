@@ -67,9 +67,7 @@ export async function clientLoader({ context }: Route.ClientLoaderArgs) {
   };
 }
 
-export default function Layout({
-  loaderData,
-}: Route.ComponentProps) {
+export default function Layout({ loaderData }: Route.ComponentProps) {
   return (
     <AppUserProvider
       username={loaderData.username}
