@@ -8,9 +8,10 @@ export function ProfileSidebar() {
   const location = useLocation();
 
   // Determine active tab based on current route
-  const getActiveTab = (): "details" | "payment" | "bookings" => {
+  const getActiveTab = (): "details" | "payment" | "previous" | "upcoming" => {
     if (location.pathname.includes("/cards")) return "payment";
-    if (location.pathname.includes("/booking")) return "bookings";
+    if (location.pathname.includes("/booking/upcoming")) return "upcoming";
+    if (location.pathname.includes("/booking")) return "previous";
     return "details";
   };
 
@@ -53,10 +54,20 @@ export function ProfileSidebar() {
         </Link>
 
         <Link
+          to={`/user/${username}/booking/upcoming`}
+          className={cn(
+            "rounded px-2 py-1 text-left font-semibold text-green-700 hover:bg-stone-300/30",
+            activeTab === "upcoming" && "bg-stone-300/60 font-semibold"
+          )}
+        >
+          Upcoming Bookings
+        </Link>
+
+        <Link
           to={`/user/${username}/booking`}
           className={cn(
             "rounded px-2 py-1 text-left font-semibold text-green-700 hover:bg-stone-300/30",
-            activeTab === "bookings" && "bg-stone-300/60 font-semibold"
+            activeTab === "previous" && "bg-stone-300/60 font-semibold"
           )}
         >
           Previous Bookings

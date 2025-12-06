@@ -23,6 +23,32 @@ export async function getAllUserBookings(username: string) {
   return response;
 }
 
+export async function getUserUpcomingBookings(username: string) {
+  const headers = getAuthenticatedHeaders();
+
+  const response = await fetch(
+    withBase(`/api/user/${username}/booking/upcoming`),
+    {
+      method: "GET",
+      headers,
+    }
+  );
+  return response;
+}
+
+export async function getUserPreviousBookings(username: string) {
+  const headers = getAuthenticatedHeaders();
+
+  const response = await fetch(
+    withBase(`/api/user/${username}/booking/previous`),
+    {
+      method: "GET",
+      headers,
+    }
+  );
+  return response;
+}
+
 export async function getUserBooking(username: string, bookingId: number) {
   const headers = getAuthenticatedHeaders();
 
@@ -237,6 +263,51 @@ export async function getLatestUserTurfBooking(
     withBase(`/api/user/${username}/booking?turfId=${turfId}&latest=true`),
     {
       method: "GET",
+      headers,
+    }
+  );
+  return response;
+}
+
+export async function getAllAnnouncements(username: string) {
+  const headers = getAuthenticatedHeaders();
+
+  const response = await fetch(
+    withBase(`/api/user/${username}/announcements`),
+    {
+      method: "GET",
+      headers,
+    }
+  );
+  return response;
+}
+
+export async function getAnnouncement(
+  username: string,
+  announcementId: number
+) {
+  const headers = getAuthenticatedHeaders();
+
+  const response = await fetch(
+    withBase(`/api/user/${username}/announcements/${announcementId}`),
+    {
+      method: "GET",
+      headers,
+    }
+  );
+  return response;
+}
+
+export async function markAnnouncementAsRead(
+  username: string,
+  announcementId: number
+) {
+  const headers = getAuthenticatedHeaders();
+
+  const response = await fetch(
+    withBase(`/api/user/${username}/announcements/${announcementId}/read`),
+    {
+      method: "PATCH",
       headers,
     }
   );

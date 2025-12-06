@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { format, intervalToDuration } from "date-fns";
-import { redirect, useParams, useRevalidator } from "react-router";
+import { redirect, useParams, useRevalidator, useNavigate } from "react-router";
+import { LandPlot, Clock, CreditCard, DollarSign } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";
 import { ProfileSidebar } from "~/routes/user/components/profile-sidebar";
 import { FileComplaintDialog } from "~/routes/user/components/file-complaint";
-import { getAllUserBookings } from "~/api/user";
+import { getUserPreviousBookings } from "~/api/user";
 import { data } from "react-router";
 import type { BookingSummary } from "~/types/booking";
 import type { Route } from "./+types/previous-bookings";
@@ -18,7 +19,7 @@ export async function clientLoader({ params }: Route.ClientLoaderArgs) {
     throw redirect("/login");
   }
 
-  const response = await getAllUserBookings(username);
+  const response = await getUserPreviousBookings(username);
   if (!response.ok) {
     throw data("Error fetching bookings", { status: response.status });
   }
@@ -30,6 +31,7 @@ export default function PreviousBookingsPage({
   loaderData: bookings,
 }: Route.ComponentProps) {
   const { username } = useParams<{ username: string }>();
+  const navigate = useNavigate();
   const revalidator = useRevalidator();
   const [openComplaintDialog, setOpenComplaintDialog] = useState<number | null>(
     null
@@ -83,11 +85,14 @@ export default function PreviousBookingsPage({
         {/* RIGHT PANEL */}
         <div className="min-h-screen basis-3/4 p-10">
           <div className="space-y-6">
-            <h2 className="text-xl font-bold text-stone-600">
-              Previous Bookings
-            </h2>
+            <h1 className="text-lg font-bold text-stone-600 mb-5">Previous Bookings</h1>
 
-            {bookings.map((booking) => {
+            {bookings.length === 0 ? (
+              <h2 className="text-xl font-semibold text-stone-500/90">
+                No previous bookings found
+              </h2>
+            ) : (
+              bookings.map((booking) => {
               const startDateTime = formatDateTime(booking.startTimeLocal);
               const endDateTime = formatDateTime(booking.endTimeLocal);
               const duration = formatDuration(
@@ -99,43 +104,39 @@ export default function PreviousBookingsPage({
                 <Card key={booking.bookingId} className="p-4">
                   <CardContent>
                     <div className="flex items-start justify-between">
-                      <div>
+                      <div className="space-y-3">
                         <p className="font-medium text-stone-500">
                           Booking ID: {booking.bookingId}
                         </p>
-                        <p className="text-stone-500">
-                          Turf Name: {booking.turfName}
-                        </p>
-                        <p className="text-stone-500">
-                          Start: {startDateTime.date} | {startDateTime.time}
-                        </p>
-                        <p className="text-stone-500">
-                          End: {endDateTime.date} | {endDateTime.time} (
-                          {duration})
-                        </p>
-                        <p className="text-stone-500">
-                          Card Number: {booking.maskedCardNumber}
-                        </p>
-                        <p className="text-stone-500">
-                          Amount Paid: ${booking.amount.toFixed(2)}
-                        </p>
+                        <div className="flex items-center gap-2 text-stone-500">
+                          <LandPlot className="size-5 text-green-700" />
+                          <p className="text-stone-500">{booking.turfName}</p>
+                        </div>
+                        <div className="flex items-center gap-2 text-stone-500">
+                          <Clock className="size-5 text-green-700" />
+                          <p className="text-stone-500">
+                            {startDateTime.date} | {startDateTime.time} - {endDateTime.time} ({duration})
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-2 text-stone-500">
+                          <CreditCard className="size-5 text-green-700" />
+                          <p className="text-stone-500">{booking.maskedCardNumber}</p>
+                        </div>
+                        <div className="flex items-center gap-2 text-stone-500">
+                          <DollarSign className="size-5 text-green-700" />
+                          <p className="text-stone-500">${booking.amount.toFixed(2)}</p>
+                        </div>
                       </div>
                       <div className="flex flex-col gap-2">
                         <Button
                           size="sm"
                           className="rounded bg-green-700 text-white hover:bg-green-600 active:bg-green-700"
                           onClick={() => {
-                            // TODO: reroute to the turf's page where booking was made to add a review
+                            navigate(`/turf/${booking.turfId}`);
                           }}
                         >
                           Add a review
                         </Button>
-                        {/* <Link
-                          to={`/turf/${turfId}`}
-                          className="rounded bg-green-700 text-white hover:bg-green-600 active:bg-green-700"
-                        >
-                          Add a review
-                        </Link> */}
                         <Button
                           size="sm"
                           className="rounded bg-green-700 text-white hover:bg-green-600 active:bg-green-700"
@@ -152,7 +153,8 @@ export default function PreviousBookingsPage({
                   </CardContent>
                 </Card>
               );
-            })}
+            })
+            )}
           </div>
         </div>
       </div>
