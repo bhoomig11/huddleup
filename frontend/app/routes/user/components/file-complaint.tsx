@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Trash } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Textarea } from "~/components/ui/textarea";
@@ -11,7 +12,7 @@ import {
   DialogTitle,
 } from "~/components/ui/dialog";
 import { getInputClass } from "~/routes/user/utils";
-import { fileComplaint, markComplaintAsResolved } from "~/api/user";
+import { fileComplaint, markComplaintAsResolved, deleteUserComplaint } from "~/api/user";
 
 interface FileComplaintDialogProps {
   open: boolean;
@@ -39,6 +40,7 @@ export function FileComplaintDialog({
   const [isResolved, setIsResolved] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isResolving, setIsResolving] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // Update form when existing complaint changes
@@ -147,6 +149,36 @@ export function FileComplaintDialog({
     }
   };
 
+  const handleDeleteComplaint = async () => {
+    setIsDeleting(true);
+    setError(null);
+
+    try {
+      const response = await deleteUserComplaint(username, bookingId);
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        setError(
+          errorData.message ||
+            `Failed to delete complaint: ${response.statusText}`
+        );
+        return;
+      }
+
+      // Success - close dialog and refresh bookings
+      onOpenChange(false);
+      if (onComplaintFiled) {
+        onComplaintFiled();
+      }
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "Failed to delete complaint"
+      );
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="bg-stone-100 sm:max-w-md">
@@ -202,19 +234,30 @@ export function FileComplaintDialog({
           {hasComplaint && !isResolved && (
             <Button
               onClick={handleMarkResolved}
-              disabled={isResolving}
+              disabled={isResolving || isDeleting}
               variant="outline"
               className="rounded text-sm bg-green-700 text-white"
             >
               {isResolving ? "Marking as resolved..." : "Mark as resolved"}
             </Button>
           )}
-          <div className="flex gap-2">
+          <div className="flex gap-2 items-center">
+            {hasComplaint && (
+              <Button
+                onClick={handleDeleteComplaint}
+                disabled={isDeleting || isResolving}
+                variant="outline"
+                className="rounded text-red-600 hover:text-red-700 hover:bg-red-50 border-red-300"
+                size="icon"
+              >
+                <Trash className="h-4 w-4" />
+              </Button>
+            )}
             <Button
               variant="outline"
               onClick={handleCancel}
               className="rounded text-stone-700"
-              disabled={isResolving}
+              disabled={isResolving || isDeleting}
             >
               {hasComplaint ? "Close" : "Cancel"}
             </Button>

@@ -100,6 +100,22 @@ export async function markComplaintAsResolved(
   return response;
 }
 
+export async function deleteUserComplaint(
+  username: string,
+  bookingId: number
+) {
+  const headers = getAuthenticatedHeaders();
+
+  const response = await fetch(
+    withBase(`/api/user/${username}/booking/${bookingId}/complaint`),
+    {
+      method: "PATCH",
+      headers,
+    }
+  );
+  return response;
+}
+
 export async function getAllCardDetails(username: string) {
   const headers = getAuthenticatedHeaders();
 
