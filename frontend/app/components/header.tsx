@@ -284,6 +284,13 @@ export function Header() {
                 Payment Methods
               </DropdownMenuItem>
               <DropdownMenuItem
+                onClick={() => navigate(`/user/${username}/booking/upcoming`)}
+                className="flex cursor-pointer items-center gap-2"
+              >
+                <Calendar className="size-4" />
+                Upcoming Bookings
+              </DropdownMenuItem>
+              <DropdownMenuItem
                 onClick={() => navigate(`/user/${username}/booking`)}
                 className="flex cursor-pointer items-center gap-2"
               >
