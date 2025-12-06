@@ -370,6 +370,50 @@ public class UserService {
   }
 
   /**
+   * Retrieve all upcoming bookings for a user (bookings with start time later than current UTC time).
+   *
+   * @param username the username of the user
+   * @return the list of upcoming booking summaries
+   */
+  public List<BookingSummary> getUserUpcomingBookings(String username) {
+    String authenticatedUsername = getAuthenticatedUsername();
+
+    boolean isAuthenticated = authenticatedUsername != null;
+    if (!isAuthenticated) {
+      throw new UnauthenticatedException();
+    }
+
+    boolean isAuthorized = username.equals(authenticatedUsername);
+    if (!isAuthorized) {
+      throw new UnauthorizedException();
+    }
+
+    return userRepository.getUserUpcomingBookings(username);
+  }
+
+  /**
+   * Retrieve all previous bookings for a user (bookings with start time less than current UTC time).
+   *
+   * @param username the username of the user
+   * @return the list of previous booking summaries
+   */
+  public List<BookingSummary> getUserPreviousBookings(String username) {
+    String authenticatedUsername = getAuthenticatedUsername();
+
+    boolean isAuthenticated = authenticatedUsername != null;
+    if (!isAuthenticated) {
+      throw new UnauthenticatedException();
+    }
+
+    boolean isAuthorized = username.equals(authenticatedUsername);
+    if (!isAuthorized) {
+      throw new UnauthorizedException();
+    }
+
+    return userRepository.getUserPreviousBookings(username);
+  }
+
+  /**
    * Retrieve a specific booking for a user.
    *
    * @param username the username of the user

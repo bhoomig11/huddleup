@@ -162,6 +162,16 @@ public class UserController {
     return userService.getUserBooking(username, booking_id);
   }
 
+  @GetMapping("/{username}/booking/upcoming")
+  public List<BookingSummary> getUserUpcomingBookings(@PathVariable String username) {
+    return userService.getUserUpcomingBookings(username);
+  }
+
+  @GetMapping("/{username}/booking/previous")
+  public List<BookingSummary> getUserPreviousBookings(@PathVariable String username) {
+    return userService.getUserPreviousBookings(username);
+  }
+
   @PutMapping("/{username}/booking/{booking_id}/complaint")
   public void fileComplaint(
       @PathVariable String username,

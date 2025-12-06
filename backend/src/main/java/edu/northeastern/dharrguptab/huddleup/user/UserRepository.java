@@ -831,6 +831,134 @@ public class UserRepository {
   }
 
   /**
+   * Retrieve all upcoming bookings for a user (bookings with start time later than current UTC time).
+   *
+   * @param username the username of the user
+   * @return the list of upcoming bookings
+   */
+  public List<BookingSummary> getUserUpcomingBookings(String username) {
+    String getUpcomingBookingsQuery = "{CALL get_user_upcoming_booking(?)}";
+    List<BookingSummary> bookings = new ArrayList<>();
+    try (Connection connection = dataSource.getConnection();
+        CallableStatement cs = connection.prepareCall(getUpcomingBookingsQuery)) {
+      cs.setString("p_username", username);
+      try (ResultSet rs = cs.executeQuery()) {
+        while (rs.next()) {
+          int bookingId = rs.getInt("booking_id");
+          LocalDateTime startTimeLocal = toLocalDateTimeOrNull(rs.getTimestamp("start_time_local"));
+          LocalDateTime endTimeLocal = toLocalDateTimeOrNull(rs.getTimestamp("end_time_local"));
+          BigDecimal amount = rs.getBigDecimal("amount");
+          String complaintSubject = rs.getString("complaint_subject");
+          String complaintDescription = rs.getString("complaint_description");
+          Instant complaintFiledAtUtc = toInstantOrNull(rs.getTimestamp("complaint_filed_at_utc"));
+          Instant complaintResolvedAtUtc =
+              toInstantOrNull(rs.getTimestamp("complaint_resolved_at_utc"));
+          int turfId = rs.getInt("turf_id");
+          String turfName = rs.getString("turf_name");
+          String bookingUsername = rs.getString("username");
+          String maskedCardNumber = rs.getString("masked_card_number");
+          Integer couponId = rs.getObject("coupon_id", Integer.class);
+
+          bookings.add(
+              new BookingSummary(
+                  bookingId,
+                  startTimeLocal,
+                  endTimeLocal,
+                  amount,
+                  complaintSubject,
+                  complaintDescription,
+                  complaintFiledAtUtc,
+                  complaintResolvedAtUtc,
+                  turfId,
+                  turfName,
+                  bookingUsername,
+                  maskedCardNumber,
+                  couponId));
+        }
+      }
+      return bookings;
+    } catch (SQLException e) {
+      DatabaseExceptionCategory databaseExceptionCategory =
+          DatabaseExceptionCategory.fromSQLState(e.getSQLState());
+
+      switch (databaseExceptionCategory) {
+        case VALIDATION_ERROR:
+          throw new UserException(e, UserErrorCode.INVALID_USERNAME);
+        case RESOURCE_NOT_FOUND:
+          throw new UserException(e, UserErrorCode.USER_NOT_FOUND);
+        default:
+          throw new UserException(e, AppErrorCode.UNKNOWN);
+      }
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  /**
+   * Retrieve all previous bookings for a user (bookings with start time less than current UTC time).
+   *
+   * @param username the username of the user
+   * @return the list of previous bookings
+   */
+  public List<BookingSummary> getUserPreviousBookings(String username) {
+    String getPreviousBookingsQuery = "{CALL get_user_previous_booking(?)}";
+    List<BookingSummary> bookings = new ArrayList<>();
+    try (Connection connection = dataSource.getConnection();
+        CallableStatement cs = connection.prepareCall(getPreviousBookingsQuery)) {
+      cs.setString("p_username", username);
+      try (ResultSet rs = cs.executeQuery()) {
+        while (rs.next()) {
+          int bookingId = rs.getInt("booking_id");
+          LocalDateTime startTimeLocal = toLocalDateTimeOrNull(rs.getTimestamp("start_time_local"));
+          LocalDateTime endTimeLocal = toLocalDateTimeOrNull(rs.getTimestamp("end_time_local"));
+          BigDecimal amount = rs.getBigDecimal("amount");
+          String complaintSubject = rs.getString("complaint_subject");
+          String complaintDescription = rs.getString("complaint_description");
+          Instant complaintFiledAtUtc = toInstantOrNull(rs.getTimestamp("complaint_filed_at_utc"));
+          Instant complaintResolvedAtUtc =
+              toInstantOrNull(rs.getTimestamp("complaint_resolved_at_utc"));
+          int turfId = rs.getInt("turf_id");
+          String turfName = rs.getString("turf_name");
+          String bookingUsername = rs.getString("username");
+          String maskedCardNumber = rs.getString("masked_card_number");
+          Integer couponId = rs.getObject("coupon_id", Integer.class);
+
+          bookings.add(
+              new BookingSummary(
+                  bookingId,
+                  startTimeLocal,
+                  endTimeLocal,
+                  amount,
+                  complaintSubject,
+                  complaintDescription,
+                  complaintFiledAtUtc,
+                  complaintResolvedAtUtc,
+                  turfId,
+                  turfName,
+                  bookingUsername,
+                  maskedCardNumber,
+                  couponId));
+        }
+      }
+      return bookings;
+    } catch (SQLException e) {
+      DatabaseExceptionCategory databaseExceptionCategory =
+          DatabaseExceptionCategory.fromSQLState(e.getSQLState());
+
+      switch (databaseExceptionCategory) {
+        case VALIDATION_ERROR:
+          throw new UserException(e, UserErrorCode.INVALID_USERNAME);
+        case RESOURCE_NOT_FOUND:
+          throw new UserException(e, UserErrorCode.USER_NOT_FOUND);
+        default:
+          throw new UserException(e, AppErrorCode.UNKNOWN);
+      }
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  /**
    * Convert a SQL {@link Timestamp} to an {@link Instant} while preserving null to avoid an {@link
    * IllegalArgumentException}.
    *
