@@ -83,7 +83,7 @@ export default function PaymentMethodsPage({
         {/* RIGHT PANEL */}
         <div className="min-h-screen basis-3/4 p-10">
           <div className="space-y-6">
-            <h2 className="text-xl font-bold text-stone-600">Saved Cards</h2>
+            <h1 className="text-lg font-bold text-stone-600 mb-5">Saved Cards</h1>
 
             {deleteError && (
               <div className="rounded-md bg-red-50 p-3 text-sm text-red-800">
@@ -100,9 +100,9 @@ export default function PaymentMethodsPage({
             )}
 
             {cards.length === 0 ? (
-              <p className="text-xl font-semibold text-stone-500">
+              <h2 className="text-xl font-semibold text-stone-500/90">
                 No saved cards found
-              </p>
+              </h2>
             ) : (
               cards.map((card, index) => {
                 const expiry = formatExpiryDate(card.expiryDate);
@@ -126,7 +126,7 @@ export default function PaymentMethodsPage({
                         <Button
                           size="sm"
                           // variant="default"
-                          className="rounded bg-green-700 text-white hover:bg-green-600 active:bg-green-700"
+                          className="rounded bg-green-700 text-white hover:bg-green-600 active:bg-green-700 cursor-pointer"
                           onClick={() => setViewCardDialogOpen(index)}
                           disabled={isDeleting}
                         >
@@ -134,7 +134,7 @@ export default function PaymentMethodsPage({
                         </Button>
                         <Button
                           size="sm"
-                          className="rounded bg-black text-white hover:bg-red-600 active:bg-red-700"
+                          className="rounded bg-stone-700 text-white hover:bg-red-600 active:bg-red-700 cursor-pointer"
                           onClick={() => handleDeleteCard(card.cardId)}
                           disabled={isDeleting}
                         >
@@ -149,7 +149,7 @@ export default function PaymentMethodsPage({
 
             <div className="flex justify-end">
               <Button
-                className="rounded bg-green-700 text-white hover:bg-green-600 active:bg-green-700"
+                className="rounded bg-green-700 text-white hover:bg-green-600 active:bg-green-700 cursor-pointer"
                 onClick={() => setIsAddCardDialogOpen(true)}
               >
                 Add Payment Method
