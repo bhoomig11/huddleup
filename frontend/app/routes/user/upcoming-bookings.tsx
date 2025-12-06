@@ -101,7 +101,7 @@ export default function UpcomingBookingsPage({
                           </div>
                           <div className="flex items-center gap-2 text-stone-500">
                             <CreditCard className="size-5 text-green-700" />
-                            <p className="text-stone-500">{booking.maskedCardNumber}</p>
+                            <p className="text-stone-500 font-mono">{booking.maskedCardNumber}</p>
                           </div>
                           <div className="flex items-center gap-2 text-stone-500">
                             <DollarSign className="size-5 text-green-700" />

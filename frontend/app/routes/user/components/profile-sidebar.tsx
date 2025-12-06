@@ -1,10 +1,22 @@
 import { Link, useParams, useLocation } from "react-router";
 import { Separator } from "~/components/ui/separator";
+import { Avatar, AvatarFallback } from "~/components/ui/avatar";
 import { cn } from "~/lib/utils";
-import userImage from "~/assets/user-image.png";
+import { useAppUser } from "~/providers/app-user-provider";
+
+function getInitials(
+  firstName: string | null,
+  lastName: string | null
+): string {
+  const firstInitial = firstName?.[0]?.toUpperCase() || "";
+  const lastInitial = lastName?.[0]?.toUpperCase() || "";
+  const initials = firstInitial + lastInitial;
+  return initials || "U";
+}
 
 export function ProfileSidebar() {
   const { username } = useParams<{ username: string }>();
+  const { firstName, lastName } = useAppUser();
   const location = useLocation();
 
   // Determine active tab based on current route
@@ -21,11 +33,11 @@ export function ProfileSidebar() {
     <div className="min-h-screen basis-1/4 border-r bg-stone-100 p-6">
       {/* User Pic */}
       <div className="mb-10 flex flex-col items-center border-green-700">
-        <img
-          src={userImage}
-          alt="profile"
-          className="h-24 w-24 justify-center rounded-full shadow-sm"
-        />
+        <Avatar className="size-24 border-2 border-stone-300 shadow-sm">
+          <AvatarFallback className="bg-stone-400 font-semibold text-stone-50 text-2xl">
+            {getInitials(firstName, lastName)}
+          </AvatarFallback>
+        </Avatar>
         <span className="mt-3 font-medium text-stone-500">@{username}</span>
       </div>
 
