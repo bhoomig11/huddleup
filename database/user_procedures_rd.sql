@@ -165,7 +165,8 @@ BEGIN
     SELECT announcement_id, announcement_title, sent_at, read_at
     FROM announcement_read_receipt
     INNER JOIN announcement USING (announcement_id)
-    WHERE username = p_username;
+    WHERE username = p_username
+    ORDER BY sent_at DESC;
 END $$
 DELIMITER ;
 
