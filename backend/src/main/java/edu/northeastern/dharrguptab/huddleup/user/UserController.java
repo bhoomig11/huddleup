@@ -184,4 +184,9 @@ public class UserController {
   public void markComplaintAsResolved(@PathVariable String username, @PathVariable int booking_id) {
     userService.markComplaintAsResolved(username, booking_id);
   }
+
+  @PatchMapping("/{username}/booking/{booking_id}/complaint")
+  public void deleteUserComplaint(@PathVariable String username, @PathVariable int booking_id) {
+    userService.deleteUserComplaint(username, booking_id);
+  }
 }

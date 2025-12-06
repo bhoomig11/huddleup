@@ -482,6 +482,28 @@ public class UserService {
   }
 
   /**
+   * Delete a complaint for a user's booking.
+   *
+   * @param username the username of the user
+   * @param bookingId the booking ID for which the complaint is being deleted
+   */
+  public void deleteUserComplaint(String username, int bookingId) {
+    String authenticatedUsername = getAuthenticatedUsername();
+
+    boolean isAuthenticated = authenticatedUsername != null;
+    if (!isAuthenticated) {
+      throw new UnauthenticatedException();
+    }
+
+    boolean isAuthorized = username.equals(authenticatedUsername);
+    if (!isAuthorized) {
+      throw new UnauthorizedException();
+    }
+
+    userRepository.deleteUserComplaint(username, bookingId);
+  }
+
+  /**
    * Get the latest attended booking for a user at a specific turf.
    *
    * @param username the username of the user

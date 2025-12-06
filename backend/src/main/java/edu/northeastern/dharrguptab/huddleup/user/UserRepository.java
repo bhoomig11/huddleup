@@ -757,6 +757,37 @@ public class UserRepository {
   }
 
   /**
+   * Delete a complaint for a user's booking.
+   *
+   * @param username the username of the user
+   * @param bookingId the booking ID for which the complaint is being deleted
+   * @throws UserException if the complaint cannot be deleted
+   */
+  public void deleteUserComplaint(String username, int bookingId) throws UserException {
+    String deleteComplaintQuery = "{CALL delete_user_complaint(?, ?)}";
+    try (Connection connection = dataSource.getConnection();
+        CallableStatement cs = connection.prepareCall(deleteComplaintQuery)) {
+      cs.setString("p_username", username);
+      cs.setInt("p_booking_id", bookingId);
+      cs.executeUpdate();
+    } catch (SQLException e) {
+      DatabaseExceptionCategory databaseExceptionCategory =
+          DatabaseExceptionCategory.fromSQLState(e.getSQLState());
+
+      switch (databaseExceptionCategory) {
+        case VALIDATION_ERROR:
+          throw new UserException(e, UserErrorCode.INVALID_USER_FIELD);
+        case RESOURCE_NOT_FOUND:
+          throw new UserException(e, UserErrorCode.BOOKING_NOT_FOUND);
+        default:
+          throw new UserException(e, AppErrorCode.UNKNOWN);
+      }
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  /**
    * Get the latest attended booking for a user at a specific turf.
    *
    * @param username the username of the user
