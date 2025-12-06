@@ -204,7 +204,7 @@ export function FileComplaintDialog({
               onClick={handleMarkResolved}
               disabled={isResolving}
               variant="outline"
-              className="rounded bg-green-700 text-white hover:bg-green-600 active:bg-green-700"
+              className="rounded text-sm bg-green-700 text-white"
             >
               {isResolving ? "Marking as resolved..." : "Mark as resolved"}
             </Button>
@@ -213,7 +213,7 @@ export function FileComplaintDialog({
             <Button
               variant="outline"
               onClick={handleCancel}
-              className="rounded text-stone-600"
+              className="rounded text-stone-700"
               disabled={isResolving}
             >
               {hasComplaint ? "Close" : "Cancel"}
@@ -221,6 +221,7 @@ export function FileComplaintDialog({
             {!hasComplaint && (
               <Button
                 onClick={handleAddComplaint}
+                className="rounded text-sm bg-green-700 text-white hover:bg-green-600 active:bg-green-700"
                 disabled={!isFormValid || isSubmitting}
               >
                 {isSubmitting ? "Submitting..." : "Add Complaint"}

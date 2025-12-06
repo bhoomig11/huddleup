@@ -216,6 +216,18 @@ export default function UserProfilePage({
     }
   };
 
+  const handleCancelUsername = () => {
+    form.setValue("username", originalUsername ?? "");
+    setIsEditingUsername(false);
+    setUsernameError(null);
+  };
+
+  const handleCancelEmail = () => {
+    form.setValue("email", originalEmail ?? "");
+    setIsEditingEmail(false);
+    setEmailError(null);
+  };
+
   const handleSaveProfile = async (data: ProfileFormValues) => {
     if (!username) {
       return;
@@ -298,7 +310,7 @@ export default function UserProfilePage({
   };
 
   return (
-    <main className="min-h-screen bg-slate-50">
+    <main className="min-h-screen bg-stone-100">
       <div className="mx-auto flex w-full max-w-7xl flex-row">
         {/* LEFT PANEL */}
         <ProfileSidebar />
@@ -306,6 +318,7 @@ export default function UserProfilePage({
         {/* RIGHT PANEL */}
         <div className="min-h-screen basis-3/4 p-10">
           {/* USER DETAILS PANEL */}
+          <h1 className="text-lg font-bold text-stone-600 mb-5">Account Details</h1>
           <form
             className="max-w-xl space-y-6"
             onSubmit={form.handleSubmit(
@@ -340,8 +353,8 @@ export default function UserProfilePage({
                 {!isEditingUsername ? (
                   <Button
                     type="button"
-                    variant="ghost"
-                    className="rounded font-semibold text-green-700"
+                    // variant="ghost"
+                    className="rounded text-sm font-semibold bg-stone-100 text-green-700 hover:bg-stone-300/30 active:bg-stone-300/60"
                     onClick={() => {
                       setIsEditingUsername(true);
                       setUsernameError(null);
@@ -350,13 +363,24 @@ export default function UserProfilePage({
                     Edit
                   </Button>
                 ) : (
-                  <Button
-                    type="button"
-                    onClick={handleSaveUsername}
-                    disabled={!isUsernameChanged || isSavingUsername}
-                  >
-                    {isSavingUsername ? "Saving..." : "Save"}
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button
+                      type="button"
+                      className="rounded text-sm font-semibold bg-stone-100 text-green-700 hover:bg-stone-300/30"
+                      onClick={handleSaveUsername}
+                      disabled={!isUsernameChanged || isSavingUsername}
+                    >
+                      {isSavingUsername ? "Saving..." : "Save"}
+                    </Button>
+                    <Button
+                      type="button"
+                      className="rounded text-sm font-semibold bg-stone-100 text-green-700 hover:bg-stone-300/30 active:bg-stone-300/60"
+                      onClick={handleCancelUsername}
+                      disabled={isSavingUsername}
+                    >
+                      Close
+                    </Button>
+                  </div>
                 )}
               </div>
             </div>
@@ -390,8 +414,8 @@ export default function UserProfilePage({
                 {!isEditingEmail ? (
                   <Button
                     type="button"
-                    variant="ghost"
-                    className="rounded font-semibold text-green-700"
+                    // variant="ghost"
+                    className="rounded font-semibold  bg-stone-100 text-green-700 hover:bg-stone-300/30 active:bg-stone-300/60"
                     onClick={() => {
                       setIsEditingEmail(true);
                       setEmailError(null);
@@ -400,13 +424,24 @@ export default function UserProfilePage({
                     Edit
                   </Button>
                 ) : (
-                  <Button
-                    type="button"
-                    onClick={handleSaveEmail}
-                    disabled={!isEmailChanged || isSavingEmail}
-                  >
-                    {isSavingEmail ? "Saving..." : "Save"}
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button
+                      type="button"
+                      className="rounded text-sm font-semibold bg-stone-100 text-green-700 hover:bg-stone-300/30"
+                      onClick={handleSaveEmail}
+                      disabled={!isEmailChanged || isSavingEmail}
+                    >
+                      {isSavingEmail ? "Saving..." : "Save"}
+                    </Button>
+                    <Button
+                      type="button"
+                      className="rounded text-sm font-semibold bg-stone-100 text-green-700 hover:bg-stone-300/30 active:bg-stone-300/60"
+                      onClick={handleCancelEmail}
+                      disabled={isSavingEmail}
+                    >
+                      Close
+                    </Button>
+                  </div>
                 )}
               </div>
             </div>
@@ -425,8 +460,8 @@ export default function UserProfilePage({
                 />
                 <Button
                   type="button"
-                  variant="ghost"
-                  className="rounded font-semibold text-green-700"
+                  // variant="ghost"
+                  className="rounded text-sm font-semibold bg-stone-100 text-green-700 hover:bg-stone-300/30 active:bg-stone-300/60"
                   onClick={() => setIsPasswordDialogOpen(true)}
                 >
                   Edit
@@ -644,7 +679,7 @@ export default function UserProfilePage({
                 <AlertDialogTrigger asChild>
                   <Button
                     type="button"
-                    className="rounded bg-black text-white hover:bg-red-600 active:bg-red-700"
+                    className="rounded bg-stone-700 text-white hover:bg-red-600 active:bg-red-700"
                   >
                     Delete
                   </Button>
@@ -670,7 +705,7 @@ export default function UserProfilePage({
                     <AlertDialogAction
                       onClick={handleDeleteUser}
                       disabled={isDeleting}
-                      className="bg-red-600 text-white hover:bg-red-700"
+                      className="bg-stone-700 text-white hover:bg-red-700"
                     >
                       {isDeleting ? "Deleting..." : "Yes"}
                     </AlertDialogAction>

@@ -8,16 +8,17 @@ export function ProfileSidebar() {
   const location = useLocation();
 
   // Determine active tab based on current route
-  const getActiveTab = (): "details" | "payment" | "bookings" => {
+  const getActiveTab = (): "details" | "payment" | "previous" | "upcoming" => {
     if (location.pathname.includes("/cards")) return "payment";
-    if (location.pathname.includes("/booking")) return "bookings";
+    if (location.pathname.includes("/booking/upcoming")) return "upcoming";
+    if (location.pathname.includes("/booking")) return "previous";
     return "details";
   };
 
   const activeTab = getActiveTab();
 
   return (
-    <div className="min-h-screen basis-1/4 border-r bg-slate-50 p-6">
+    <div className="min-h-screen basis-1/4 border-r bg-stone-100 p-6">
       {/* User Pic */}
       <div className="mb-10 flex flex-col items-center border-green-700">
         <img
@@ -35,8 +36,8 @@ export function ProfileSidebar() {
         <Link
           to={`/user/${username}/profile`}
           className={cn(
-            "rounded px-2 py-1 text-left text-stone-500 hover:bg-green-100",
-            activeTab === "details" && "bg-green-100 font-semibold"
+            "rounded px-2 py-1 text-left font-semibold text-green-700 hover:bg-stone-300/30",
+            activeTab === "details" && "bg-stone-300/60 font-semibold"
           )}
         >
           Account Details
@@ -45,18 +46,28 @@ export function ProfileSidebar() {
         <Link
           to={`/user/${username}/cards`}
           className={cn(
-            "rounded px-2 py-1 text-left text-stone-500 hover:bg-green-100",
-            activeTab === "payment" && "bg-green-100 font-semibold"
+            "rounded px-2 py-1 text-left font-semibold text-green-700 hover:bg-stone-300/30",
+            activeTab === "payment" && "bg-stone-300/60 font-semibold"
           )}
         >
           Payment Methods
         </Link>
 
         <Link
+          to={`/user/${username}/booking/upcoming`}
+          className={cn(
+            "rounded px-2 py-1 text-left font-semibold text-green-700 hover:bg-stone-300/30",
+            activeTab === "upcoming" && "bg-stone-300/60 font-semibold"
+          )}
+        >
+          Upcoming Bookings
+        </Link>
+
+        <Link
           to={`/user/${username}/booking`}
           className={cn(
-            "rounded px-2 py-1 text-left text-stone-500 hover:bg-green-100",
-            activeTab === "bookings" && "bg-green-100 font-semibold"
+            "rounded px-2 py-1 text-left font-semibold text-green-700 hover:bg-stone-300/30",
+            activeTab === "previous" && "bg-stone-300/60 font-semibold"
           )}
         >
           Previous Bookings

@@ -564,3 +564,137 @@ BEGIN
 END $$
 DELIMITER ;
 
+/**
+ * Procedure: get_user_upcoming_booking
+ * -------------------------------------
+ * Retrieve all upcoming bookings for a user (bookings with start time later than current UTC time).
+ *
+ * Input Parameters
+ * ----------------
+ *   - p_username - the username of the user who made the bookings
+ *
+ * Output Columns
+ * --------------
+ *   - booking_id - the ID of the booking
+ *   - start_time_local - the timestamp for when the booking starts (in turf's local timezone)
+ *   - end_time_local - the timestamp for when the booking ends (in turf's local timezone)
+ *   - amount - the amount paid to confirm the booking
+ *   - complaint_subject - the subject of the associated complaint if any
+ *   - complaint_description - the description of the associated complaint if any
+ *   - complaint_filed_at_utc - the timestamp for when any existing complaint was filed (in UTC)
+ *   - complaint_resolved_at_utc - the timestamp for when any existing complaint was resolved (in UTC)
+ *   - turf_id - the ID of the turf that was booked
+ *   - username - the username of the user who made the booking
+ *   - masked_card_number - the masked number of the card used to confirm the booking
+ *   - coupon_id - the ID of the coupon applied to the booking if any
+ *   - turf_name - the name of the booked turf
+ *
+ * Errors
+ * ------
+ *   - Signals SQLSTATE '45001' if the username given is null or empty
+ *   - Signals SQLSTATE '45002' if no such user exists
+ */
+DROP PROCEDURE IF EXISTS get_user_upcoming_booking;
+DELIMITER $$
+CREATE PROCEDURE get_user_upcoming_booking(IN p_username VARCHAR(64)) 
+BEGIN
+    IF (p_username IS NULL) THEN 
+        SIGNAL SQLSTATE '45001'
+        SET MESSAGE_TEXT = 'Username cannot be NULL';
+    END IF;
+
+    IF NOT EXISTS (SELECT username FROM app_user WHERE username = p_username) THEN
+        SIGNAL SQLSTATE '45002'
+        SET MESSAGE_TEXT = 'No such user exists';
+    END IF;
+
+    SELECT
+        b.booking_id,
+        convert_utc_to_local(b.start_time_utc, t.iana_timezone) AS start_time_local,
+        convert_utc_to_local(b.end_time_utc, t.iana_timezone) AS end_time_local,
+        b.amount,
+        b.complaint_subject,
+        b.complaint_description,
+        b.complaint_filed_at_utc,
+        b.complaint_resolved_at_utc,
+        b.turf_id,
+        b.username,
+        b.masked_card_number,
+        b.coupon_id,
+        t.turf_name
+    FROM booking AS b
+    INNER JOIN turf AS t
+    ON b.turf_id = t.turf_id
+    WHERE b.username = p_username
+        AND b.start_time_utc > UTC_TIMESTAMP()
+    ORDER BY b.start_time_utc ASC;
+END $$
+DELIMITER ;
+
+/**
+ * Procedure: get_user_previous_booking
+ * -------------------------------------
+ * Retrieve all previous bookings for a user (bookings with start time less than current UTC time).
+ *
+ * Input Parameters
+ * ----------------
+ *   - p_username - the username of the user who made the bookings
+ *
+ * Output Columns
+ * --------------
+ *   - booking_id - the ID of the booking
+ *   - start_time_local - the timestamp for when the booking starts (in turf's local timezone)
+ *   - end_time_local - the timestamp for when the booking ends (in turf's local timezone)
+ *   - amount - the amount paid to confirm the booking
+ *   - complaint_subject - the subject of the associated complaint if any
+ *   - complaint_description - the description of the associated complaint if any
+ *   - complaint_filed_at_utc - the timestamp for when any existing complaint was filed (in UTC)
+ *   - complaint_resolved_at_utc - the timestamp for when any existing complaint was resolved (in UTC)
+ *   - turf_id - the ID of the turf that was booked
+ *   - username - the username of the user who made the booking
+ *   - masked_card_number - the masked number of the card used to confirm the booking
+ *   - coupon_id - the ID of the coupon applied to the booking if any
+ *   - turf_name - the name of the booked turf
+ *
+ * Errors
+ * ------
+ *   - Signals SQLSTATE '45001' if the username given is null or empty
+ *   - Signals SQLSTATE '45002' if no such user exists
+ */
+DROP PROCEDURE IF EXISTS get_user_previous_booking;
+DELIMITER $$
+CREATE PROCEDURE get_user_previous_booking(IN p_username VARCHAR(64)) 
+BEGIN
+    IF (p_username IS NULL) THEN 
+        SIGNAL SQLSTATE '45001'
+        SET MESSAGE_TEXT = 'Username cannot be NULL';
+    END IF;
+
+    IF NOT EXISTS (SELECT username FROM app_user WHERE username = p_username) THEN
+        SIGNAL SQLSTATE '45002'
+        SET MESSAGE_TEXT = 'No such user exists';
+    END IF;
+
+    SELECT
+        b.booking_id,
+        convert_utc_to_local(b.start_time_utc, t.iana_timezone) AS start_time_local,
+        convert_utc_to_local(b.end_time_utc, t.iana_timezone) AS end_time_local,
+        b.amount,
+        b.complaint_subject,
+        b.complaint_description,
+        b.complaint_filed_at_utc,
+        b.complaint_resolved_at_utc,
+        b.turf_id,
+        b.username,
+        b.masked_card_number,
+        b.coupon_id,
+        t.turf_name
+    FROM booking AS b
+    INNER JOIN turf AS t
+    ON b.turf_id = t.turf_id
+    WHERE b.username = p_username
+        AND b.start_time_utc < UTC_TIMESTAMP()
+    ORDER BY b.start_time_utc DESC;
+END $$
+DELIMITER ;
+

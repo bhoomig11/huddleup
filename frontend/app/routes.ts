@@ -15,6 +15,7 @@ export default [
     // user routes
     route("user/:username/profile", "routes/user/profile.tsx"),
     route("user/:username/booking", "routes/user/previous-bookings.tsx"),
+    route("user/:username/booking/upcoming", "routes/user/upcoming-bookings.tsx"),
     route("user/:username/cards", "routes/user/payment-methods.tsx"),
 
     // turf routes
